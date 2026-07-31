@@ -465,9 +465,9 @@ input, textarea, select, button{font-family:inherit}
                 <b style="font-size:14px">{{ s.current }}</b>
                 <span style="font-size:12px;color:{{ theme.textSecondary }}">best {{ s.longest }}</span>
               </div>
-              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;width:100%">
+              <div style="display:grid;grid-template-columns:repeat(20,1fr);gap:3px;width:100%">
                 <sc-for list="{{ s.cells }}" as="c" hint-placeholder-count="28">
-                  <span style="width:100%;aspect-ratio:1;border-radius:4px;background:{{ c.color }};animation:popIn .3s ease both;animation-delay:{{ c.delay }}"></span>
+                  <span style="width:100%;aspect-ratio:1;border-radius:2px;background:{{ c.color }};animation:popIn .3s ease both;animation-delay:{{ c.delay }}"></span>
                 </sc-for>
               </div>
             </div>

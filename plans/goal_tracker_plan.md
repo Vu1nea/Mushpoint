@@ -4,6 +4,8 @@
 
 **Platform:** Desktop app (Windows + macOS), local-first — no cloud sync or accounts in v1.
 
+**Note:** When implmenting always follow coding and formatting best practices. Don't be afraid to make components/functions if it makes the code readable or follow DRY principles
+
 ---
 
 ## 1. Tech Stack
