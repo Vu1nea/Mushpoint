@@ -39,6 +39,7 @@ Category (School, Gym, Work, Side Projects, Social, +custom)
         ├── due date (optional)
         ├── motivation / inspiration (text and/or image)
         ├── progress % — auto-calculated (see rule below)
+        ├── status: active / completed / archived (see note below)
         ├── Subgoal (flat — no nested subgoals)
         │     ├── due date (optional)
         │     ├── can be AI-generated (Phase 2)
@@ -48,12 +49,12 @@ Category (School, Gym, Work, Side Projects, Social, +custom)
 Project (Project Manager)
   ├── optionally linked to a parent Goal
   ├── progress % — auto-calculated, same rule as Goals
-  ├── kanban view of all its tasks (To Do / In Progress / Done)
+  ├── kanban view of all its tasks (To Do / In Progress / Done — fixed columns, no custom columns for v1)
   └── Target (same table as Subgoal, flat — no sub-targets)
-        └── Task (multiple)
+        └── Project Task (multiple — separate table from Task Manager's Task, see note below)
 
-Task (shared entity — lives in Task Manager)
-  ├── optionally linked to a Goal, Subgoal, Project, or Target
+Task (lives in Task Manager)
+  ├── optionally linked to a Goal or Subgoal
   ├── recurring flag → if true, tracks a Streak
   └── status (todo / in progress / done)
 
@@ -71,7 +72,9 @@ Settings (single local row — no multi-user support needed)
 ```
 
 **Design notes:**
-- Task and Subgoal/Target are shared entities reused across Goals and Projects, rather than building parallel systems for structurally identical concepts.
+- Subgoal and Target are the shared flat-grouping entity, reused across Goals and Projects.
+- Task and Project Task are **intentionally separate tables**, not a shared entity. They're structurally similar (title, status, due date) but scoped to different surfaces: Task belongs to Task Manager (goal/subgoal-linked, carries the recurring/streak fields) and Project Task belongs to a Project's kanban board (project/target-linked only). A task created on a project board is a project artifact, not something that should also clutter the standalone Task Manager list — keeping them separate is a deliberate UI decision, not an oversight.
+- **Goal status vs. progress:** progress % and `status` are independent. Progress can hit 100% and later regress (e.g. a task gets reopened) — that's a metric, not a lifecycle state. `status` is an explicit, user-driven flag: a Goal is marked complete/archived on purpose, not automatically when progress hits 100%. Completed/archived goals drop out of the default active views (Dashboard, Goals list) and live in a separate "Completed" filter on the Goals page.
 - **Progress calculation rule:** a Goal's (or Project's) progress is the average completion across all of its direct children — subgoals/targets and directly-linked tasks all count as equal-weight units. A subgoal's own completion is the average of its tasks, so a half-done subgoal contributes 0.5 to its parent rather than a flat 0 or 1. This keeps progress bars moving smoothly instead of jumping in large steps.
 
 ---
@@ -80,6 +83,7 @@ Settings (single local row — no multi-user support needed)
 
 ### Core
 - [ ] Create/edit/delete Goals (short/mid/long term)
+- [ ] Mark a Goal complete or archived (explicit status, independent of progress %) — Completed filter on Goals list, hidden from Dashboard/active views by default
 - [ ] Categories (default 5 + user-created custom categories)
 - [ ] Subgoals (flat, not nested), each with its own due date, completion state, and multiple linked tasks
 - [ ] Goal progress auto-calculated from subgoal/task completion
@@ -98,9 +102,9 @@ Settings (single local row — no multi-user support needed)
 - [ ] Visual indicator (calendar heatmap style, à la GitHub contributions)
 
 ### Project Manager
-- [ ] Kanban board per project (To Do / In Progress / Done, or custom columns)
+- [ ] Kanban board per project (To Do / In Progress / Done — fixed columns, no custom columns for v1)
 - [ ] Optional link to a parent Goal
-- [ ] Project Targets (same structure as Subgoals — flat), each with their own tasks
+- [ ] Project Targets (same structure as Subgoals — flat), each with their own Project Tasks (separate table from Task Manager's Task — see Section 3 design notes)
 - [ ] Project-level progress % — auto-calculated, same rule as Goals
 
 ### Ideas Storage

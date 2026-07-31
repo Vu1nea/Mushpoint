@@ -13,6 +13,9 @@
 <script src="./image-slot.js"></script>
 <style>
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardPulse{0%{transform:scale(1)}35%{transform:scale(1.035)}100%{transform:scale(1)}}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 @keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
 @property --ring-p{syntax:'<angle>';inherits:false;initial-value:0deg}
 input:focus, textarea:focus, select:focus{outline:none}
@@ -29,44 +32,44 @@ input, textarea, select, button{font-family:inherit}
 <div style="display:flex;height:100vh;width:100%;background:{{ theme.bg }};color:{{ theme.textPrimary }};overflow:hidden;position:relative">
 
   <div style="width:{{ sidebarWidth }};flex:none;background:{{ theme.surface }};border-right:1px solid {{ theme.border }};display:flex;flex-direction:column;transition:width .25s ease;overflow:hidden">
-    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px;overflow:hidden;white-space:nowrap">
-      <div style="width:34px;height:34px;border-radius:50%;background:{{ theme.accent }};flex:none;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:{{ theme.bg }}">M</div>
-      <sc-if value="{{ sidebarOpen }}"><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:.2px;color:{{ theme.textPrimary }}">Mushpoint</span></sc-if>
+    <div style="display:flex;align-items:center;gap:9px;padding:16px 14px 12px;overflow:hidden;white-space:nowrap">
+      <div style="width:28px;height:28px;border-radius:50%;background:{{ theme.accent }};flex:none;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12.5px;color:{{ theme.bg }}">M</div>
+      <sc-if value="{{ sidebarOpen }}"><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;letter-spacing:.2px;color:{{ theme.textPrimary }}">Mushpoint</span></sc-if>
     </div>
 
-    <sc-if value="{{ sidebarOpen }}"><div style="padding:6px 22px 8px;font-size:12.5px;color:{{ theme.textSecondary }};opacity:.75">Workspace</div></sc-if>
-    <div style="display:flex;flex-direction:column;gap:2px;padding:4px 12px;flex:1;overflow-y:auto">
-      <a href="#/dashboard" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navDashboard.bg }};color:{{ navDashboard.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="13" y="13" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navDashboard.weight }}">Dashboard</span></sc-if>
+    <sc-if value="{{ sidebarOpen }}"><div style="padding:4px 16px 6px;font-size:11px;color:{{ theme.textSecondary }};opacity:.75">Workspace</div></sc-if>
+    <div style="display:flex;flex-direction:column;gap:1px;padding:4px 10px;flex:1;overflow-y:auto">
+      <a href="#/dashboard" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navDashboard.bg }};color:{{ navDashboard.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="13" y="13" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navDashboard.weight }}">Dashboard</span></sc-if>
       </a>
-      <a href="#/goals" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navGoals.bg }};color:{{ navGoals.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"></circle><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"></circle><circle cx="12" cy="12" r="0.9" fill="currentColor"></circle></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navGoals.weight }}">Goal Tracker</span></sc-if>
+      <a href="#/goals" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navGoals.bg }};color:{{ navGoals.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"></circle><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"></circle><circle cx="12" cy="12" r="0.9" fill="currentColor"></circle></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navGoals.weight }}">Goal Tracker</span></sc-if>
       </a>
-      <a href="#/projects" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navProjects.bg }};color:{{ navProjects.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3" y="4" width="5" height="16" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="9.5" y="4" width="5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="16" y="4" width="5" height="13" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navProjects.weight }}">Project Manager</span></sc-if>
+      <a href="#/projects" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navProjects.bg }};color:{{ navProjects.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3" y="4" width="5" height="16" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="9.5" y="4" width="5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="16" y="4" width="5" height="13" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navProjects.weight }}">Project Manager</span></sc-if>
       </a>
-      <a href="#/tasks" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navTasks.bg }};color:{{ navTasks.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.8"></rect><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navTasks.weight }}">Task Manager</span></sc-if>
+      <a href="#/tasks" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navTasks.bg }};color:{{ navTasks.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.8"></rect><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navTasks.weight }}">Task Manager</span></sc-if>
       </a>
-      <a href="#/ideas" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navIdeas.bg }};color:{{ navIdeas.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><path d="M12 3a6 6 0 00-3.5 10.9c.6.45 1 1.15 1 1.9v.7h5v-.7c0-.75.4-1.45 1-1.9A6 6 0 0012 3z" stroke="currentColor" stroke-width="1.8"></path><path d="M10 19h4M10.5 21h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navIdeas.weight }}">Idea Vault</span></sc-if>
+      <a href="#/ideas" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navIdeas.bg }};color:{{ navIdeas.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><path d="M12 3a6 6 0 00-3.5 10.9c.6.45 1 1.15 1 1.9v.7h5v-.7c0-.75.4-1.45 1-1.9A6 6 0 0012 3z" stroke="currentColor" stroke-width="1.8"></path><path d="M10 19h4M10.5 21h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navIdeas.weight }}">Idea Vault</span></sc-if>
       </a>
-      <a href="#/vision" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navVision.bg }};color:{{ navVision.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="12.5" y="3.5" width="8" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="12.5" y="10.5" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="3.5" y="13.5" width="8" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navVision.weight }}">Vision Board</span></sc-if>
+      <a href="#/vision" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navVision.bg }};color:{{ navVision.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="12.5" y="3.5" width="8" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="12.5" y="10.5" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="3.5" y="13.5" width="8" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navVision.weight }}">Vision Board</span></sc-if>
       </a>
-      <a href="#/settings" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navSettings.bg }};color:{{ navSettings.color }};margin-bottom:2px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"></circle><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.2a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.2a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.2a1.6 1.6 0 00-1.5 1z" stroke="currentColor" stroke-width="1.5"></path></svg>
-        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navSettings.weight }}">Settings</span></sc-if>
+      <a href="#/settings" style="display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:9px;white-space:nowrap;overflow:hidden;background:{{ navSettings.bg }};color:{{ navSettings.color }};margin-bottom:2px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"></circle><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.2a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.2a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.2a1.6 1.6 0 00-1.5 1z" stroke="currentColor" stroke-width="1.5"></path></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:13px;font-weight:{{ navSettings.weight }}">Settings</span></sc-if>
       </a>
     </div>
 
-    <div style="padding:16px;border-top:1px solid {{ theme.border }};display:flex;align-items:center;justify-content:space-between;gap:8px">
+    <div style="padding:12px 14px;border-top:1px solid {{ theme.border }};display:flex;align-items:center;justify-content:space-between;gap:8px">
       <sc-if value="{{ sidebarOpen }}"><span style="font-size:11px;color:{{ theme.textSecondary }};text-transform:uppercase;letter-spacing:.06em">{{ themeName }}</span></sc-if>
       <button onclick="{{ quickToggleTheme }}" title="Switch theme" style="width:{{ themeSwitchWidth }};height:22px;border-radius:11px;border:1px solid {{ theme.border }};background:{{ theme.bg }};position:relative;cursor:pointer;padding:0;flex:none">
         <span style="position:absolute;top:1px;left:{{ themeDotLeft }};width:18px;height:18px;border-radius:50%;background:{{ theme.accent }};transition:left .2s"></span>
@@ -84,7 +87,7 @@ input, textarea, select, button{font-family:inherit}
     <div style="flex:1;overflow-y:auto;padding:36px 44px 60px">
 
       <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
-        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Today</h1>
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:26px;margin:0 0 4px;font-weight:600">Today</h1>
         <p style="margin:0 0 26px;color:{{ theme.textSecondary }};font-size:14px">{{ todayLabel }}</p>
 
         <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px">
@@ -93,10 +96,10 @@ input, textarea, select, button{font-family:inherit}
             <div style="display:flex;flex-direction:column;gap:14px">
               <sc-for list="{{ dashboardGoalGroups }}" as="grp" hint-placeholder-count="3">
                 <div>
-                  <div style="font-size:12px;color:{{ grp.color }};font-weight:600;margin-bottom:8px">{{ grp.name }}</div>
+                  <div style="font-size:12px;color:{{ grp.color }};font-weight:500;margin-bottom:8px">{{ grp.name }}</div>
                   <sc-for list="{{ grp.goals }}" as="g" hint-placeholder-count="2">
                     <a href="{{ g.href }}" style="display:block;text-decoration:none;color:{{ theme.textPrimary }};margin-bottom:10px">
-                      <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px"><span>{{ g.title }}</span><span>{{ g.progressPct }}</span></div>
+                      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-bottom:6px"><span>{{ g.title }}</span><span style="color:{{ theme.textSecondary }};font-weight:400">{{ g.progressPct }}</span></div>
                       <div style="height:7px;border-radius:4px;background:{{ theme.bg }};overflow:hidden">
                         <div style="height:100%;width:{{ g.progressPctBar }};background:{{ g.color }};transition:width 1.1s cubic-bezier(.22,1,.36,1);transition-delay:{{ g.delay }}"></div>
                       </div>
@@ -138,19 +141,19 @@ input, textarea, select, button{font-family:inherit}
 
           <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:20px">
             <h3 style="margin:0 0 14px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Streaks</h3>
-            <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
               <sc-for list="{{ streakCards }}" as="s" hint-placeholder-count="2">
-                <div>
-                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
-                    <span style="font-weight:600">{{ s.title }}</span>
-                    <span style="color:{{ theme.textSecondary }}"><b style="color:{{ theme.accent2 }}">{{ s.current }}</b> · best {{ s.longest }}</span>
-                  </div>
-                  <div style="display:flex;gap:2px;flex-wrap:wrap">
-                    <sc-for list="{{ s.cells }}" as="c" hint-placeholder-count="28">
-                      <span style="width:8px;height:8px;border-radius:2px;background:{{ c.color }}"></span>
-                    </sc-for>
-                  </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" style="flex:none"><path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0112 21a5.5 5.5 0 01-5.5-5.5C6.5 10 9 7 12 2z" fill="none" stroke="{{ theme.accent3 }}" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                  <span style="flex:1;font-size:12.5px;font-weight:400">{{ s.title }}</span>
+                  <span style="font-size:12.5px;font-weight:600">{{ s.current }}</span>
+                  <span style="font-size:11px;color:{{ theme.textSecondary }}">best {{ s.longest }}</span>
                 </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:3px">
+              <sc-for list="{{ dashboardStreakCells }}" as="c" hint-placeholder-count="72">
+                <span style="width:8px;height:8px;border-radius:2px;background:{{ c.color }};animation:popIn .3s ease both;animation-delay:{{ c.delay }}"></span>
               </sc-for>
             </div>
           </div>
@@ -179,7 +182,12 @@ input, textarea, select, button{font-family:inherit}
                 <button onclick="{{ qt.onClick }}" style="padding:8px 14px;border-radius:6px;border:none;background:{{ qt.bg }};color:{{ qt.color }};font-size:13px;font-weight:600;cursor:pointer">{{ qt.label }}</button>
               </sc-for>
             </div>
-            <input value="{{ quickAddDraft }}" onchange="{{ setQuickAddDraft }}" onkeydown="{{ quickAddKeydown }}" placeholder="{{ quickAddPlaceholder }}" style="flex:1;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 14px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+            <div style="flex:1">
+              <input value="{{ quickAddDraft }}" onchange="{{ setQuickAddDraft }}" onkeydown="{{ quickAddKeydown }}" placeholder="{{ quickAddPlaceholder }}" style="width:100%;background:{{ theme.bg }};border:1px solid {{ quickAddBorder }};border-radius:9px;padding:11px 14px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s;animation:{{ quickAddShakeAnim }}" style-focus="border-color:{{ theme.accent }}"/>
+              <sc-if value="{{ quickAddFieldError }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px;color:{{ warnColor }};margin-top:6px">Type something before adding</div>
+              </sc-if>
+            </div>
             <button onclick="{{ submitQuickAdd }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 20px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer">+ Add</button>
           </div>
         </div>
@@ -212,7 +220,7 @@ input, textarea, select, button{font-family:inherit}
             </div>
             <div style="display:flex;flex-direction:column;gap:10px">
               <sc-for list="{{ group.goals }}" as="goal" hint-placeholder-count="2">
-                <a href="{{ goal.href }}" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;color:{{ theme.textPrimary }};animation:fadeInUp .4s ease both;animation-delay:{{ goal.delay }}">
+                <a href="{{ goal.href }}" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;color:{{ theme.textPrimary }};animation:fadeInUp .4s ease both;animation-delay:{{ goal.delay }};transition:box-shadow .15s,transform .15s;--glow:{{ theme.accent }}" style-hover="box-shadow:0 8px 14px -6px var(--glow);transform:translateY(-1px)">
                   <div style="width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;position:relative;--ring-p:{{ goal.progressDeg }}deg;background:conic-gradient({{ goal.color }} var(--ring-p), {{ theme.border }} 0deg);transition:--ring-p 1.1s cubic-bezier(.22,1,.36,1)">
                     <div style="position:absolute;inset:4px;border-radius:50%;background:{{ theme.surface }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{ goal.progressPct }}</div>
                   </div>
@@ -310,7 +318,7 @@ input, textarea, select, button{font-family:inherit}
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px">
           <sc-for list="{{ projectCards }}" as="p" hint-placeholder-count="3">
-            <a href="{{ p.href }}" style="display:flex;flex-direction:column;gap:14px;padding:20px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;color:{{ theme.textPrimary }};animation:fadeInUp .4s ease both;animation-delay:{{ p.delay }}">
+            <a href="{{ p.href }}" style="display:flex;flex-direction:column;gap:14px;padding:20px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;color:{{ theme.textPrimary }};animation:fadeInUp .4s ease both;animation-delay:{{ p.delay }};transition:box-shadow .15s,transform .15s;--glow:{{ theme.accent }}" style-hover="box-shadow:0 8px 14px -6px var(--glow);transform:translateY(-1px)">
               <div style="display:flex;align-items:center;justify-content:space-between">
                 <div style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;--ring-p:{{ p.progressDeg }}deg;background:conic-gradient({{ theme.accent2 }} var(--ring-p), {{ theme.border }} 0deg);transition:--ring-p 1.1s cubic-bezier(.22,1,.36,1)">
                   <div style="position:absolute;inset:4px;border-radius:50%;background:{{ theme.surface }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700">{{ p.progressPct }}</div>
@@ -408,7 +416,7 @@ input, textarea, select, button{font-family:inherit}
         <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
           <div>
             <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Tasks</h1>
-            <p style="margin:0;color:{{ theme.textSecondary }};font-size:14px">{{ filteredTasks.length }} shown of {{ tasks.length }}</p>
+            <p style="margin:0;color:{{ theme.textSecondary }};font-size:14px">Everything on your plate</p>
           </div>
           <button onclick="{{ openTaskDrawer }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
             <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
@@ -419,14 +427,14 @@ input, textarea, select, button{font-family:inherit}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
           <sc-for list="{{ streakCards }}" as="s" hint-placeholder-count="2">
             <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;padding:18px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-                <div style="font-size:14px;font-weight:600">{{ s.title }}</div>
-                <div style="display:flex;gap:14px;font-size:12px;color:{{ theme.textSecondary }}">
-                  <span><b style="color:{{ theme.accent2 }};font-size:14px">{{ s.current }}</b> current</span>
-                  <span><b style="font-size:14px">{{ s.longest }}</b> best</span>
-                </div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:{{ theme.accent }};margin-bottom:12px">Streaks</div>
+              <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+                <svg width="14" height="14" viewBox="0 0 24 24" style="flex:none"><path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0112 21a5.5 5.5 0 01-5.5-5.5C6.5 10 9 7 12 2z" fill="{{ theme.accent }}"/></svg>
+                <span style="flex:1;font-size:13.5px;font-weight:600">{{ s.title }}</span>
+                <b style="font-size:14px">{{ s.current }}</b>
+                <span style="font-size:12px;color:{{ theme.textSecondary }}">best {{ s.longest }}</span>
               </div>
-              <div style="display:flex;gap:3px">
+              <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:260px">
                 <sc-for list="{{ s.cells }}" as="c" hint-placeholder-count="28">
                   <span style="width:11px;height:11px;border-radius:3px;background:{{ c.color }};animation:popIn .3s ease both;animation-delay:{{ c.delay }}"></span>
                 </sc-for>
@@ -435,28 +443,28 @@ input, textarea, select, button{font-family:inherit}
           </sc-for>
         </div>
 
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <sc-for list="{{ taskFilterChips }}" as="chip" hint-placeholder-count="6">
-            <button onclick="{{ chip.onClick }}" style="padding:7px 14px;border-radius:999px;border:1px solid {{ chip.border }};background:{{ chip.bg }};color:{{ chip.color }};font-size:13px;font-weight:600;cursor:pointer">{{ chip.label }}</button>
-          </sc-for>
-        </div>
-
-        <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;overflow:hidden">
-          <sc-for list="{{ filteredTasks }}" as="t" hint-placeholder-count="6">
-            <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid {{ theme.border }};animation:fadeInUp .35s ease both;animation-delay:{{ t.delay }}">
-              <label style="position:relative;flex:none;display:flex;cursor:pointer">
-                <input type="checkbox" checked="{{ t.done }}" onchange="{{ t.toggle }}" style="position:absolute;opacity:0;width:18px;height:18px;margin:0;cursor:pointer"/>
-                <span style="width:17px;height:17px;flex:none;border-radius:6px;border:1.5px solid {{ t.checkBorder }};background:{{ t.checkBg }};display:flex;align-items:center;justify-content:center">
-                  <sc-if value="{{ t.done }}"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="{{ theme.bg }}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
-                </span>
-              </label>
-              <span style="flex:1;font-size:13.5px;text-decoration:{{ t.strike }};color:{{ t.textColor }}">{{ t.title }}</span>
-              <span style="font-size:11.5px;color:{{ t.parentColor }};background:{{ theme.bg }};padding:4px 9px;border-radius:999px;flex:none;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.parentLabel }}</span>
-              <sc-if value="{{ t.recurring }}" hint-placeholder-val="{{ false }}">
-                <svg width="14" height="14" viewBox="0 0 24 24" style="flex:none" title="Recurring"><path d="M4 4v5h5M20 20v-5h-5" stroke="{{ theme.accent3 }}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M4.5 15a8 8 0 0014.2 3.4M19.5 9A8 8 0 005.3 5.6" stroke="{{ theme.accent3 }}" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-              </sc-if>
-              <span style="font-size:11.5px;color:{{ theme.textSecondary }};flex:none;min-width:70px;text-align:right">{{ t.dueLabel }}</span>
-              <span style="font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:{{ t.statusBg }};color:{{ t.statusColor }};flex:none;min-width:76px;text-align:center">{{ t.statusLabel }}</span>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <sc-for list="{{ taskBoardColumns }}" as="col" hint-placeholder-count="3">
+            <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:200px">
+              <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:{{ theme.textSecondary }};display:flex;justify-content:space-between">
+                <span>{{ col.label }}</span><span>{{ col.count }}</span>
+              </div>
+              <sc-for list="{{ col.cards }}" as="t" hint-placeholder-count="4">
+                <div onclick="{{ t.toggle }}" style="background:{{ theme.bg }};border:1px solid {{ t.pulse }};border-radius:12px;padding:14px;cursor:pointer;animation:{{ t.cardAnim }};animation-delay:{{ t.delay }};box-shadow:{{ t.glow }};transition:box-shadow .15s,transform .15s;--glow:{{ theme.accent }}" style-hover="box-shadow:0 8px 14px -6px var(--glow);transform:translateY(-1px)">
+                  <div style="font-size:14px;font-weight:600;text-decoration:{{ t.strike }};color:{{ t.textColor }};margin-bottom:10px;line-height:1.35">{{ t.title }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <sc-if value="{{ t.hasParent }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:11px;font-weight:600;color:{{ t.parentColor }};background:{{ t.parentBg }};padding:4px 10px;border-radius:999px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.parentLabel }}</span>
+                    </sc-if>
+                    <sc-if value="{{ t.recurring }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:11px;font-weight:600;color:{{ theme.accent2 }};background:{{ theme.accent2 }}22;padding:4px 10px;border-radius:999px">{{ t.cadenceLabel }}</span>
+                    </sc-if>
+                    <sc-if value="{{ t.showDue }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:11.5px;color:{{ theme.textSecondary }}">{{ t.dueLabel }}</span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
             </div>
           </sc-for>
         </div>
@@ -521,13 +529,13 @@ input, textarea, select, button{font-family:inherit}
       </sc-if>
 
       <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
-        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 24px;font-weight:700">Settings</h1>
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 24px;font-weight:700;animation:fadeInUp .35s ease both">Settings</h1>
 
-        <div style="margin-bottom:32px">
+        <div style="margin-bottom:32px;animation:fadeInUp .4s ease both;animation-delay:.04s">
           <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Theme</h3>
           <div style="display:flex;gap:16px">
             <sc-for list="{{ themeSwatches }}" as="sw" hint-placeholder-count="2">
-              <button onclick="{{ sw.onClick }}" style="cursor:pointer;padding:4px;border-radius:16px;border:2px solid {{ sw.ringColor }};background:none;width:220px">
+              <button onclick="{{ sw.onClick }}" style="cursor:pointer;padding:4px;border-radius:16px;border:2px solid {{ sw.ringColor }};background:none;width:220px;transition:transform .15s" style-hover="transform:translateY(-2px)">
                 <div style="border-radius:12px;overflow:hidden;border:1px solid {{ theme.border }}">
                   <div style="height:60px;background:{{ sw.bg }};display:flex;align-items:center;padding:0 14px;gap:8px">
                     <span style="width:14px;height:14px;border-radius:50%;background:{{ sw.accent }}"></span>
@@ -543,11 +551,11 @@ input, textarea, select, button{font-family:inherit}
           </div>
         </div>
 
-        <div style="margin-bottom:32px">
+        <div style="margin-bottom:32px;animation:fadeInUp .4s ease both;animation-delay:.08s">
           <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Categories</h3>
           <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
             <sc-for list="{{ categoryRows }}" as="c" hint-placeholder-count="5">
-              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:10px">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:10px;animation:fadeInUp .3s ease both;animation-delay:{{ c.delay }}">
                 <span style="width:10px;height:10px;border-radius:50%;background:{{ c.color }}"></span>
                 <span style="font-size:13.5px">{{ c.name }}</span>
               </div>
@@ -558,7 +566,7 @@ input, textarea, select, button{font-family:inherit}
           </div>
         </div>
 
-        <div style="margin-bottom:32px">
+        <div style="margin-bottom:32px;animation:fadeInUp .4s ease both;animation-delay:.12s">
           <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Streaks</h3>
           <div style="display:flex;align-items:center;gap:16px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:12px;padding:16px;max-width:420px">
             <div style="flex:1">
@@ -571,7 +579,7 @@ input, textarea, select, button{font-family:inherit}
           </div>
         </div>
 
-        <div style="margin-bottom:32px">
+        <div style="margin-bottom:32px;animation:fadeInUp .4s ease both;animation-delay:.16s">
           <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Data & Backup</h3>
           <div style="display:flex;align-items:center;gap:16px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:12px;padding:16px;max-width:420px">
             <div style="flex:1">
@@ -582,7 +590,7 @@ input, textarea, select, button{font-family:inherit}
           </div>
         </div>
 
-        <div>
+        <div style="animation:fadeInUp .4s ease both;animation-delay:.2s">
           <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">About</h3>
           <div style="font-size:13px;color:{{ theme.textSecondary }}">Mushpoint · v0.1.0 · local-first, no cloud sync</div>
         </div>
@@ -603,7 +611,13 @@ input, textarea, select, button{font-family:inherit}
       <div style="padding:22px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;flex:1">
         <div>
           <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Title</label>
-          <input value="{{ draftTitle }}" onchange="{{ setDraftTitle }}" placeholder="{{ drawerTitlePlaceholder }}" style="width:100%;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 13px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+          <input value="{{ draftTitle }}" onchange="{{ setDraftTitle }}" placeholder="{{ drawerTitlePlaceholder }}" style="width:100%;background:{{ theme.bg }};border:1px solid {{ titleFieldBorder }};border-radius:9px;padding:11px 13px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s;animation:{{ titleShakeAnim }}" style-focus="border-color:{{ theme.accent }}"/>
+          <sc-if value="{{ drawerFieldError }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:{{ warnColor }}">
+              <svg width="13" height="13" viewBox="0 0 24 24" style="flex:none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              Title is required
+            </div>
+          </sc-if>
         </div>
         <sc-if value="{{ drawerNeedsCategory }}" hint-placeholder-val="{{ false }}">
           <div>
@@ -679,8 +693,23 @@ input, textarea, select, button{font-family:inherit}
           </sc-if>
         </sc-if>
       </div>
-      <div style="padding:18px 22px;border-top:1px solid {{ theme.border }}">
-        <button onclick="{{ submitDrawer }}" style="width:100%;background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:13px;border-radius:10px;font-size:14.5px;font-weight:700;cursor:pointer">{{ drawerSubmitLabel }}</button>
+      <div style="padding:18px 22px;border-top:1px solid {{ theme.border }};display:flex;flex-direction:column;gap:12px">
+        <sc-if value="{{ drawerError }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:flex-start;gap:10px;background:{{ warnBg }};border:1px solid {{ warnColor }}55;border-radius:10px;padding:12px 14px;animation:fadeInUp .25s ease both">
+            <svg width="16" height="16" viewBox="0 0 24 24" style="flex:none;margin-top:1px"><circle cx="12" cy="12" r="9" stroke="{{ warnColor }}" stroke-width="2" fill="none"/><path d="M12 8v5M12 16h.01" stroke="{{ warnColor }}" stroke-width="2" stroke-linecap="round"/></svg>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:600;color:{{ warnColor }};margin-bottom:2px">Couldn't save</div>
+              <div style="font-size:12.5px;color:{{ theme.textSecondary }}">{{ drawerError }}</div>
+            </div>
+            <button onclick="{{ retryDrawer }}" style="flex:none;background:none;border:1px solid {{ warnColor }};color:{{ warnColor }};font-size:12px;font-weight:600;padding:6px 11px;border-radius:7px;cursor:pointer">Retry</button>
+          </div>
+        </sc-if>
+        <button onclick="{{ submitDrawer }}" disabled="{{ drawerSubmitting }}" style="width:100%;background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:13px;border-radius:10px;font-size:14.5px;font-weight:700;cursor:{{ submitCursor }};opacity:{{ submitOpacity }};display:flex;align-items:center;justify-content:center;gap:8px">
+          <sc-if value="{{ drawerSubmitting }}" hint-placeholder-val="{{ false }}">
+            <svg width="15" height="15" viewBox="0 0 24 24" style="animation:spin .7s linear infinite"><circle cx="12" cy="12" r="9" stroke="{{ theme.bg }}" stroke-width="2.5" fill="none" opacity=".3"/><path d="M21 12a9 9 0 00-9-9" stroke="{{ theme.bg }}" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+          </sc-if>
+          <span>{{ drawerSubmitLabel }}</span>
+        </button>
       </div>
     </div>
   </sc-if>
@@ -711,6 +740,8 @@ class Component extends DCLogic {
     hash: '#/dashboard',
     quickAddType: 'task', quickAddDraft: '',
     drawerOpen: false, drawerAnimIn: false, drawerType: null,
+    drawerFieldError: false, drawerShakeKey: 0, drawerSubmitting: false, drawerError: null,
+    quickAddFieldError: false, quickAddShakeKey: 0,
     draftTitle:'', draftCategory:'work', draftTimeframe:'short', draftMotivation:'',
     draftParentGoal:'', draftNote:'', draftDue:'', draftRecurring:false, draftVisionType:'image',
     categoryFilter: 'all',
@@ -760,9 +791,9 @@ class Component extends DCLogic {
       {id:'t15', title:'Collect peer feedback', goalId:'g4', subgoalId:null, status:'todo', due:null, recurring:false},
       {id:'t16', title:'Pick first 4 hosts', goalId:'g5', subgoalId:'sg7', status:'done', due:null, recurring:false},
       {id:'t17', title:'Send invite thread', goalId:'g5', subgoalId:'sg7', status:'in_progress', due:'2026-08-01', recurring:false},
-      {id:'t18', title:'Morning mobility routine', goalId:null, subgoalId:null, status:'in_progress', due:null, recurring:true, streakCurrent:12, streakLongest:30},
-      {id:'t19', title:'Read 20 min', goalId:null, subgoalId:null, status:'in_progress', due:null, recurring:true, streakCurrent:5, streakLongest:18},
-      {id:'t20', title:'Log workout', goalId:'g2', subgoalId:null, status:'in_progress', due:null, recurring:true, streakCurrent:8, streakLongest:21},
+      {id:'t18', title:'Morning mobility routine', goalId:null, subgoalId:null, status:'in_progress', due:null, recurring:true, cadence:'daily', streakCurrent:12, streakLongest:30},
+      {id:'t19', title:'Read 20 min', goalId:null, subgoalId:null, status:'in_progress', due:null, recurring:true, cadence:'daily', streakCurrent:5, streakLongest:18},
+      {id:'t20', title:'Log workout', goalId:'g2', subgoalId:null, status:'in_progress', due:null, recurring:true, cadence:'weekly', streakCurrent:8, streakLongest:21},
     ],
     projects: [
       {id:'p1', name:'Portfolio Redesign', goalId:'g1'},
@@ -885,8 +916,15 @@ class Component extends DCLogic {
 
   setCategoryFilter(id){ this.setState({ categoryFilter: id }); }
   toggleSubgoal(id){ this.setState(s=>({ expandedSubgoals: { ...s.expandedSubgoals, [id]: !s.expandedSubgoals[id] } })); }
+
   toggleTaskDone(id){
     this.setState(s=>({ tasks: s.tasks.map(t=> t.id===id ? { ...t, status: t.status==='done' ? 'todo' : 'done' } : t) }));
+  }
+  cycleTaskStatus(id){
+    const order = ['todo','in_progress','done'];
+    this.setState(s=>({ tasks: s.tasks.map(t=> t.id===id ? { ...t, status: order[(order.indexOf(t.status)+1)%3] } : t), justMovedTaskId: id }));
+    clearTimeout(this._moveTimer);
+    this._moveTimer = setTimeout(()=>this.setState({ justMovedTaskId:null }), 500);
   }
   addSubgoalTask(sgId, title){
     if(!title || !title.trim()) return;
@@ -933,12 +971,12 @@ class Component extends DCLogic {
   setVisionSort(v){ this.setState({ visionSort: v }); }
   submitQuickAdd(){
     const title = this.state.quickAddDraft.trim();
-    if(!title) return;
+    if(!title){ this.setState(s=>({ quickAddFieldError:true, quickAddShakeKey: s.quickAddShakeKey+1 })); return; }
     const type = this.state.quickAddType;
     if(type==='idea') this.setState(s=>({ ideas: [{ id: uid('i'), title, note:'', tags:[] }, ...s.ideas] }));
     else if(type==='task') this.setState(s=>({ tasks: [...s.tasks, { id: uid('t'), title, goalId:null, subgoalId:null, status:'todo', due:null, recurring:false }] }));
     else if(type==='goal') this.setState(s=>({ goals: [...s.goals, { id: uid('g'), title, category: s.categories[0].id, timeframe:'mid', due:null, motivation:'' }] }));
-    this.setState({ quickAddDraft:'' });
+    this.setState({ quickAddDraft:'', quickAddFieldError:false });
   }
 
   decGrace(){ this.setState(s=>({ streakGrace: Math.max(0, s.streakGrace-1) })); }
@@ -951,13 +989,27 @@ class Component extends DCLogic {
     this.setState(s=>({ categories: [...s.categories, { id: uid('cat'), name }], newCategoryDraft:'' }));
   }
 
-  openDrawer(type){ this.setState({ drawerOpen:true, drawerType:type, draftTitle:'', draftCategory: this.state.categories[0].id, draftTimeframe:'short', draftMotivation:'', draftParentGoal:'', draftNote:'', draftDue:'', draftRecurring:false, draftVisionType:'image' }, ()=> requestAnimationFrame(()=>this.setState({drawerAnimIn:true})) );
+  openDrawer(type){ this.setState({ drawerOpen:true, drawerType:type, draftTitle:'', draftCategory: this.state.categories[0].id, draftTimeframe:'short', draftMotivation:'', draftParentGoal:'', draftNote:'', draftDue:'', draftRecurring:false, draftVisionType:'image', drawerFieldError:false, drawerError:null, drawerSubmitting:false }, ()=> requestAnimationFrame(()=>this.setState({drawerAnimIn:true})) );
   }
   closeDrawer(){ this.setState({ drawerAnimIn:false }); setTimeout(()=>this.setState({ drawerOpen:false, drawerType:null }), 250); }
+  retryDrawer(){ this.submitDrawer(); }
   submitDrawer(){
+    const title = this.state.draftTitle.trim();
+    if(!title){ this.setState(s=>({ drawerFieldError:true, drawerShakeKey: s.drawerShakeKey+1 })); return; }
+    this.setState({ drawerSubmitting:true, drawerError:null });
+    setTimeout(()=>{
+      if(Math.random() < 0.3){
+        this.setState({ drawerSubmitting:false, drawerError:"Network hiccup — your changes weren't saved." });
+        return;
+      }
+      this._commitDrawer();
+      this.setState({ drawerSubmitting:false });
+      this.closeDrawer();
+    }, 700);
+  }
+  _commitDrawer(){
     const type = this.state.drawerType;
     const title = this.state.draftTitle.trim();
-    if(!title){ this.closeDrawer(); return; }
     if(type==='goal'){
       this.setState(s=>({ goals: [...s.goals, { id: uid('g'), title, category: s.draftCategory, timeframe: s.draftTimeframe, due: s.draftDue||null, motivation: s.draftMotivation }] }));
     } else if(type==='project'){
@@ -969,7 +1021,6 @@ class Component extends DCLogic {
     } else if(type==='vision'){
       this.setState(s=>({ visionItems: [{ id: uid('v'), type: s.draftVisionType, caption: title, text: title }, ...s.visionItems] }));
     }
-    this.closeDrawer();
   }
 
   renderVals(){
@@ -1123,6 +1174,11 @@ class Component extends DCLogic {
         return { color: filled ? (i < (st.streakCurrent||0) ? t.accent2 : t.border) : t.border, delay: (i*0.012)+'s' };
       }),
     }));
+    const dashboardStreakCells = streakTasks.flatMap((st,si)=> Array.from({length:24}).map((_,i)=>{
+      const r = Math.random();
+      const color = r>0.82 ? t.accent : r>0.6 ? t.accent+'aa' : r>0.35 ? t.accent+'66' : t.border;
+      return { color, delay: ((si*24+i)*0.01)+'s' };
+    }));
     const taskFilterDefs = [
       { id:'all-status', group:'status', val:'all', label:'All status' },
       { id:'todo', group:'status', val:'todo', label:'To do' },
@@ -1153,8 +1209,13 @@ class Component extends DCLogic {
         id:x.id, title:x.title, done: x.status==='done', toggle: ()=>this.toggleTaskDone(x.id),
         strike: x.status==='done' ? 'line-through' : 'none', textColor: x.status==='done' ? t.textSecondary : t.textPrimary,
         checkBg: x.status==='done' ? t.accent2 : 'transparent', checkBorder: x.status==='done' ? t.accent2 : t.border,
-        parentLabel, parentColor: t.textSecondary, recurring: !!x.recurring,
+        parentLabel, parentColor: t.accent, parentBg: t.accent+'22', hasParent: parentLabel!=='Standalone',
+        recurring: !!x.recurring, cadenceLabel: x.cadence==='weekly' ? 'weekly' : 'daily', showDue: !x.recurring && !!x.due,
         dueLabel: x.due ? dm.label : (x.recurring ? 'Daily' : '—'),
+        toggle: ()=>this.cycleTaskStatus(x.id),
+        cardAnim: s.justMovedTaskId===x.id ? 'cardPulse .45s ease both' : 'fadeInUp .35s ease both',
+        pulse: s.justMovedTaskId===x.id ? (x.status==='done'?t.accent2:x.status==='in_progress'?t.accent3:t.border) : t.border,
+        glow: s.justMovedTaskId===x.id ? ('0 0 0 3px '+(x.status==='done'?t.accent2:x.status==='in_progress'?t.accent3:t.border)+'44') : 'none',
         statusBg: x.status==='done' ? t.accent2+'33' : x.status==='in_progress' ? t.accent3+'33' : t.border,
         statusColor: x.status==='done' ? t.accent2 : x.status==='in_progress' ? t.accent3 : t.textSecondary,
         statusLabel: x.status==='done'?'Done':x.status==='in_progress'?'In progress':'To do',
@@ -1180,6 +1241,13 @@ class Component extends DCLogic {
       if(s.taskRecurringFilter==='recurring' && !x._recurring) return false;
       if(s.taskLinkFilter==='standalone' && x._hasGoal) return false;
       return true;
+    });
+    const taskBoardCols = [
+      { key:'todo', label:'To Do' }, { key:'in_progress', label:'In Progress' }, { key:'done', label:'Done' },
+    ];
+    const taskBoardColumns = taskBoardCols.map(col=>{
+      const cards = filteredTasks.filter(x=>x._status===col.key);
+      return { label: col.label, count: cards.length, cards };
     });
 
     // Ideas
@@ -1210,7 +1278,7 @@ class Component extends DCLogic {
       { key:'nocturne', name:'Nocturne', bg: NOCTURNE.bg, surface: NOCTURNE.surface, text: NOCTURNE.textPrimary, accent: NOCTURNE.accent, accent2: NOCTURNE.accent2, accent3: NOCTURNE.accent3 },
       { key:'coquette', name:'Coquette', bg: COQUETTE.bg, surface: COQUETTE.surface, text: COQUETTE.textPrimary, accent: COQUETTE.accent, accent2: COQUETTE.accent2, accent3: COQUETTE.accent3 },
     ].map(sw=>({ ...sw, onClick: ()=>this.setTheme(sw.key), ringColor: s.themeName===sw.key ? t.accent : 'transparent' }));
-    const categoryRows = s.categories.map(c=>({ name:c.name, color: this.categoryColor(c.id) }));
+    const categoryRows = s.categories.map((c,i)=>({ name:c.name, color: this.categoryColor(c.id), delay: (i*0.04)+'s' }));
 
     // Drawer
     const drawerTypeLabels = { goal:'New Goal', project:'New Project', task:'New Task', idea:'New Idea', vision:'New Vision Item' };
@@ -1241,7 +1309,10 @@ class Component extends DCLogic {
       dashboardVisionPreview: visionCards.filter(v=>v.isImage).slice(0,4),
       dashboardTasks: tasksAugmented.filter(x=>x._status!=='done').slice(0,6),
       upcomingItems: upcomingItemsDelayed,
-      quickAddTypeOptions, quickAddDraft: s.quickAddDraft, setQuickAddDraft: (e)=>this.setState({quickAddDraft:e.target.value}),
+      quickAddTypeOptions, quickAddDraft: s.quickAddDraft, setQuickAddDraft: (e)=>this.setState({quickAddDraft:e.target.value, quickAddFieldError:false}),
+      quickAddFieldError: s.quickAddFieldError,
+      quickAddBorder: s.quickAddFieldError ? WARN : t.border,
+      quickAddShakeAnim: s.quickAddFieldError ? 'shakeX .4s ease '+s.quickAddShakeKey : 'none',
       quickAddKeydown: (e)=>{ if(e.key==='Enter') this.submitQuickAdd(); },
       quickAddPlaceholder: s.quickAddType==='idea' ? 'Capture a new idea…' : s.quickAddType==='goal' ? 'Name a new goal…' : 'Capture a new task…',
       submitQuickAdd: ()=>this.submitQuickAdd(),
@@ -1258,7 +1329,7 @@ class Component extends DCLogic {
       activeProject, viewToggleOptions, allTargetChipBg, allTargetChipColor, allTargetChipBorder,
       clearTargetFilter: ()=>this.setProjectTargetFilter('all'),
       isBoardView, isListView, isTimelineView, boardColumns, filteredProjectTasks,
-      tasks: s.tasks, streakCards, taskFilterChips, filteredTasks,
+      tasks: s.tasks, streakCards, dashboardStreakCells, taskFilterChips, filteredTasks, taskBoardColumns,
       ideas: s.ideas, ideaCards, ideaDraftTitle: s.ideaDraftTitle, setIdeaDraftTitle: (e)=>this.setIdeaDraftTitle(e), captureIdea: ()=>this.captureIdea(),
       visionItems: s.visionItems, visionSortChips, visionCards,
       themeSwatches, categoryRows, streakGrace: s.streakGrace, decGrace: ()=>this.decGrace(), incGrace: ()=>this.incGrace(),
@@ -1268,7 +1339,7 @@ class Component extends DCLogic {
       drawerOpen: s.drawerOpen, backdropOpacity: s.drawerAnimIn ? 1 : 0, drawerTransform: s.drawerAnimIn ? 'translateX(0)' : 'translateX(100%)',
       drawerTitle: drawerTypeLabels[s.drawerType] || '', drawerTitlePlaceholder: 'Give it a name…',
       closeDrawer: ()=>this.closeDrawer(), submitDrawer: ()=>this.submitDrawer(),
-      draftTitle: s.draftTitle, setDraftTitle: (e)=>this.setState({draftTitle:e.target.value}),
+      draftTitle: s.draftTitle, setDraftTitle: (e)=>this.setState({draftTitle:e.target.value, drawerFieldError:false}),
       draftCategory: s.draftCategory, setDraftCategory: (e)=>this.setState({draftCategory:e.target.value}),
       draftParentGoal: s.draftParentGoal, setDraftParentGoal: (e)=>this.setState({draftParentGoal:e.target.value}),
       draftMotivation: s.draftMotivation, setDraftMotivation: (e)=>this.setState({draftMotivation:e.target.value}),
@@ -1281,7 +1352,12 @@ class Component extends DCLogic {
       drawerNeedsNote: s.drawerType==='idea', drawerNeedsDue: s.drawerType==='task' || s.drawerType==='goal',
       drawerNeedsRecurring: s.drawerType==='task', drawerNeedsVisionType: s.drawerType==='vision',
       colorScheme: t===NOCTURNE ? 'dark' : 'light',
-      drawerSubmitLabel: 'Create',
+      drawerSubmitLabel: s.drawerSubmitting ? 'Saving…' : 'Create',
+      drawerFieldError: s.drawerFieldError, drawerError: s.drawerError, drawerSubmitting: s.drawerSubmitting,
+      titleFieldBorder: s.drawerFieldError ? WARN : t.border,
+      titleShakeAnim: s.drawerFieldError ? 'shakeX .4s ease '+s.drawerShakeKey : 'none',
+      retryDrawer: ()=>this.retryDrawer(), warnColor: WARN, warnBg: WARN+'18',
+      submitCursor: s.drawerSubmitting ? 'default' : 'pointer', submitOpacity: s.drawerSubmitting ? 0.75 : 1,
       timeframeOptions, visionTypeOptions,
     };
   }
