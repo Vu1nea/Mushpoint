@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+@property --ring-p{syntax:'<angle>';inherits:false;initial-value:0deg}
+input:focus, textarea:focus, select:focus{outline:none}
+body{margin:0;font-family:'Inter',system-ui,sans-serif}
+* { box-sizing: border-box; }
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:{{ theme.border }};border-radius:8px}
+a{text-decoration:none}
+input::placeholder, textarea::placeholder{color:{{ theme.textSecondary }};opacity:.6}
+input, textarea, select, button{font-family:inherit}
+</style>
+</helmet>
+
+<div style="display:flex;height:100vh;width:100%;background:{{ theme.bg }};color:{{ theme.textPrimary }};overflow:hidden;position:relative">
+
+  <div style="width:{{ sidebarWidth }};flex:none;background:{{ theme.surface }};border-right:1px solid {{ theme.border }};display:flex;flex-direction:column;transition:width .25s ease;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:11px;padding:22px 20px 18px;overflow:hidden;white-space:nowrap">
+      <div style="width:34px;height:34px;border-radius:50%;background:{{ theme.accent }};flex:none;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;color:{{ theme.bg }}">M</div>
+      <sc-if value="{{ sidebarOpen }}"><span style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;letter-spacing:.2px;color:{{ theme.textPrimary }}">Mushpoint</span></sc-if>
+    </div>
+
+    <sc-if value="{{ sidebarOpen }}"><div style="padding:6px 22px 8px;font-size:12.5px;color:{{ theme.textSecondary }};opacity:.75">Workspace</div></sc-if>
+    <div style="display:flex;flex-direction:column;gap:2px;padding:4px 12px;flex:1;overflow-y:auto">
+      <a href="#/dashboard" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navDashboard.bg }};color:{{ navDashboard.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="13" y="3.5" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="3.5" y="13" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="13" y="13" width="7.5" height="7.5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navDashboard.weight }}">Dashboard</span></sc-if>
+      </a>
+      <a href="#/goals" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navGoals.bg }};color:{{ navGoals.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8"></circle><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"></circle><circle cx="12" cy="12" r="0.9" fill="currentColor"></circle></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navGoals.weight }}">Goal Tracker</span></sc-if>
+      </a>
+      <a href="#/projects" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navProjects.bg }};color:{{ navProjects.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3" y="4" width="5" height="16" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="9.5" y="4" width="5" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="16" y="4" width="5" height="13" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navProjects.weight }}">Project Manager</span></sc-if>
+      </a>
+      <a href="#/tasks" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navTasks.bg }};color:{{ navTasks.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="17" height="17" rx="3" stroke="currentColor" stroke-width="1.8"></rect><path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navTasks.weight }}">Task Manager</span></sc-if>
+      </a>
+      <a href="#/ideas" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navIdeas.bg }};color:{{ navIdeas.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><path d="M12 3a6 6 0 00-3.5 10.9c.6.45 1 1.15 1 1.9v.7h5v-.7c0-.75.4-1.45 1-1.9A6 6 0 0012 3z" stroke="currentColor" stroke-width="1.8"></path><path d="M10 19h4M10.5 21h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navIdeas.weight }}">Idea Vault</span></sc-if>
+      </a>
+      <a href="#/vision" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navVision.bg }};color:{{ navVision.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><rect x="3.5" y="3.5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="12.5" y="3.5" width="8" height="5" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="12.5" y="10.5" width="8" height="10" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect><rect x="3.5" y="13.5" width="8" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"></rect></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navVision.weight }}">Vision Board</span></sc-if>
+      </a>
+      <a href="#/settings" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;white-space:nowrap;overflow:hidden;background:{{ navSettings.bg }};color:{{ navSettings.color }};margin-bottom:2px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="flex:none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"></circle><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.2a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.2a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.2a1.6 1.6 0 00-1.5 1z" stroke="currentColor" stroke-width="1.5"></path></svg>
+        <sc-if value="{{ sidebarOpen }}"><span style="font-size:14px;font-weight:{{ navSettings.weight }}">Settings</span></sc-if>
+      </a>
+    </div>
+
+    <div style="padding:16px;border-top:1px solid {{ theme.border }};display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <sc-if value="{{ sidebarOpen }}"><span style="font-size:11px;color:{{ theme.textSecondary }};text-transform:uppercase;letter-spacing:.06em">{{ themeName }}</span></sc-if>
+      <button onclick="{{ quickToggleTheme }}" title="Switch theme" style="width:{{ themeSwitchWidth }};height:22px;border-radius:11px;border:1px solid {{ theme.border }};background:{{ theme.bg }};position:relative;cursor:pointer;padding:0;flex:none">
+        <span style="position:absolute;top:1px;left:{{ themeDotLeft }};width:18px;height:18px;border-radius:50%;background:{{ theme.accent }};transition:left .2s"></span>
+      </button>
+    </div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative">
+    <div style="display:flex;align-items:center;gap:10px;padding:14px 24px;border-bottom:1px solid {{ theme.border }};flex:none">
+      <button onclick="{{ toggleSidebar }}" title="Toggle sidebar" style="background:none;border:none;color:{{ theme.textSecondary }};cursor:pointer;padding:4px;display:flex">
+        <svg width="17" height="17" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7" fill="none"></rect><path d="M9.5 4v16" stroke="currentColor" stroke-width="1.7"></path></svg>
+      </button>
+      <span style="font-size:13px;color:{{ theme.textSecondary }}">Personal operating system</span>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:36px 44px 60px">
+
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Today</h1>
+        <p style="margin:0 0 26px;color:{{ theme.textSecondary }};font-size:14px">{{ todayLabel }}</p>
+
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px">
+          <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:20px">
+            <h3 style="margin:0 0 14px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Active Goals</h3>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ dashboardGoalGroups }}" as="grp" hint-placeholder-count="3">
+                <div>
+                  <div style="font-size:12px;color:{{ grp.color }};font-weight:600;margin-bottom:8px">{{ grp.name }}</div>
+                  <sc-for list="{{ grp.goals }}" as="g" hint-placeholder-count="2">
+                    <a href="{{ g.href }}" style="display:block;text-decoration:none;color:{{ theme.textPrimary }};margin-bottom:10px">
+                      <div style="display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:6px"><span>{{ g.title }}</span><span>{{ g.progressPct }}</span></div>
+                      <div style="height:7px;border-radius:4px;background:{{ theme.bg }};overflow:hidden">
+                        <div style="height:100%;width:{{ g.progressPctBar }};background:{{ g.color }};transition:width 1.1s cubic-bezier(.22,1,.36,1);transition-delay:{{ g.delay }}"></div>
+                      </div>
+                    </a>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:20px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <h3 style="margin:0;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Vision Board</h3>
+              <a href="#/vision" style="font-size:12.5px;color:{{ theme.accent2 }}">Open →</a>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <sc-for list="{{ dashboardVisionPreview }}" as="v" hint-placeholder-count="4">
+                <image-slot id="{{ v.slotId }}" shape="rounded" radius="10" style="width:100%;height:100px" placeholder="Image"></image-slot>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+          <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:20px">
+            <h3 style="margin:0 0 14px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Today's Tasks</h3>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ dashboardTasks }}" as="t" hint-placeholder-count="5">
+                <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;cursor:pointer;position:relative;animation:fadeInUp .35s ease both;animation-delay:{{ t.delay }}">
+                  <input type="checkbox" checked="{{ t.done }}" onchange="{{ t.toggle }}" style="position:absolute;opacity:0;width:18px;height:18px;margin:0;cursor:pointer"/>
+                  <span style="width:17px;height:17px;flex:none;border-radius:6px;border:1.5px solid {{ t.checkBorder }};background:{{ t.checkBg }};display:flex;align-items:center;justify-content:center">
+                    <sc-if value="{{ t.done }}"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="{{ theme.bg }}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+                  </span>
+                  <span style="text-decoration:{{ t.strike }};color:{{ t.textColor }}">{{ t.title }}</span>
+                </label>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:20px">
+            <h3 style="margin:0 0 14px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Streaks</h3>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ streakCards }}" as="s" hint-placeholder-count="2">
+                <div>
+                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                    <span style="font-weight:600">{{ s.title }}</span>
+                    <span style="color:{{ theme.textSecondary }}"><b style="color:{{ theme.accent2 }}">{{ s.current }}</b> · best {{ s.longest }}</span>
+                  </div>
+                  <div style="display:flex;gap:2px;flex-wrap:wrap">
+                    <sc-for list="{{ s.cells }}" as="c" hint-placeholder-count="28">
+                      <span style="width:8px;height:8px;border-radius:2px;background:{{ c.color }}"></span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:20px">
+            <h3 style="margin:0 0 14px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Upcoming</h3>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ upcomingItems }}" as="u" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;animation:fadeInUp .35s ease both;animation-delay:{{ u.delay }}">
+                  <div style="display:flex;align-items:center;gap:8px;min-width:0">
+                    <span style="font-size:10px;font-weight:700;padding:3px 7px;border-radius:999px;background:{{ theme.bg }};color:{{ theme.textSecondary }};flex:none">{{ u.kind }}</span>
+                    <span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ u.title }}</span>
+                  </div>
+                  <span style="font-size:12px;color:{{ u.dueColor }};flex:none">{{ u.dueLabel }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:18px 20px">
+          <h3 style="margin:0 0 12px;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }}">Quick Add</h3>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div style="display:flex;gap:4px;background:{{ theme.bg }};border-radius:9px;padding:4px">
+              <sc-for list="{{ quickAddTypeOptions }}" as="qt" hint-placeholder-count="3">
+                <button onclick="{{ qt.onClick }}" style="padding:8px 14px;border-radius:6px;border:none;background:{{ qt.bg }};color:{{ qt.color }};font-size:13px;font-weight:600;cursor:pointer">{{ qt.label }}</button>
+              </sc-for>
+            </div>
+            <input value="{{ quickAddDraft }}" onchange="{{ setQuickAddDraft }}" onkeydown="{{ quickAddKeydown }}" placeholder="{{ quickAddPlaceholder }}" style="flex:1;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 14px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+            <button onclick="{{ submitQuickAdd }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 20px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer">+ Add</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isGoalsList }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
+          <div>
+            <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Goals</h1>
+            <p style="margin:0;color:{{ theme.textSecondary }};font-size:14px">{{ goalsTotalCount }} active across {{ categories.length }} categories</p>
+          </div>
+          <button onclick="{{ openGoalDrawer }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            New Goal
+          </button>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap">
+          <sc-for list="{{ categoryFilterChips }}" as="chip" hint-placeholder-count="6">
+            <button onclick="{{ chip.onClick }}" style="padding:7px 14px;border-radius:999px;border:1px solid {{ chip.border }};background:{{ chip.bg }};color:{{ chip.color }};font-size:13px;font-weight:600;cursor:pointer">{{ chip.label }}</button>
+          </sc-for>
+        </div>
+
+        <sc-for list="{{ groupedGoals }}" as="group" hint-placeholder-count="3">
+          <div style="margin-bottom:32px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <span style="width:9px;height:9px;border-radius:50%;background:{{ group.color }}"></span>
+              <h3 style="margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:{{ theme.textSecondary }};font-weight:600">{{ group.name }}</h3>
+              <span style="font-size:12px;color:{{ theme.textSecondary }};opacity:.6">{{ group.goals.length }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ group.goals }}" as="goal" hint-placeholder-count="2">
+                <a href="{{ goal.href }}" style="display:flex;align-items:center;gap:16px;padding:16px 18px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;color:{{ theme.textPrimary }};animation:fadeInUp .4s ease both;animation-delay:{{ goal.delay }}">
+                  <div style="width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;position:relative;--ring-p:{{ goal.progressDeg }}deg;background:conic-gradient({{ goal.color }} var(--ring-p), {{ theme.border }} 0deg);transition:--ring-p 1.1s cubic-bezier(.22,1,.36,1)">
+                    <div style="position:absolute;inset:4px;border-radius:50%;background:{{ theme.surface }};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">{{ goal.progressPct }}</div>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:15px;font-weight:600;margin-bottom:4px">{{ goal.title }}</div>
+                    <div style="font-size:12.5px;color:{{ theme.textSecondary }}">{{ goal.subCount }} subgoals</div>
+                  </div>
+                  <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:5px 10px;border-radius:999px;background:{{ theme.bg }};color:{{ theme.textSecondary }};flex:none">{{ goal.timeframe }}</span>
+                  <div style="text-align:right;flex:none;min-width:86px">
+                    <div style="font-size:12.5px;color:{{ goal.dueColor }};font-weight:{{ goal.dueWeight }}">{{ goal.dueLabel }}</div>
+                  </div>
+                </a>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </sc-if>
+
+      <sc-if value="{{ isGoalDetail }}" hint-placeholder-val="{{ false }}">
+        <a href="#/goals" style="font-size:13px;color:{{ theme.textSecondary }};display:inline-flex;align-items:center;gap:6px;margin-bottom:18px">← Back to Goals</a>
+        <sc-if value="{{ activeGoal }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:320px 1fr;gap:32px;align-items:flex-start">
+            <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;padding:22px;position:sticky;top:0">
+              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:4px 10px;border-radius:999px;background:{{ theme.bg }};color:{{ activeGoal.color }}">{{ activeGoal.categoryName }}</span>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-size:24px;margin:14px 0 8px;font-weight:700;line-height:1.2">{{ activeGoal.title }}</h1>
+              <div style="display:flex;gap:10px;font-size:12.5px;color:{{ theme.textSecondary }};margin-bottom:16px">
+                <span>{{ activeGoal.timeframe }}</span><span>·</span><span style="color:{{ activeGoal.dueColor }}">{{ activeGoal.dueLabel }}</span>
+              </div>
+              <div style="height:8px;border-radius:6px;background:{{ theme.bg }};overflow:hidden;margin-bottom:8px">
+                <div style="height:100%;width:{{ activeGoal.progressPctBar }};background:{{ activeGoal.color }};transition:width 1s ease"></div>
+              </div>
+              <div style="font-size:12px;color:{{ theme.textSecondary }};margin-bottom:20px">{{ activeGoal.progressPct }} complete</div>
+              <div style="border-top:1px solid {{ theme.border }};padding-top:16px">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin-bottom:8px;font-weight:600">Motivation</div>
+                <p style="font-size:13.5px;line-height:1.6;color:{{ theme.textPrimary }};margin:0 0 14px;font-style:italic">"{{ activeGoal.motivation }}"</p>
+                <image-slot id="{{ activeGoal.imageSlotId }}" shape="rounded" radius="10" placeholder="Drop an inspiration image" style="width:100%;height:150px"></image-slot>
+              </div>
+            </div>
+
+            <div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <h3 style="margin:0;font-size:14px;font-weight:600;color:{{ theme.textSecondary }};text-transform:uppercase;letter-spacing:.05em">Subgoals</h3>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+                <sc-for list="{{ activeGoal.subgoals }}" as="sg" hint-placeholder-count="2">
+                  <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;overflow:hidden">
+                    <button onclick="{{ sg.toggle }}" style="width:100%;display:flex;align-items:center;gap:14px;padding:14px 16px;background:none;border:none;cursor:pointer;text-align:left;color:inherit">
+                      <svg width="14" height="14" viewBox="0 0 24 24" style="flex:none;transform:{{ sg.chevronRotate }};transition:transform .2s"><path d="M9 5l7 7-7 7" stroke="{{ theme.textSecondary }}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:14.5px;font-weight:600;margin-bottom:6px">{{ sg.title }}</div>
+                        <div style="height:6px;border-radius:4px;background:{{ theme.bg }};overflow:hidden;max-width:280px">
+                          <div style="height:100%;width:{{ sg.progressPctBar }};background:{{ theme.accent2 }};transition:width 1s ease"></div>
+                        </div>
+                      </div>
+                      <span style="font-size:12px;color:{{ theme.textSecondary }};flex:none">{{ sg.progressPct }}</span>
+                      <span style="font-size:11.5px;color:{{ sg.dueColor }};flex:none;min-width:70px;text-align:right">{{ sg.dueLabel }}</span>
+                    </button>
+                    <sc-if value="{{ sg.expanded }}" hint-placeholder-val="{{ false }}">
+                      <div style="padding:0 16px 16px 44px;display:flex;flex-direction:column;gap:8px">
+                        <sc-for list="{{ sg.tasks }}" as="t" hint-placeholder-count="2">
+                          <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;cursor:pointer;position:relative">
+                            <input type="checkbox" checked="{{ t.done }}" onchange="{{ t.toggle }}" style="position:absolute;opacity:0;width:18px;height:18px;margin:0;cursor:pointer"/>
+                            <span style="width:17px;height:17px;flex:none;border-radius:6px;border:1.5px solid {{ t.checkBorder }};background:{{ t.checkBg }};display:flex;align-items:center;justify-content:center">
+                              <sc-if value="{{ t.done }}"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="{{ theme.bg }}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+                            </span>
+                            <span style="text-decoration:{{ t.strike }};color:{{ t.textColor }}">{{ t.title }}</span>
+                          </label>
+                        </sc-for>
+                        <div style="display:flex;gap:8px;margin-top:4px">
+                          <input value="{{ sg.newTaskDraft }}" onchange="{{ sg.setNewTaskDraft }}" onkeydown="{{ sg.newTaskKeydown }}" placeholder="Add a task…" style="flex:1;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:8px;padding:8px 10px;color:{{ theme.textPrimary }};font-size:13px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:8px">
+                <input value="{{ newSubgoalDraft }}" onchange="{{ setNewSubgoalDraft }}" onkeydown="{{ newSubgoalKeydown }}" placeholder="+ Add subgoal…" style="flex:1;background:{{ theme.surface }};border:1px dashed {{ theme.border }};border-radius:10px;padding:11px 14px;color:{{ theme.textPrimary }};font-size:13.5px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isProjectsList }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px">
+          <div>
+            <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Projects</h1>
+            <p style="margin:0;color:{{ theme.textSecondary }};font-size:14px">{{ projects.length }} in progress</p>
+          </div>
+          <button onclick="{{ openProjectDrawer }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            New Project
+          </button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px">
+          <sc-for list="{{ projectCards }}" as="p" hint-placeholder-count="3">
+            <a href="{{ p.href }}" style="display:flex;flex-direction:column;gap:14px;padding:20px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:16px;color:{{ theme.textPrimary }};animation:fadeInUp .4s ease both;animation-delay:{{ p.delay }}">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;--ring-p:{{ p.progressDeg }}deg;background:conic-gradient({{ theme.accent2 }} var(--ring-p), {{ theme.border }} 0deg);transition:--ring-p 1.1s cubic-bezier(.22,1,.36,1)">
+                  <div style="position:absolute;inset:4px;border-radius:50%;background:{{ theme.surface }};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700">{{ p.progressPct }}</div>
+                </div>
+                <span style="font-size:12px;color:{{ theme.textSecondary }}">{{ p.nextDue }}</span>
+              </div>
+              <div>
+                <div style="font-size:16px;font-weight:600;margin-bottom:4px">{{ p.name }}</div>
+                <div style="font-size:12.5px;color:{{ theme.textSecondary }}">{{ p.parentLabel }}</div>
+              </div>
+              <div style="display:flex;gap:14px;font-size:12px;color:{{ theme.textSecondary }};border-top:1px solid {{ theme.border }};padding-top:12px">
+                <span>{{ p.todoCount }} To do</span><span>{{ p.inProgCount }} In progress</span><span>{{ p.doneCount }} Done</span>
+              </div>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isProjectDetail }}" hint-placeholder-val="{{ false }}">
+        <a href="#/projects" style="font-size:13px;color:{{ theme.textSecondary }};display:inline-flex;align-items:center;gap:6px;margin-bottom:18px">← Back to Projects</a>
+        <sc-if value="{{ activeProject }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+            <div>
+              <h1 style="font-family:'Space Grotesk',sans-serif;font-size:26px;margin:0 0 6px;font-weight:700">{{ activeProject.name }}</h1>
+              <div style="font-size:13px;color:{{ theme.textSecondary }}">{{ activeProject.parentLabel }}</div>
+            </div>
+            <div style="display:flex;gap:4px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:10px;padding:4px">
+              <sc-for list="{{ viewToggleOptions }}" as="v" hint-placeholder-count="3">
+                <button onclick="{{ v.onClick }}" style="padding:7px 14px;border-radius:7px;border:none;background:{{ v.bg }};color:{{ v.color }};font-size:13px;font-weight:600;cursor:pointer">{{ v.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:14px;margin-bottom:20px">
+            <button onclick="{{ clearTargetFilter }}" style="flex:none;padding:10px 16px;border-radius:12px;border:1px solid {{ allTargetChipBorder }};background:{{ allTargetChipBg }};color:{{ allTargetChipColor }};font-size:13px;font-weight:600;cursor:pointer">All</button>
+            <sc-for list="{{ activeProject.targets }}" as="tg" hint-placeholder-count="3">
+              <button onclick="{{ tg.onClick }}" style="flex:none;min-width:150px;text-align:left;padding:10px 16px;border-radius:12px;border:1px solid {{ tg.border }};background:{{ tg.bg }};color:{{ tg.color }};cursor:pointer">
+                <div style="font-size:13px;font-weight:600;margin-bottom:6px;white-space:nowrap">{{ tg.title }}</div>
+                <div style="height:5px;border-radius:4px;background:{{ theme.bg }};overflow:hidden;width:120px">
+                  <div style="height:100%;width:{{ tg.progressPctBar }};background:{{ theme.accent2 }};transition:width 1s ease"></div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ isBoardView }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+              <sc-for list="{{ boardColumns }}" as="col" hint-placeholder-count="3">
+                <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:200px">
+                  <div style="font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:{{ theme.textSecondary }};display:flex;justify-content:space-between">
+                    <span>{{ col.label }}</span><span>{{ col.count }}</span>
+                  </div>
+                  <sc-for list="{{ col.cards }}" as="card" hint-placeholder-count="2">
+                    <div style="background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:10px;padding:12px;font-size:13px;animation:fadeInUp .35s ease both;animation-delay:{{ card.delay }}">
+                      <div style="margin-bottom:8px;line-height:1.4">{{ card.title }}</div>
+                      <div style="font-size:11px;color:{{ card.targetColor }}">{{ card.targetLabel }}</div>
+                    </div>
+                  </sc-for>
+                  <div style="display:flex;gap:6px;margin-top:auto">
+                    <input value="{{ col.newDraft }}" onchange="{{ col.setDraft }}" onkeydown="{{ col.keydown }}" placeholder="+ Add task" style="flex:1;background:none;border:1px dashed {{ theme.border }};border-radius:8px;padding:8px 10px;color:{{ theme.textPrimary }};font-size:12.5px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isListView }}" hint-placeholder-val="{{ false }}">
+            <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;overflow:hidden">
+              <sc-for list="{{ filteredProjectTasks }}" as="card" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid {{ theme.border }};font-size:13.5px">
+                  <span style="flex:none;width:8px;height:8px;border-radius:50%;background:{{ card.statusColor }}"></span>
+                  <span style="flex:1">{{ card.title }}</span>
+                  <span style="font-size:11.5px;color:{{ card.targetColor }};flex:none">{{ card.targetLabel }}</span>
+                  <span style="font-size:11.5px;color:{{ theme.textSecondary }};flex:none;min-width:70px;text-align:right">{{ card.statusLabel }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ isTimelineView }}" hint-placeholder-val="{{ false }}">
+            <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ filteredProjectTasks }}" as="card" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <span style="width:90px;flex:none;font-size:11.5px;color:{{ theme.textSecondary }}">{{ card.dueLabel }}</span>
+                  <div style="flex:1;height:8px;background:{{ theme.bg }};border-radius:4px;position:relative">
+                    <div style="position:absolute;left:{{ card.timelinePos }};top:-3px;width:14px;height:14px;border-radius:50%;background:{{ card.statusColor }};border:2px solid {{ theme.surface }}"></div>
+                  </div>
+                  <span style="flex:none;font-size:12.5px;min-width:140px">{{ card.title }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isTasks }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px">
+          <div>
+            <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Tasks</h1>
+            <p style="margin:0;color:{{ theme.textSecondary }};font-size:14px">{{ filteredTasks.length }} shown of {{ tasks.length }}</p>
+          </div>
+          <button onclick="{{ openTaskDrawer }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px">
+            <svg width="15" height="15" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+            New Task
+          </button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+          <sc-for list="{{ streakCards }}" as="s" hint-placeholder-count="2">
+            <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;padding:18px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:14px;font-weight:600">{{ s.title }}</div>
+                <div style="display:flex;gap:14px;font-size:12px;color:{{ theme.textSecondary }}">
+                  <span><b style="color:{{ theme.accent2 }};font-size:14px">{{ s.current }}</b> current</span>
+                  <span><b style="font-size:14px">{{ s.longest }}</b> best</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:3px">
+                <sc-for list="{{ s.cells }}" as="c" hint-placeholder-count="28">
+                  <span style="width:11px;height:11px;border-radius:3px;background:{{ c.color }};animation:popIn .3s ease both;animation-delay:{{ c.delay }}"></span>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <sc-for list="{{ taskFilterChips }}" as="chip" hint-placeholder-count="6">
+            <button onclick="{{ chip.onClick }}" style="padding:7px 14px;border-radius:999px;border:1px solid {{ chip.border }};background:{{ chip.bg }};color:{{ chip.color }};font-size:13px;font-weight:600;cursor:pointer">{{ chip.label }}</button>
+          </sc-for>
+        </div>
+
+        <div style="background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;overflow:hidden">
+          <sc-for list="{{ filteredTasks }}" as="t" hint-placeholder-count="6">
+            <div style="display:flex;align-items:center;gap:14px;padding:13px 18px;border-bottom:1px solid {{ theme.border }};animation:fadeInUp .35s ease both;animation-delay:{{ t.delay }}">
+              <label style="position:relative;flex:none;display:flex;cursor:pointer">
+                <input type="checkbox" checked="{{ t.done }}" onchange="{{ t.toggle }}" style="position:absolute;opacity:0;width:18px;height:18px;margin:0;cursor:pointer"/>
+                <span style="width:17px;height:17px;flex:none;border-radius:6px;border:1.5px solid {{ t.checkBorder }};background:{{ t.checkBg }};display:flex;align-items:center;justify-content:center">
+                  <sc-if value="{{ t.done }}"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="{{ theme.bg }}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+                </span>
+              </label>
+              <span style="flex:1;font-size:13.5px;text-decoration:{{ t.strike }};color:{{ t.textColor }}">{{ t.title }}</span>
+              <span style="font-size:11.5px;color:{{ t.parentColor }};background:{{ theme.bg }};padding:4px 9px;border-radius:999px;flex:none;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.parentLabel }}</span>
+              <sc-if value="{{ t.recurring }}" hint-placeholder-val="{{ false }}">
+                <svg width="14" height="14" viewBox="0 0 24 24" style="flex:none" title="Recurring"><path d="M4 4v5h5M20 20v-5h-5" stroke="{{ theme.accent3 }}" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M4.5 15a8 8 0 0014.2 3.4M19.5 9A8 8 0 005.3 5.6" stroke="{{ theme.accent3 }}" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              </sc-if>
+              <span style="font-size:11.5px;color:{{ theme.textSecondary }};flex:none;min-width:70px;text-align:right">{{ t.dueLabel }}</span>
+              <span style="font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:{{ t.statusBg }};color:{{ t.statusColor }};flex:none;min-width:76px;text-align:center">{{ t.statusLabel }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isIdeas }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Idea Vault</h1>
+        <p style="margin:0 0 20px;color:{{ theme.textSecondary }};font-size:14px">{{ ideas.length }} captured</p>
+        <div style="display:flex;gap:10px;margin-bottom:26px;position:sticky;top:0;background:{{ theme.bg }};padding:8px 0;z-index:2">
+          <input value="{{ ideaDraftTitle }}" onchange="{{ setIdeaDraftTitle }}" placeholder="Capture a thought…" style="flex:1;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:10px;padding:12px 16px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+          <button onclick="{{ captureIdea }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:0 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Capture</button>
+        </div>
+        <div style="columns:3;column-gap:16px">
+          <sc-for list="{{ ideaCards }}" as="idea" hint-placeholder-count="6">
+            <div style="break-inside:avoid;margin-bottom:16px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:14px;padding:16px;animation:fadeInUp .4s ease both;animation-delay:{{ idea.delay }}">
+              <div style="font-size:14.5px;font-weight:600;margin-bottom:8px">{{ idea.title }}</div>
+              <p style="font-size:13px;line-height:1.5;color:{{ theme.textSecondary }};margin:0 0 12px">{{ idea.note }}</p>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+                <sc-for list="{{ idea.tags }}" as="tag" hint-placeholder-count="2">
+                  <span style="font-size:11px;padding:4px 9px;border-radius:999px;background:{{ theme.bg }};color:{{ theme.accent3 }}">{{ tag }}</span>
+                </sc-for>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button onclick="{{ idea.promoteGoal }}" style="flex:1;font-size:12px;font-weight:600;padding:7px;border-radius:8px;border:1px solid {{ theme.border }};background:none;color:{{ theme.textPrimary }};cursor:pointer">Make Goal</button>
+                <button onclick="{{ idea.promoteProject }}" style="flex:1;font-size:12px;font-weight:600;padding:7px;border-radius:8px;border:1px solid {{ theme.border }};background:none;color:{{ theme.textPrimary }};cursor:pointer">Make Project</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isVision }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px">
+          <div>
+            <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 4px;font-weight:700">Vision Board</h1>
+            <p style="margin:0;color:{{ theme.textSecondary }};font-size:14px">{{ visionItems.length }} items</p>
+          </div>
+          <button onclick="{{ openVisionDrawer }}" style="background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">+ Add</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap">
+          <sc-for list="{{ visionSortChips }}" as="chip" hint-placeholder-count="3">
+            <button onclick="{{ chip.onClick }}" style="padding:7px 14px;border-radius:999px;border:1px solid {{ chip.border }};background:{{ chip.bg }};color:{{ chip.color }};font-size:13px;font-weight:600;cursor:pointer">{{ chip.label }}</button>
+          </sc-for>
+        </div>
+        <div style="columns:4;column-gap:14px">
+          <sc-for list="{{ visionCards }}" as="v" hint-placeholder-count="8">
+            <div style="break-inside:avoid;margin-bottom:14px;border-radius:14px;overflow:hidden;animation:fadeInUp .4s ease both;animation-delay:{{ v.delay }}">
+              <sc-if value="{{ v.isQuote }}" hint-placeholder-val="{{ false }}">
+                <div style="background:{{ v.quoteBg }};padding:22px 18px;color:{{ theme.bg }};min-height:120px;display:flex;align-items:center">
+                  <p style="font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.45;font-weight:600;margin:0">"{{ v.text }}"</p>
+                </div>
+              </sc-if>
+              <sc-if value="{{ v.isImage }}" hint-placeholder-val="{{ true }}">
+                <div style="position:relative">
+                  <image-slot id="{{ v.slotId }}" shape="rect" style="width:100%;height:{{ v.imgHeight }}" placeholder="Drop an image"></image-slot>
+                  <div style="position:absolute;bottom:0;left:0;right:0;padding:10px 12px;background:linear-gradient(transparent,rgba(0,0,0,.55));color:#fff;font-size:12.5px;font-weight:600;pointer-events:none">{{ v.caption }}</div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <h1 style="font-family:'Space Grotesk',sans-serif;font-size:30px;margin:0 0 24px;font-weight:700">Settings</h1>
+
+        <div style="margin-bottom:32px">
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Theme</h3>
+          <div style="display:flex;gap:16px">
+            <sc-for list="{{ themeSwatches }}" as="sw" hint-placeholder-count="2">
+              <button onclick="{{ sw.onClick }}" style="cursor:pointer;padding:4px;border-radius:16px;border:2px solid {{ sw.ringColor }};background:none;width:220px">
+                <div style="border-radius:12px;overflow:hidden;border:1px solid {{ theme.border }}">
+                  <div style="height:60px;background:{{ sw.bg }};display:flex;align-items:center;padding:0 14px;gap:8px">
+                    <span style="width:14px;height:14px;border-radius:50%;background:{{ sw.accent }}"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:{{ sw.accent2 }}"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:{{ sw.accent3 }}"></span>
+                  </div>
+                  <div style="padding:12px;background:{{ sw.surface }};text-align:left">
+                    <div style="font-size:13.5px;font-weight:700;color:{{ sw.text }}">{{ sw.name }}</div>
+                  </div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="margin-bottom:32px">
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Categories</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;max-width:420px">
+            <sc-for list="{{ categoryRows }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:10px">
+                <span style="width:10px;height:10px;border-radius:50%;background:{{ c.color }}"></span>
+                <span style="font-size:13.5px">{{ c.name }}</span>
+              </div>
+            </sc-for>
+            <div style="display:flex;gap:8px;margin-top:2px">
+              <input value="{{ newCategoryDraft }}" onchange="{{ setNewCategoryDraft }}" onkeydown="{{ newCategoryKeydown }}" placeholder="+ Add category…" style="flex:1;background:none;border:1px dashed {{ theme.border }};border-radius:10px;padding:10px 14px;color:{{ theme.textPrimary }};font-size:13.5px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:32px">
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Streaks</h3>
+          <div style="display:flex;align-items:center;gap:16px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:12px;padding:16px;max-width:420px">
+            <div style="flex:1">
+              <div style="font-size:13.5px;font-weight:600;margin-bottom:2px">Grace period</div>
+              <div style="font-size:12px;color:{{ theme.textSecondary }}">Missing days within this window won't break a streak</div>
+            </div>
+            <button onclick="{{ decGrace }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ theme.border }};background:{{ theme.bg }};color:{{ theme.textPrimary }};cursor:pointer;font-size:16px">−</button>
+            <span style="font-size:15px;font-weight:700;min-width:52px;text-align:center">{{ streakGrace }} days</span>
+            <button onclick="{{ incGrace }}" style="width:30px;height:30px;border-radius:8px;border:1px solid {{ theme.border }};background:{{ theme.bg }};color:{{ theme.textPrimary }};cursor:pointer;font-size:16px">+</button>
+          </div>
+        </div>
+
+        <div style="margin-bottom:32px">
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">Data & Backup</h3>
+          <div style="display:flex;align-items:center;gap:16px;background:{{ theme.surface }};border:1px solid {{ theme.border }};border-radius:12px;padding:16px;max-width:420px">
+            <div style="flex:1">
+              <div style="font-size:13.5px;font-weight:600;margin-bottom:2px">Auto-export to JSON</div>
+              <div style="font-size:12px;color:{{ theme.textSecondary }}">Weekly, most recent snapshot only · last export {{ lastExportLabel }}</div>
+            </div>
+            <button onclick="{{ exportNow }}" style="padding:9px 16px;border-radius:8px;border:1px solid {{ theme.border }};background:{{ theme.bg }};color:{{ theme.textPrimary }};cursor:pointer;font-size:13px;font-weight:600">Export now</button>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:{{ theme.textSecondary }};margin:0 0 12px">About</h3>
+          <div style="font-size:13px;color:{{ theme.textSecondary }}">Mushpoint · v0.1.0 · local-first, no cloud sync</div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+    <div onclick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(0,0,0,.45);opacity:{{ backdropOpacity }};transition:opacity .25s;z-index:10"></div>
+    <div style="position:absolute;top:0;right:0;bottom:0;width:440px;max-width:92vw;background:{{ theme.surface }};border-left:1px solid {{ theme.border }};box-shadow:-8px 0 30px rgba(0,0,0,.25);transform:{{ drawerTransform }};transition:transform .3s ease;z-index:11;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid {{ theme.border }}">
+        <h3 style="margin:0;font-size:17px;font-weight:700;font-family:'Space Grotesk',sans-serif">{{ drawerTitle }}</h3>
+        <button onclick="{{ closeDrawer }}" style="background:none;border:none;color:{{ theme.textSecondary }};cursor:pointer;padding:4px">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div style="padding:22px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;flex:1">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Title</label>
+          <input value="{{ draftTitle }}" onchange="{{ setDraftTitle }}" placeholder="{{ drawerTitlePlaceholder }}" style="width:100%;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 13px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+        </div>
+        <sc-if value="{{ drawerNeedsCategory }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Category</label>
+            <div style="position:relative">
+              <select value="{{ draftCategory }}" onchange="{{ setDraftCategory }}" style="width:100%;appearance:none;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 34px 11px 13px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s;cursor:pointer" style-focus="border-color:{{ theme.accent }}">
+                <sc-for list="{{ categories }}" as="c" hint-placeholder-count="5">
+                  <option value="{{ c.id }}">{{ c.name }}</option>
+                </sc-for>
+              </select>
+              <svg width="12" height="12" viewBox="0 0 24 24" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M6 9l6 6 6-6" stroke="{{ theme.textSecondary }}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Timeframe</label>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ timeframeOptions }}" as="tf" hint-placeholder-count="3">
+                <button onclick="{{ tf.onClick }}" style="flex:1;padding:9px;border-radius:8px;border:1px solid {{ tf.border }};background:{{ tf.bg }};color:{{ tf.color }};font-size:13px;font-weight:600;cursor:pointer">{{ tf.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Motivation</label>
+            <textarea value="{{ draftMotivation }}" onchange="{{ setDraftMotivation }}" placeholder="Why this goal matters…" rows="3" style="width:100%;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 13px;color:{{ theme.textPrimary }};font-size:14px;resize:vertical;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"></textarea>
+          </div>
+        </sc-if>
+        <sc-if value="{{ drawerNeedsParentGoal }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Parent goal (optional)</label>
+            <div style="position:relative">
+              <select value="{{ draftParentGoal }}" onchange="{{ setDraftParentGoal }}" style="width:100%;appearance:none;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 34px 11px 13px;color:{{ theme.textPrimary }};font-size:14px;transition:border-color .15s;cursor:pointer" style-focus="border-color:{{ theme.accent }}">
+                <option value="">No parent goal</option>
+                <sc-for list="{{ goals }}" as="g" hint-placeholder-count="5">
+                  <option value="{{ g.id }}">{{ g.title }}</option>
+                </sc-for>
+              </select>
+              <svg width="12" height="12" viewBox="0 0 24 24" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);pointer-events:none"><path d="M6 9l6 6 6-6" stroke="{{ theme.textSecondary }}" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ drawerNeedsNote }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Note</label>
+            <textarea value="{{ draftNote }}" onchange="{{ setDraftNote }}" placeholder="Details…" rows="4" style="width:100%;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 13px;color:{{ theme.textPrimary }};font-size:14px;resize:vertical;transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"></textarea>
+          </div>
+        </sc-if>
+        <sc-if value="{{ drawerNeedsDue }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Due date (optional)</label>
+            <input type="date" value="{{ draftDue }}" onchange="{{ setDraftDue }}" style="width:100%;background:{{ theme.bg }};border:1px solid {{ theme.border }};border-radius:9px;padding:11px 13px;color:{{ theme.textPrimary }};font-size:14px;color-scheme:{{ colorScheme }};transition:border-color .15s" style-focus="border-color:{{ theme.accent }}"/>
+          </div>
+        </sc-if>
+        <sc-if value="{{ drawerNeedsRecurring }}" hint-placeholder-val="{{ false }}">
+          <label style="display:flex;align-items:center;gap:10px;font-size:13.5px;cursor:pointer;position:relative">
+            <input type="checkbox" checked="{{ draftRecurring }}" onchange="{{ toggleDraftRecurring }}" style="position:absolute;opacity:0;width:18px;height:18px;margin:0;cursor:pointer"/>
+            <span style="width:17px;height:17px;flex:none;border-radius:6px;border:1.5px solid {{ draftRecurringBorder }};background:{{ draftRecurringBg }};display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{ draftRecurring }}"><svg width="10" height="10" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="{{ theme.bg }}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></sc-if>
+            </span>
+            Recurring task
+          </label>
+        </sc-if>
+        <sc-if value="{{ drawerNeedsVisionType }}" hint-placeholder-val="{{ false }}">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:{{ theme.textSecondary }};display:block;margin-bottom:6px">Type</label>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ visionTypeOptions }}" as="vt" hint-placeholder-count="2">
+                <button onclick="{{ vt.onClick }}" style="flex:1;padding:9px;border-radius:8px;border:1px solid {{ vt.border }};background:{{ vt.bg }};color:{{ vt.color }};font-size:13px;font-weight:600;cursor:pointer">{{ vt.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <sc-if value="{{ draftIsImageType }}" hint-placeholder-val="{{ true }}">
+            <image-slot id="new-vision-drawer-slot" shape="rounded" radius="10" placeholder="Drop an image" style="width:100%;height:160px"></image-slot>
+          </sc-if>
+        </sc-if>
+      </div>
+      <div style="padding:18px 22px;border-top:1px solid {{ theme.border }}">
+        <button onclick="{{ submitDrawer }}" style="width:100%;background:{{ theme.accent }};color:{{ theme.bg }};border:none;padding:13px;border-radius:10px;font-size:14.5px;font-weight:700;cursor:pointer">{{ drawerSubmitLabel }}</button>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const NOCTURNE = { name:'Nocturne', bg:'#14152B', surface:'#1F2147', border:'#3A3768', textSecondary:'#9C9EE8', textPrimary:'#F2F1FB', accent:'#7B6FC4', accent2:'#4FD1C5', accent3:'#5BA8D4' };
+const COQUETTE = { name:'Coquette', bg:'#FFF8F5', surface:'#FFFFFF', border:'#F2D4DA', textSecondary:'#B85C73', textPrimary:'#4A2E33', accent:'#E8879F', accent2:'#9CB88A', accent3:'#C9A8D4' };
+const WARN = '#E2725A';
+const TODAY = new Date('2026-07-30T00:00:00');
+
+function fmtDate(iso){
+  if(!iso) return null;
+  const d = new Date(iso+'T00:00:00');
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function daysUntil(iso){ if(!iso) return null; const d=new Date(iso+'T00:00:00'); return Math.round((d-TODAY)/86400000); }
+function uid(p){ return p+'-'+Math.random().toString(36).slice(2,8); }
+
+class Component extends DCLogic {
+  state = {
+    themeName: 'nocturne',
+    mounted: false,
+    dashboardMounted: false,
+    sidebarOpen: true,
+    hash: '#/dashboard',
+    quickAddType: 'task', quickAddDraft: '',
+    drawerOpen: false, drawerAnimIn: false, drawerType: null,
+    draftTitle:'', draftCategory:'work', draftTimeframe:'short', draftMotivation:'',
+    draftParentGoal:'', draftNote:'', draftDue:'', draftRecurring:false, draftVisionType:'image',
+    categoryFilter: 'all',
+    projectView: 'board', projectTargetFilter: 'all',
+    taskStatusFilter: 'all', taskLinkFilter: 'all', taskRecurringFilter: 'all',
+    visionSort: 'recent',
+    ideaDraftTitle: '',
+    newSubgoalDraft: '', newCategoryDraft: '',
+    expandedSubgoals: { sg1: true },
+    streakGrace: 2,
+    lastExportLabel: '3 days ago',
+    categories: [
+      {id:'work', name:'Work'}, {id:'gym', name:'Gym'}, {id:'school', name:'School'},
+      {id:'side', name:'Side Projects'}, {id:'social', name:'Social'},
+    ],
+    goals: [
+      {id:'g1', title:'Ship portfolio redesign', category:'side', timeframe:'mid', due:'2026-09-15', motivation:'Landing my next role starts with proof of work, not promises.'},
+      {id:'g2', title:'Deadlift 315 lb', category:'gym', timeframe:'short', due:'2026-08-30', motivation:'Progressive overload, logged every session.'},
+      {id:'g3', title:'Finish Data Structures course', category:'school', timeframe:'short', due:'2026-08-20', motivation:'Graph algorithms unlock the harder interview problems.'},
+      {id:'g4', title:'Get promoted to Senior', category:'work', timeframe:'long', due:null, motivation:'Lead something end to end, not just execute on it.'},
+      {id:'g5', title:'Host a monthly game night', category:'social', timeframe:'mid', due:'2026-10-01', motivation:'Consistency beats a big one-off party.'},
+    ],
+    subgoals: [
+      {id:'sg1', goalId:'g1', title:'Design new case studies', due:'2026-08-20'},
+      {id:'sg2', goalId:'g1', title:'Launch on custom domain', due:'2026-09-10'},
+      {id:'sg3', goalId:'g2', title:'Build up to 275 for 3 sets', due:'2026-08-10'},
+      {id:'sg4', goalId:'g2', title:'Dial in accessory work', due:null},
+      {id:'sg5', goalId:'g3', title:'Complete graph algorithms module', due:'2026-07-20'},
+      {id:'sg6', goalId:'g4', title:'Lead a cross-team project', due:null},
+      {id:'sg7', goalId:'g5', title:'Set the rotation + first host', due:'2026-08-15'},
+    ],
+    tasks: [
+      {id:'t1', title:'Pick 3 projects to feature', goalId:'g1', subgoalId:'sg1', status:'done', due:null, recurring:false},
+      {id:'t2', title:'Write case study copy', goalId:'g1', subgoalId:'sg1', status:'in_progress', due:'2026-08-05', recurring:false},
+      {id:'t3', title:'Build responsive layout', goalId:'g1', subgoalId:'sg1', status:'todo', due:null, recurring:false},
+      {id:'t4', title:'Buy domain', goalId:'g1', subgoalId:'sg2', status:'done', due:null, recurring:false},
+      {id:'t5', title:'Configure DNS + hosting', goalId:'g1', subgoalId:'sg2', status:'todo', due:'2026-09-08', recurring:false},
+      {id:'t6', title:'Hit 265x3', goalId:'g2', subgoalId:'sg3', status:'done', due:null, recurring:false},
+      {id:'t7', title:'Hit 275x3', goalId:'g2', subgoalId:'sg3', status:'in_progress', due:'2026-08-09', recurring:false},
+      {id:'t8', title:'Add pause squats 2x/wk', goalId:'g2', subgoalId:'sg4', status:'todo', due:null, recurring:false},
+      {id:'t9', title:'Track hamstring mobility', goalId:'g2', subgoalId:'sg4', status:'todo', due:null, recurring:false},
+      {id:'t10', title:'Watch lecture set', goalId:'g3', subgoalId:'sg5', status:'done', due:null, recurring:false},
+      {id:'t11', title:'Submit problem set 4', goalId:'g3', subgoalId:'sg5', status:'todo', due:'2026-07-19', recurring:false},
+      {id:'t12', title:'Review midterm notes', goalId:'g3', subgoalId:null, status:'in_progress', due:null, recurring:false},
+      {id:'t13', title:'Propose Q3 initiative', goalId:'g4', subgoalId:'sg6', status:'done', due:null, recurring:false},
+      {id:'t14', title:'Present to leadership', goalId:'g4', subgoalId:'sg6', status:'todo', due:'2026-08-25', recurring:false},
+      {id:'t15', title:'Collect peer feedback', goalId:'g4', subgoalId:null, status:'todo', due:null, recurring:false},
+      {id:'t16', title:'Pick first 4 hosts', goalId:'g5', subgoalId:'sg7', status:'done', due:null, recurring:false},
+      {id:'t17', title:'Send invite thread', goalId:'g5', subgoalId:'sg7', status:'in_progress', due:'2026-08-01', recurring:false},
+      {id:'t18', title:'Morning mobility routine', goalId:null, subgoalId:null, status:'in_progress', due:null, recurring:true, streakCurrent:12, streakLongest:30},
+      {id:'t19', title:'Read 20 min', goalId:null, subgoalId:null, status:'in_progress', due:null, recurring:true, streakCurrent:5, streakLongest:18},
+      {id:'t20', title:'Log workout', goalId:'g2', subgoalId:null, status:'in_progress', due:null, recurring:true, streakCurrent:8, streakLongest:21},
+    ],
+    projects: [
+      {id:'p1', name:'Portfolio Redesign', goalId:'g1'},
+      {id:'p2', name:'Q3 Roadmap Planning', goalId:null},
+      {id:'p3', name:'Game Night Rotation', goalId:'g5'},
+    ],
+    targets: [
+      {id:'tg1', projectId:'p1', title:'Design', due:'2026-08-20'},
+      {id:'tg2', projectId:'p1', title:'Content', due:'2026-08-25'},
+      {id:'tg3', projectId:'p1', title:'Launch', due:'2026-09-10'},
+      {id:'tg4', projectId:'p2', title:'Stakeholder input', due:'2026-08-05'},
+      {id:'tg5', projectId:'p2', title:'Draft roadmap', due:'2026-08-15'},
+      {id:'tg6', projectId:'p3', title:'Rotation schedule', due:'2026-08-10'},
+      {id:'tg7', projectId:'p3', title:'Supplies', due:null},
+    ],
+    projectTasks: [
+      {id:'pt1', projectId:'p1', targetId:'tg1', title:'Audit current site', status:'done', due:null},
+      {id:'pt2', projectId:'p1', targetId:'tg1', title:'New homepage layout', status:'in_progress', due:'2026-08-12'},
+      {id:'pt3', projectId:'p1', targetId:'tg2', title:'Write 3 case studies', status:'todo', due:'2026-08-22'},
+      {id:'pt4', projectId:'p1', targetId:'tg2', title:'Get feedback from 2 peers', status:'todo', due:null},
+      {id:'pt5', projectId:'p1', targetId:'tg3', title:'Point custom domain', status:'todo', due:'2026-09-08'},
+      {id:'pt6', projectId:'p1', targetId:'tg3', title:'Submit to directories', status:'todo', due:null},
+      {id:'pt7', projectId:'p2', targetId:'tg4', title:'Interview 3 team leads', status:'done', due:null},
+      {id:'pt8', projectId:'p2', targetId:'tg4', title:'Summarize themes', status:'in_progress', due:'2026-08-04'},
+      {id:'pt9', projectId:'p2', targetId:'tg5', title:'Draft v1 doc', status:'todo', due:'2026-08-13'},
+      {id:'pt10', projectId:'p2', targetId:'tg5', title:'Review with manager', status:'todo', due:null},
+      {id:'pt11', projectId:'p3', targetId:'tg6', title:'Confirm 4 host dates', status:'done', due:null},
+      {id:'pt12', projectId:'p3', targetId:'tg6', title:'Share calendar invite', status:'in_progress', due:'2026-07-31'},
+      {id:'pt13', projectId:'p3', targetId:'tg7', title:'Buy extra dice/cards', status:'todo', due:null},
+    ],
+    ideas: [
+      {id:'i1', title:'Cold plunge before work?', note:"Read it helps morning focus — try 2 weeks, log energy.", tags:['Gym']},
+      {id:'i2', title:'Newsletter for side projects', note:'Monthly update on what shipped, could feed the portfolio too.', tags:['Side Projects','Work']},
+      {id:'i3', title:'Board game café pop-up', note:"Ask the game night crew if they'd want a bigger one-off event.", tags:['Social']},
+      {id:'i4', title:'Pomodoro + habit stacking', note:'Pair the recurring habits with a timer block instead of loose reminders.', tags:['Work','School']},
+      {id:'i5', title:'Weighted vest walks', note:'Cheap way to add load without more gym time.', tags:['Gym']},
+      {id:'i6', title:'Rebuild resume around case studies', note:'Once the portfolio ships, resume should point straight at it.', tags:['Work','Side Projects']},
+    ],
+    visionItems: [
+      {id:'v1', type:'image', caption:'Portfolio, live.'},
+      {id:'v2', type:'quote', text:'Progressive overload, logged every session.'},
+      {id:'v3', type:'image', caption:'Game night, monthly.'},
+      {id:'v4', type:'image', caption:'Senior, by December.'},
+      {id:'v5', type:'quote', text:'Discipline is choosing between what you want now and what you want most.'},
+      {id:'v6', type:'image', caption:'Finish strong.'},
+      {id:'v7', type:'quote', text:'Small reps, every day, compound.'},
+      {id:'v8', type:'image', caption:'Ship it, then tell people.'},
+    ],
+  };
+
+  componentDidMount(){
+    this.applyHash();
+    this._onHash = () => this.applyHash();
+    window.addEventListener('hashchange', this._onHash);
+    requestAnimationFrame(()=> setTimeout(()=>this.setState({mounted:true}), 60));
+  }
+  componentWillUnmount(){ window.removeEventListener('hashchange', this._onHash); }
+  applyHash(){
+    const hash = window.location.hash || '#/dashboard';
+    this.setState({ hash });
+    const page = hash.replace(/^#\//,'').split('/')[0] || 'dashboard';
+    if(page === 'dashboard'){
+      this.setState({ dashboardMounted: false });
+      requestAnimationFrame(()=> setTimeout(()=>this.setState({dashboardMounted:true}), 60));
+    }
+  }
+
+  theme(){ return this.state.themeName === 'nocturne' ? NOCTURNE : COQUETTE; }
+  parseRoute(){
+    const h = (this.state.hash||'#/goals').replace(/^#\//,'');
+    const parts = h.split('/').filter(Boolean);
+    return { name: parts[0] || 'dashboard', id: parts[1] || null };
+  }
+
+  categoryColor(catId){
+    const t = this.theme();
+    const idx = this.state.categories.findIndex(c=>c.id===catId);
+    return [t.accent, t.accent2, t.accent3][idx % 3];
+  }
+  categoryName(catId){ const c = this.state.categories.find(c=>c.id===catId); return c ? c.name : 'Uncategorized'; }
+
+  taskDone(t){ return t.status === 'done' ? 1 : 0; }
+  subgoalCompletion(sg){
+    const ts = this.state.tasks.filter(t=>t.subgoalId===sg.id);
+    if(!ts.length) return 0;
+    return ts.reduce((s,t)=>s+this.taskDone(t),0)/ts.length;
+  }
+  goalCompletion(g){
+    const sgs = this.state.subgoals.filter(s=>s.goalId===g.id);
+    const direct = this.state.tasks.filter(t=>t.goalId===g.id && !t.subgoalId);
+    const units = [...sgs.map(s=>this.subgoalCompletion(s)), ...direct.map(t=>this.taskDone(t))];
+    if(!units.length) return 0;
+    return units.reduce((a,b)=>a+b,0)/units.length;
+  }
+  targetCompletion(tg){
+    const ts = this.state.projectTasks.filter(t=>t.targetId===tg.id);
+    if(!ts.length) return 0;
+    return ts.reduce((s,t)=>s+this.taskDone(t),0)/ts.length;
+  }
+  projectCompletion(p){
+    const tgs = this.state.targets.filter(t=>t.projectId===p.id);
+    const direct = this.state.projectTasks.filter(t=>t.projectId===p.id && !t.targetId);
+    const units = [...tgs.map(t=>this.targetCompletion(t)), ...direct.map(t=>this.taskDone(t))];
+    if(!units.length) return 0;
+    return units.reduce((a,b)=>a+b,0)/units.length;
+  }
+
+  dueMeta(due){
+    const t = this.theme();
+    if(!due) return { label:'No due date', color: t.textSecondary, weight: 400 };
+    const dd = daysUntil(due);
+    if(dd < 0) return { label:'Overdue · '+fmtDate(due), color: WARN, weight: 700 };
+    if(dd <= 5) return { label:'Due '+fmtDate(due), color: t.accent3, weight: 600 };
+    return { label:'Due '+fmtDate(due), color: t.textSecondary, weight: 400 };
+  }
+
+  toggleSidebar(){ this.setState(s=>({ sidebarOpen: !s.sidebarOpen })); }
+  quickToggleTheme(){ this.setState(s=>({ themeName: s.themeName==='nocturne' ? 'coquette' : 'nocturne' })); }
+  setTheme(name){ this.setState({ themeName: name }); }
+
+  setCategoryFilter(id){ this.setState({ categoryFilter: id }); }
+  toggleSubgoal(id){ this.setState(s=>({ expandedSubgoals: { ...s.expandedSubgoals, [id]: !s.expandedSubgoals[id] } })); }
+  toggleTaskDone(id){
+    this.setState(s=>({ tasks: s.tasks.map(t=> t.id===id ? { ...t, status: t.status==='done' ? 'todo' : 'done' } : t) }));
+  }
+  addSubgoalTask(sgId, title){
+    if(!title || !title.trim()) return;
+    const goal = this.state.subgoals.find(s=>s.id===sgId);
+    this.setState(s=>({ tasks: [...s.tasks, { id: uid('t'), title: title.trim(), goalId: goal ? goal.goalId : null, subgoalId: sgId, status:'todo', due:null, recurring:false }] }));
+  }
+  addSubgoal(goalId, title){
+    if(!title || !title.trim()) return;
+    this.setState(s=>({ subgoals: [...s.subgoals, { id: uid('sg'), goalId, title: title.trim(), due:null }], newSubgoalDraft:'' }));
+  }
+
+  setProjectTargetFilter(id){ this.setState({ projectTargetFilter: id }); }
+  setProjectView(v){ this.setState({ projectView: v }); }
+  addProjectTask(projectId, targetId, title){
+    if(!title || !title.trim()) return;
+    this.setState(s=>({ projectTasks: [...s.projectTasks, { id: uid('pt'), projectId, targetId: targetId==='all'?null:targetId, title: title.trim(), status:'todo', due:null }] }));
+  }
+
+  setTaskStatusFilter(v){ this.setState({ taskStatusFilter: v }); }
+  setTaskLinkFilter(v){ this.setState({ taskLinkFilter: v }); }
+  setTaskRecurringFilter(v){ this.setState({ taskRecurringFilter: v }); }
+
+  setIdeaDraftTitle(e){ this.setState({ ideaDraftTitle: e.target.value }); }
+  captureIdea(){
+    const title = this.state.ideaDraftTitle.trim();
+    if(!title) return;
+    this.setState(s=>({ ideas: [{ id: uid('i'), title, note:'', tags:[] }, ...s.ideas], ideaDraftTitle:'' }));
+  }
+  promoteIdea(id, kind){
+    const idea = this.state.ideas.find(i=>i.id===id);
+    if(!idea) return;
+    this.setState(s=>({ ideas: s.ideas.filter(i=>i.id!==id) }));
+    if(kind==='goal'){
+      const gid = uid('g');
+      this.setState(s=>({ goals: [...s.goals, { id: gid, title: idea.title, category: s.categories[0].id, timeframe:'mid', due:null, motivation: idea.note || '' }] }));
+      window.location.hash = '#/goals/'+gid;
+    } else {
+      const pid = uid('p');
+      this.setState(s=>({ projects: [...s.projects, { id: pid, name: idea.title, goalId:null }] }));
+      window.location.hash = '#/projects/'+pid;
+    }
+  }
+
+  setVisionSort(v){ this.setState({ visionSort: v }); }
+  submitQuickAdd(){
+    const title = this.state.quickAddDraft.trim();
+    if(!title) return;
+    const type = this.state.quickAddType;
+    if(type==='idea') this.setState(s=>({ ideas: [{ id: uid('i'), title, note:'', tags:[] }, ...s.ideas] }));
+    else if(type==='task') this.setState(s=>({ tasks: [...s.tasks, { id: uid('t'), title, goalId:null, subgoalId:null, status:'todo', due:null, recurring:false }] }));
+    else if(type==='goal') this.setState(s=>({ goals: [...s.goals, { id: uid('g'), title, category: s.categories[0].id, timeframe:'mid', due:null, motivation:'' }] }));
+    this.setState({ quickAddDraft:'' });
+  }
+
+  decGrace(){ this.setState(s=>({ streakGrace: Math.max(0, s.streakGrace-1) })); }
+  incGrace(){ this.setState(s=>({ streakGrace: Math.min(7, s.streakGrace+1) })); }
+  exportNow(){ this.setState({ lastExportLabel: 'just now' }); }
+  setNewCategoryDraft(e){ this.setState({ newCategoryDraft: e.target.value }); }
+  addCategory(){
+    const name = this.state.newCategoryDraft.trim();
+    if(!name) return;
+    this.setState(s=>({ categories: [...s.categories, { id: uid('cat'), name }], newCategoryDraft:'' }));
+  }
+
+  openDrawer(type){ this.setState({ drawerOpen:true, drawerType:type, draftTitle:'', draftCategory: this.state.categories[0].id, draftTimeframe:'short', draftMotivation:'', draftParentGoal:'', draftNote:'', draftDue:'', draftRecurring:false, draftVisionType:'image' }, ()=> requestAnimationFrame(()=>this.setState({drawerAnimIn:true})) );
+  }
+  closeDrawer(){ this.setState({ drawerAnimIn:false }); setTimeout(()=>this.setState({ drawerOpen:false, drawerType:null }), 250); }
+  submitDrawer(){
+    const type = this.state.drawerType;
+    const title = this.state.draftTitle.trim();
+    if(!title){ this.closeDrawer(); return; }
+    if(type==='goal'){
+      this.setState(s=>({ goals: [...s.goals, { id: uid('g'), title, category: s.draftCategory, timeframe: s.draftTimeframe, due: s.draftDue||null, motivation: s.draftMotivation }] }));
+    } else if(type==='project'){
+      this.setState(s=>({ projects: [...s.projects, { id: uid('p'), name: title, goalId: s.draftParentGoal||null }] }));
+    } else if(type==='task'){
+      this.setState(s=>({ tasks: [...s.tasks, { id: uid('t'), title, goalId: s.draftParentGoal||null, subgoalId:null, status:'todo', due: s.draftDue||null, recurring: s.draftRecurring, streakCurrent:0, streakLongest:0 }] }));
+    } else if(type==='idea'){
+      this.setState(s=>({ ideas: [{ id: uid('i'), title, note: s.draftNote, tags:[] }, ...s.ideas] }));
+    } else if(type==='vision'){
+      this.setState(s=>({ visionItems: [{ id: uid('v'), type: s.draftVisionType, caption: title, text: title }, ...s.visionItems] }));
+    }
+    this.closeDrawer();
+  }
+
+  renderVals(){
+    const s = this.state;
+    const t = this.theme();
+    const route = this.parseRoute();
+    const page = route.name;
+    const mv = (deg)=> s.mounted ? deg : 0;
+    const mp = (pct)=> (s.mounted ? pct : 0)+'%';
+
+    const navState = (key)=>{
+      const active = page === key;
+      return { weight: active ? 700 : 500, bg: active ? t.accent+'2E' : 'transparent', color: active ? t.textPrimary : t.textSecondary };
+    };
+    const navDashboard = navState('dashboard'), navGoals = navState('goals'), navProjects = navState('projects'), navTasks = navState('tasks'),
+      navIdeas = navState('ideas'), navVision = navState('vision'), navSettings = navState('settings');
+
+    const categoryFilterChips = [{id:'all', name:'All'}, ...s.categories].map(c=>{
+      const active = s.categoryFilter === c.id;
+      return { label: c.name, onClick: ()=>this.setCategoryFilter(c.id), bg: active ? t.accent : 'transparent', color: active ? t.bg : t.textSecondary, border: active ? t.accent : t.border };
+    });
+
+    const goalsAugmented = s.goals.map((g,i)=>{
+      const completion = this.goalCompletion(g);
+      const dm = this.dueMeta(g.due);
+      const subCount = s.subgoals.filter(sg=>sg.goalId===g.id).length;
+      return { ...g, color: this.categoryColor(g.category), progressPct: Math.round(completion*100)+'%', progressDeg: mv(Math.round(completion*360)), progressPctBar: mp(Math.round(completion*100)), href:'#/goals/'+g.id, subCount, dueLabel: dm.label, dueColor: dm.color, dueWeight: dm.weight, delay: (i*0.05)+'s', categoryName: this.categoryName(g.category) };
+    });
+    const groupedGoals = s.categories
+      .filter(c=> s.categoryFilter==='all' || s.categoryFilter===c.id)
+      .map(c=>({ id:c.id, name:c.name, color: this.categoryColor(c.id), goals: goalsAugmented.filter(g=>g.category===c.id) }))
+      .filter(g=>g.goals.length);
+
+    // Goal detail
+    let activeGoal = null;
+    if(page==='goals' && route.id){
+      const g = s.goals.find(x=>x.id===route.id);
+      if(g){
+        const completion = this.goalCompletion(g);
+        const dm = this.dueMeta(g.due);
+        const subgoals = s.subgoals.filter(sg=>sg.goalId===g.id).map(sg=>{
+          const sgCompletion = this.subgoalCompletion(sg);
+          const sgDm = this.dueMeta(sg.due);
+          const tasksForSg = s.tasks.filter(tk=>tk.subgoalId===sg.id).map(tk=>({
+            id:tk.id, title:tk.title, done: tk.status==='done',
+            toggle: ()=>this.toggleTaskDone(tk.id),
+            strike: tk.status==='done' ? 'line-through' : 'none',
+            textColor: tk.status==='done' ? t.textSecondary : t.textPrimary,
+            checkBg: tk.status==='done' ? t.accent2 : 'transparent', checkBorder: tk.status==='done' ? t.accent2 : t.border,
+          }));
+          return {
+            id: sg.id, title: sg.title, progressPct: Math.round(sgCompletion*100)+'%', progressPctBar: mp(Math.round(sgCompletion*100)),
+            dueLabel: sgDm.label, dueColor: sgDm.color,
+            expanded: !!s.expandedSubgoals[sg.id], toggle: ()=>this.toggleSubgoal(sg.id),
+            chevronRotate: s.expandedSubgoals[sg.id] ? 'rotate(90deg)' : 'rotate(0deg)',
+            tasks: tasksForSg,
+            newTaskDraft: s['subgoalDraft_'+sg.id] || '',
+            setNewTaskDraft: (e)=>this.setState({ ['subgoalDraft_'+sg.id]: e.target.value }),
+            newTaskKeydown: (e)=>{ if(e.key==='Enter'){ this.addSubgoalTask(sg.id, s['subgoalDraft_'+sg.id]||''); this.setState({ ['subgoalDraft_'+sg.id]: '' }); } },
+          };
+        });
+        activeGoal = {
+          id:g.id, title:g.title, categoryName: this.categoryName(g.category), color: this.categoryColor(g.category),
+          timeframe: g.timeframe, dueLabel: dm.label, dueColor: dm.color,
+          progressPct: Math.round(completion*100)+'%', progressPctBar: mp(Math.round(completion*100)),
+          motivation: g.motivation, imageSlotId: 'goal-vision-'+g.id, subgoals,
+        };
+      }
+    }
+
+    // Projects list
+    const projectCards = s.projects.map((p,i)=>{
+      const completion = this.projectCompletion(p);
+      const goal = p.goalId ? s.goals.find(g=>g.id===p.goalId) : null;
+      const allTasks = [
+        ...s.projectTasks.filter(pt=>pt.projectId===p.id),
+      ];
+      const todoCount = allTasks.filter(x=>x.status==='todo').length;
+      const inProgCount = allTasks.filter(x=>x.status==='in_progress').length;
+      const doneCount = allTasks.filter(x=>x.status==='done').length;
+      const dues = allTasks.map(x=>x.due).filter(Boolean).sort();
+      return {
+        id:p.id, name:p.name, href:'#/projects/'+p.id, progressPct: Math.round(completion*100)+'%', progressDeg: mv(Math.round(completion*360)),
+        parentLabel: goal ? 'Linked to '+goal.title : 'No parent goal',
+        todoCount, inProgCount, doneCount, nextDue: dues.length ? fmtDate(dues[0]) : 'No due date', delay: (i*0.05)+'s',
+      };
+    });
+
+    // Project detail
+    let activeProject = null, boardColumns = [], filteredProjectTasks = [];
+    let isBoardView=false, isListView=false, isTimelineView=false;
+    const viewToggleOptions = ['board','list','timeline'].map(v=>{
+      const active = s.projectView===v;
+      return { label: v[0].toUpperCase()+v.slice(1), onClick: ()=>this.setProjectView(v), bg: active ? t.accent : 'transparent', color: active ? t.bg : t.textSecondary };
+    });
+    const allTargetChipActive = s.projectTargetFilter==='all';
+    const allTargetChipBg = allTargetChipActive ? t.accent : t.surface;
+    const allTargetChipColor = allTargetChipActive ? t.bg : t.textSecondary;
+    const allTargetChipBorder = allTargetChipActive ? t.accent : t.border;
+
+    if(page==='projects' && route.id){
+      const p = s.projects.find(x=>x.id===route.id);
+      if(p){
+        const goal = p.goalId ? s.goals.find(g=>g.id===p.goalId) : null;
+        const targets = s.targets.filter(tg=>tg.projectId===p.id).map(tg=>{
+          const completion = this.targetCompletion(tg);
+          const active = s.projectTargetFilter===tg.id;
+          return { id: tg.id, title: tg.title, progressPctBar: mp(Math.round(completion*100)), onClick: ()=>this.setProjectTargetFilter(tg.id), bg: active ? t.accent : t.bg, color: active ? t.bg : t.textPrimary, border: active ? t.accent : t.border };
+        });
+        activeProject = { id:p.id, name:p.name, parentLabel: goal ? 'Linked to '+goal.title : 'No parent goal', targets };
+        isBoardView = s.projectView==='board'; isListView = s.projectView==='list'; isTimelineView = s.projectView==='timeline';
+
+        const allPTasks = s.projectTasks.filter(pt=>pt.projectId===p.id);
+        filteredProjectTasks = (s.projectTargetFilter==='all' ? allPTasks : allPTasks.filter(x=>x.targetId===s.projectTargetFilter))
+          .map((x,xi)=>{
+            const tg = s.targets.find(tt=>tt.id===x.targetId);
+            const dm = this.dueMeta(x.due);
+            const dd = daysUntil(x.due);
+            return {
+              id:x.id, title:x.title, targetLabel: tg ? tg.title : 'No target', targetColor: t.textSecondary,
+              statusColor: x.status==='done' ? t.accent2 : x.status==='in_progress' ? t.accent3 : t.textSecondary,
+              statusLabel: x.status==='done'?'Done':x.status==='in_progress'?'In progress':'To do',
+              dueLabel: x.due ? fmtDate(x.due) : '—', timelinePos: x.due ? Math.max(2,Math.min(94, 50 + (dd||0))) + '%' : '4%',
+              delay: (xi*0.04)+'s',
+            };
+          });
+        const cols = [
+          { key:'todo', label:'To Do' }, { key:'in_progress', label:'In Progress' }, { key:'done', label:'Done' },
+        ];
+        boardColumns = cols.map(col=>{
+          const cards = filteredProjectTasks.filter(x=>{
+            const orig = allPTasks.find(o=>o.id===x.id);
+            return orig.status===col.key;
+          });
+          return {
+            label: col.label, count: cards.length, cards,
+            newDraft: s['colDraft_'+p.id+'_'+col.key] || '',
+            setDraft: (e)=>this.setState({ ['colDraft_'+p.id+'_'+col.key]: e.target.value }),
+            keydown: (e)=>{ if(e.key==='Enter'){ this.addProjectTask(p.id, s.projectTargetFilter, s['colDraft_'+p.id+'_'+col.key]||''); this.setState({ ['colDraft_'+p.id+'_'+col.key]: '' }); } },
+          };
+        });
+      }
+    }
+
+    // Tasks page
+    const streakTasks = s.tasks.filter(x=>x.recurring);
+    const streakCards = streakTasks.map(st=>({
+      title: st.title, current: st.streakCurrent||0, longest: st.streakLongest||0,
+      cells: Array.from({length:28}).map((_,i)=>{
+        const filled = i < (st.streakCurrent||0) ? true : Math.random() > 0.55;
+        return { color: filled ? (i < (st.streakCurrent||0) ? t.accent2 : t.border) : t.border, delay: (i*0.012)+'s' };
+      }),
+    }));
+    const taskFilterDefs = [
+      { id:'all-status', group:'status', val:'all', label:'All status' },
+      { id:'todo', group:'status', val:'todo', label:'To do' },
+      { id:'in_progress', group:'status', val:'in_progress', label:'In progress' },
+      { id:'done', group:'status', val:'done', label:'Done' },
+      { id:'recurring-only', group:'recurring', val:'recurring', label:'Recurring' },
+      { id:'standalone-only', group:'link', val:'standalone', label:'Standalone' },
+    ];
+    const taskFilterChips = taskFilterDefs.map(f=>{
+      let active = false;
+      if(f.group==='status') active = s.taskStatusFilter===f.val;
+      if(f.group==='recurring') active = s.taskRecurringFilter===f.val;
+      if(f.group==='link') active = s.taskLinkFilter===f.val;
+      const onClick = f.group==='status' ? ()=>this.setTaskStatusFilter(active?'all':f.val)
+        : f.group==='recurring' ? ()=>this.setTaskRecurringFilter(active?'all':f.val)
+        : ()=>this.setTaskLinkFilter(active?'all':f.val);
+      return { label: f.label, onClick, bg: active ? t.accent : 'transparent', color: active ? t.bg : t.textSecondary, border: active ? t.accent : t.border };
+    });
+    const tasksAugmented = s.tasks.map((x,ti)=>{
+      const goal = x.goalId ? s.goals.find(g=>g.id===x.goalId) : null;
+      const sg = x.subgoalId ? s.subgoals.find(sub=>sub.id===x.subgoalId) : null;
+      const proj = s.projectTasks.find(pt=>pt.id===x.id);
+      let parentLabel = 'Standalone';
+      if(sg) parentLabel = goal ? goal.title+' / '+sg.title : sg.title;
+      else if(goal) parentLabel = goal.title;
+      const dm = this.dueMeta(x.due);
+      return {
+        id:x.id, title:x.title, done: x.status==='done', toggle: ()=>this.toggleTaskDone(x.id),
+        strike: x.status==='done' ? 'line-through' : 'none', textColor: x.status==='done' ? t.textSecondary : t.textPrimary,
+        checkBg: x.status==='done' ? t.accent2 : 'transparent', checkBorder: x.status==='done' ? t.accent2 : t.border,
+        parentLabel, parentColor: t.textSecondary, recurring: !!x.recurring,
+        dueLabel: x.due ? dm.label : (x.recurring ? 'Daily' : '—'),
+        statusBg: x.status==='done' ? t.accent2+'33' : x.status==='in_progress' ? t.accent3+'33' : t.border,
+        statusColor: x.status==='done' ? t.accent2 : x.status==='in_progress' ? t.accent3 : t.textSecondary,
+        statusLabel: x.status==='done'?'Done':x.status==='in_progress'?'In progress':'To do',
+        delay: (ti*0.03)+'s',
+        _status: x.status, _hasGoal: !!goal, _recurring: !!x.recurring,
+      };
+    });
+    const upcomingItems = [
+      ...s.goals.filter(g=>g.due).map(g=>({ kind:'Goal', title:g.title, due:g.due })),
+      ...s.subgoals.filter(sg=>sg.due).map(sg=>({ kind:'Subgoal', title:sg.title, due:sg.due })),
+      ...s.tasks.filter(x=>x.due && x.status!=='done').map(x=>({ kind:'Task', title:x.title, due:x.due })),
+    ].sort((a,b)=>a.due.localeCompare(b.due)).slice(0,6).map(u=>{
+      const dm = this.dueMeta(u.due);
+      return { kind: u.kind, title: u.title, dueLabel: fmtDate(u.due), dueColor: dm.color };
+    });
+    const upcomingItemsDelayed = upcomingItems.map((u,ui)=>({ ...u, delay: (ui*0.04)+'s' }));
+    const quickAddTypeOptions = ['idea','task','goal'].map(qt=>{
+      const active = s.quickAddType===qt;
+      return { label: qt[0].toUpperCase()+qt.slice(1), onClick: ()=>this.setState({quickAddType:qt}), bg: active ? t.accent : 'transparent', color: active ? t.bg : t.textSecondary };
+    });
+    const filteredTasks = tasksAugmented.filter(x=>{
+      if(s.taskStatusFilter!=='all' && x._status!==s.taskStatusFilter) return false;
+      if(s.taskRecurringFilter==='recurring' && !x._recurring) return false;
+      if(s.taskLinkFilter==='standalone' && x._hasGoal) return false;
+      return true;
+    });
+
+    // Ideas
+    const ideaCards = s.ideas.map((idea,i)=>({
+      title: idea.title, note: idea.note, tags: idea.tags||[], delay:(i*0.04)+'s',
+      promoteGoal: ()=>this.promoteIdea(idea.id,'goal'), promoteProject: ()=>this.promoteIdea(idea.id,'project'),
+    }));
+
+    // Vision
+    const visionSortDefs = [{id:'recent',label:'Most recent'},{id:'category',label:'By category'}];
+    const visionSortChips = visionSortDefs.map(v=>{
+      const active = s.visionSort===v.id;
+      return { label:v.label, onClick: ()=>this.setVisionSort(v.id), bg: active ? t.accent : 'transparent', color: active ? t.bg : t.textSecondary, border: active ? t.accent : t.border };
+    });
+    const quoteBgs = [t.accent, t.accent2, t.accent3];
+    let qi = 0;
+    const visionCards = s.visionItems.map((v,i)=>{
+      const isQuote = v.type==='quote';
+      const bg = isQuote ? quoteBgs[(qi++)%3] : null;
+      return {
+        isQuote, isImage: !isQuote, text: v.text, caption: v.caption, slotId: 'vision-'+v.id,
+        quoteBg: bg, imgHeight: (180 + (i%3)*40)+'px', delay:(i*0.04)+'s',
+      };
+    });
+
+    // Settings
+    const themeSwatches = [
+      { key:'nocturne', name:'Nocturne', bg: NOCTURNE.bg, surface: NOCTURNE.surface, text: NOCTURNE.textPrimary, accent: NOCTURNE.accent, accent2: NOCTURNE.accent2, accent3: NOCTURNE.accent3 },
+      { key:'coquette', name:'Coquette', bg: COQUETTE.bg, surface: COQUETTE.surface, text: COQUETTE.textPrimary, accent: COQUETTE.accent, accent2: COQUETTE.accent2, accent3: COQUETTE.accent3 },
+    ].map(sw=>({ ...sw, onClick: ()=>this.setTheme(sw.key), ringColor: s.themeName===sw.key ? t.accent : 'transparent' }));
+    const categoryRows = s.categories.map(c=>({ name:c.name, color: this.categoryColor(c.id) }));
+
+    // Drawer
+    const drawerTypeLabels = { goal:'New Goal', project:'New Project', task:'New Task', idea:'New Idea', vision:'New Vision Item' };
+    const timeframeOptions = ['short','mid','long'].map(tf=>{
+      const active = s.draftTimeframe===tf;
+      return { label: tf[0].toUpperCase()+tf.slice(1), onClick: ()=>this.setState({draftTimeframe:tf}), bg: active ? t.accent : t.bg, color: active ? t.bg : t.textPrimary, border: active ? t.accent : t.border };
+    });
+    const visionTypeOptions = ['image','quote'].map(vt=>{
+      const active = s.draftVisionType===vt;
+      return { label: vt[0].toUpperCase()+vt.slice(1), onClick: ()=>this.setState({draftVisionType:vt}), bg: active ? t.accent : t.bg, color: active ? t.bg : t.textPrimary, border: active ? t.accent : t.border };
+    });
+
+    return {
+      theme: t, themeName: t.name,
+      sidebarOpen: s.sidebarOpen, sidebarWidth: s.sidebarOpen ? '236px' : '76px',
+      collapseIconTransform: s.sidebarOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+      toggleSidebar: ()=>this.toggleSidebar(), quickToggleTheme: ()=>this.quickToggleTheme(),
+      themeSwitchWidth: '40px', themeDotLeft: s.themeName==='nocturne' ? '1px' : '19px',
+      navDashboard, navGoals, navProjects, navTasks, navIdeas, navVision, navSettings,
+      isDashboard: page==='dashboard', todayLabel: TODAY.toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric', year:'numeric'}),
+      dashboardGoalGroups: s.categories.map(c=>{
+        const catGoals = s.goals.filter(g=>g.category===c.id).slice(0,2).map((g,gi)=>{
+          const completion = this.goalCompletion(g);
+          return { title:g.title, href:'#/goals/'+g.id, progressPct: Math.round(completion*100)+'%', progressPctBar: (s.dashboardMounted?Math.round(completion*100):0)+'%', color: this.categoryColor(g.category), delay: (gi*0.08)+'s' };
+        });
+        return { name:c.name, color: this.categoryColor(c.id), goals: catGoals };
+      }).filter(g=>g.goals.length),
+      dashboardVisionPreview: visionCards.filter(v=>v.isImage).slice(0,4),
+      dashboardTasks: tasksAugmented.filter(x=>x._status!=='done').slice(0,6),
+      upcomingItems: upcomingItemsDelayed,
+      quickAddTypeOptions, quickAddDraft: s.quickAddDraft, setQuickAddDraft: (e)=>this.setState({quickAddDraft:e.target.value}),
+      quickAddKeydown: (e)=>{ if(e.key==='Enter') this.submitQuickAdd(); },
+      quickAddPlaceholder: s.quickAddType==='idea' ? 'Capture a new idea…' : s.quickAddType==='goal' ? 'Name a new goal…' : 'Capture a new task…',
+      submitQuickAdd: ()=>this.submitQuickAdd(),
+      isGoalsList: page==='goals' && !route.id, isGoalDetail: page==='goals' && !!route.id,
+      isProjectsList: page==='projects' && !route.id, isProjectDetail: page==='projects' && !!route.id,
+      isTasks: page==='tasks', isIdeas: page==='ideas', isVision: page==='vision', isSettings: page==='settings',
+      categories: s.categories, categoryFilterChips, goalsTotalCount: s.goals.length, groupedGoals,
+      openGoalDrawer: ()=>this.openDrawer('goal'), openProjectDrawer: ()=>this.openDrawer('project'),
+      openTaskDrawer: ()=>this.openDrawer('task'), openVisionDrawer: ()=>this.openDrawer('vision'),
+      activeGoal, newSubgoalDraft: s.newSubgoalDraft,
+      setNewSubgoalDraft: (e)=>this.setState({newSubgoalDraft:e.target.value}),
+      newSubgoalKeydown: (e)=>{ if(e.key==='Enter' && activeGoal){ this.addSubgoal(activeGoal.id, s.newSubgoalDraft); } },
+      projects: s.projects, projectCards, goals: s.goals,
+      activeProject, viewToggleOptions, allTargetChipBg, allTargetChipColor, allTargetChipBorder,
+      clearTargetFilter: ()=>this.setProjectTargetFilter('all'),
+      isBoardView, isListView, isTimelineView, boardColumns, filteredProjectTasks,
+      tasks: s.tasks, streakCards, taskFilterChips, filteredTasks,
+      ideas: s.ideas, ideaCards, ideaDraftTitle: s.ideaDraftTitle, setIdeaDraftTitle: (e)=>this.setIdeaDraftTitle(e), captureIdea: ()=>this.captureIdea(),
+      visionItems: s.visionItems, visionSortChips, visionCards,
+      themeSwatches, categoryRows, streakGrace: s.streakGrace, decGrace: ()=>this.decGrace(), incGrace: ()=>this.incGrace(),
+      exportNow: ()=>this.exportNow(), lastExportLabel: s.lastExportLabel,
+      newCategoryDraft: s.newCategoryDraft, setNewCategoryDraft: (e)=>this.setNewCategoryDraft(e),
+      newCategoryKeydown: (e)=>{ if(e.key==='Enter'){ this.addCategory(); } },
+      drawerOpen: s.drawerOpen, backdropOpacity: s.drawerAnimIn ? 1 : 0, drawerTransform: s.drawerAnimIn ? 'translateX(0)' : 'translateX(100%)',
+      drawerTitle: drawerTypeLabels[s.drawerType] || '', drawerTitlePlaceholder: 'Give it a name…',
+      closeDrawer: ()=>this.closeDrawer(), submitDrawer: ()=>this.submitDrawer(),
+      draftTitle: s.draftTitle, setDraftTitle: (e)=>this.setState({draftTitle:e.target.value}),
+      draftCategory: s.draftCategory, setDraftCategory: (e)=>this.setState({draftCategory:e.target.value}),
+      draftParentGoal: s.draftParentGoal, setDraftParentGoal: (e)=>this.setState({draftParentGoal:e.target.value}),
+      draftMotivation: s.draftMotivation, setDraftMotivation: (e)=>this.setState({draftMotivation:e.target.value}),
+      draftNote: s.draftNote, setDraftNote: (e)=>this.setState({draftNote:e.target.value}),
+      draftDue: s.draftDue, setDraftDue: (e)=>this.setState({draftDue:e.target.value}),
+      draftRecurring: s.draftRecurring, toggleDraftRecurring: ()=>this.setState(st=>({draftRecurring:!st.draftRecurring})),
+      draftRecurringBg: s.draftRecurring ? t.accent2 : 'transparent', draftRecurringBorder: s.draftRecurring ? t.accent2 : t.border,
+      draftIsImageType: s.draftVisionType==='image',
+      drawerNeedsCategory: s.drawerType==='goal', drawerNeedsParentGoal: s.drawerType==='project' || s.drawerType==='task',
+      drawerNeedsNote: s.drawerType==='idea', drawerNeedsDue: s.drawerType==='task' || s.drawerType==='goal',
+      drawerNeedsRecurring: s.drawerType==='task', drawerNeedsVisionType: s.drawerType==='vision',
+      colorScheme: t===NOCTURNE ? 'dark' : 'light',
+      drawerSubmitLabel: 'Create',
+      timeframeOptions, visionTypeOptions,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
