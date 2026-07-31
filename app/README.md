@@ -1,42 +1,67 @@
-# sv
+# Mushpoint
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Desktop goal tracker: Tauri (Rust) + SvelteKit + Tailwind v4 + SQLite, local-first.
+Plan of record: [`../plans/goal_tracker_plan.md`](../plans/goal_tracker_plan.md).
 
-## Creating a project
+Phases 0 and 1 are built: the app shell, theming system, database with migrations,
+and CRUD plus progress for Goals, Categories, Subgoals and Tasks. Task Manager,
+Streaks, Projects, Ideas, Vision Board and the Dashboard are later phases.
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
-```
-
-To recreate this project with the same configuration:
+## Running it
 
 ```sh
-# recreate this project
-npx sv@0.15.1 create --template minimal --types ts --add prettier vitest="usages:unit" playwright tailwindcss="plugins:none" --install npm app
+npm install
+npm run tauri dev     # the app itself — starts Vite and the Rust shell together
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+`npm run dev` alone serves the UI in a browser, where no backend exists — every
+screen then shows a "Backend not running" banner. That is expected, not a bug.
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+npm run tauri build   # installer for the current OS (unsigned)
 ```
 
-## Building
-
-To create a production version of your app:
+## Tests
 
 ```sh
-npm run build
+npm run test:unit     # vitest — formatting/date helpers
+npm run test:rust     # cargo test — schema, repos, progress rule (39 tests)
+npm run test:e2e      # playwright — app shell against the plain web build
+npm run test          # all three
+npm run check         # svelte-check
 ```
 
-You can preview the production build with `npm run preview`.
+The Rust tests run against an in-memory SQLite database, so they exercise the
+real schema and the real queries without touching the app's data file.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+## Layout
+
+```
+src/lib/api/          typed wrappers over the Tauri commands (camelCase in, AppError out)
+src/lib/theme/        active theme store, persisted to SQLite and mirrored to localStorage
+src/lib/icons/        logical icon names resolved per theme
+src/lib/styles/       theme tokens; every color in the UI comes from here
+src/lib/components/   Icon, ProgressBar, SubgoalCard, TaskRow, error/empty states
+src/routes/           /goals, /goals/[id], /settings
+src-tauri/src/db/     connection setup and versioned migrations
+src-tauri/src/repo/   all SQL, one module per entity
+src-tauri/src/progress.rs   the plan's progress rule, as pure functions
+src-tauri/src/commands.rs   the IPC surface
+```
+
+## Things worth knowing
+
+- **Where the data lives:** `%APPDATA%/com.mushpoint.app/mushpoint.sqlite3` on
+  Windows, `~/Library/Application Support/com.mushpoint.app/` on macOS. One file,
+  copy it to back it up.
+- **Migrations** are an append-only list in `src-tauri/src/db/migrations.rs`,
+  tracked with `PRAGMA user_version`. Never edit a migration that has shipped.
+- **Progress is derived, never stored.** A goal averages its direct children —
+  subgoals and directly-linked tasks weigh the same, and a subgoal's own value is
+  the average of its tasks. Tasks count only when `done`; `in_progress` is 0.
+- **Status is not progress.** Completing or archiving a goal is an explicit user
+  action, so progress can sit at 100% while the goal stays active.
+- **Themes** are CSS custom properties in `src/lib/styles/theme.css` mapped to
+  Tailwind utilities (`bg-surface`, `text-muted`, …). Adding a theme means adding
+  one block there, one entry in `THEMES`, and one in the backend's allow-list.
+  Components must not hardcode colors.

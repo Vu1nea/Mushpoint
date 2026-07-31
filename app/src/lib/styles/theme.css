@@ -1,0 +1,83 @@
+/*
+ * Theme tokens. Components only ever use the semantic Tailwind utilities built
+ * from these (bg-surface, text-muted, border-subtle, …) — no hardcoded colors,
+ * so adding a theme means adding one block here and nothing else.
+ *
+ * The active theme is set as `data-theme` on <html> by src/lib/theme/theme.svelte.ts.
+ */
+
+/* Nocturne — dark, the default. */
+:root,
+:root[data-theme='nocturne'] {
+	--mp-background: #14152b;
+	--mp-surface: #1f2147;
+	--mp-surface-raised: #272a56;
+	--mp-border: #3a3768;
+	--mp-text: #f2f1fb;
+	--mp-text-muted: #9c9ee8;
+	--mp-accent: #7b6fc4;
+	--mp-accent-contrast: #f2f1fb;
+	--mp-accent-secondary: #4fd1c5;
+	--mp-accent-tertiary: #5ba8d4;
+	--mp-danger: #e2718a;
+	--mp-track: #2c2e5c;
+}
+
+/* Coquette — light. */
+:root[data-theme='coquette'] {
+	--mp-background: #fff8f5;
+	--mp-surface: #ffffff;
+	--mp-surface-raised: #fdf1f1;
+	--mp-border: #f2d4da;
+	--mp-text: #4a2e33;
+	--mp-text-muted: #b85c73;
+	--mp-accent: #e8879f;
+	--mp-accent-contrast: #ffffff;
+	--mp-accent-secondary: #9cb88a;
+	--mp-accent-tertiary: #c9a8d4;
+	--mp-danger: #c2445f;
+	--mp-track: #f6e4e8;
+}
+
+@theme inline {
+	--color-background: var(--mp-background);
+	--color-surface: var(--mp-surface);
+	--color-surface-raised: var(--mp-surface-raised);
+	--color-subtle: var(--mp-border);
+	--color-content: var(--mp-text);
+	--color-muted: var(--mp-text-muted);
+	--color-accent: var(--mp-accent);
+	--color-accent-contrast: var(--mp-accent-contrast);
+	--color-accent-secondary: var(--mp-accent-secondary);
+	--color-accent-tertiary: var(--mp-accent-tertiary);
+	--color-danger: var(--mp-danger);
+	--color-track: var(--mp-track);
+}
+
+/*
+ * Motion tokens. Every transition in the app pulls from these so timing stays
+ * consistent, and so reduced-motion can flatten all of them in one place.
+ */
+:root {
+	--mp-duration-fast: 120ms;
+	--mp-duration-base: 220ms;
+	--mp-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	/* Theme swaps cross-fade rather than hard-cutting. */
+	--mp-theme-transition:
+		background-color var(--mp-duration-base) var(--mp-ease-out),
+		color var(--mp-duration-base) var(--mp-ease-out),
+		border-color var(--mp-duration-base) var(--mp-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--mp-duration-fast: 0ms;
+		--mp-duration-base: 0ms;
+		--mp-theme-transition: none;
+	}
+}
+
+body,
+[data-theme-transition] {
+	transition: var(--mp-theme-transition);
+}
