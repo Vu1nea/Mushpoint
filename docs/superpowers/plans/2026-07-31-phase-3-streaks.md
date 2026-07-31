@@ -1766,10 +1766,10 @@ Create `app/src/lib/components/StreakHeatmap.svelte`:
 	role="img"
 	aria-label="Completion history for the last {cells.length} days"
 >
-	{#each cells as cell (cell.date)}
+	{#each cells as cell, index (cell.date)}
 		<span
 			class="mp-enter aspect-square w-full rounded-[2px] {CELL_CLASSES[cell.state]}"
-			style="--mp-delay:{stagger(cells.indexOf(cell), 12)}"
+			style="--mp-delay:{stagger(index, 12)}"
 			title={cellTitle(cell)}
 		></span>
 	{/each}
@@ -2074,37 +2074,47 @@ In the same file, add the streak section between the error banners and the `<div
 {/if}
 ```
 
-Then replace the status pill and the recurring badge inside the card markup. The status pill becomes conditional, and the badge names the cadence:
+Then replace the status pill and the recurring badge inside the card markup. One pill serves both kinds of task — only its label, tooltip and action differ — so add this helper next to `toggleToday` in the `<script>` block:
+
+```typescript
+	/**
+	 * The pill is the same control either way: a habit toggles today's completion,
+	 * an ordinary task walks to the next column.
+	 */
+	function pill(task: TaskSummary) {
+		if (task.recurrence) {
+			return {
+				label: task.completedToday ? 'Done today' : 'Do today',
+				title: task.completedToday ? 'Undo today' : 'Mark done for today',
+				act: () => toggleToday(task, !task.completedToday)
+			};
+		}
+
+		const next = TASK_STATUSES[(TASK_STATUSES.indexOf(task.status) + 1) % TASK_STATUSES.length];
+		return {
+			label: TASK_STATUS_LABELS[task.status],
+			title: `Move to ${TASK_STATUS_LABELS[next]}`,
+			act: () => advance(task)
+		};
+	}
+```
+
+and render it once, with the cadence badge below:
 
 ```svelte
 					<div class="mt-2.5 flex flex-wrap items-center gap-2">
-						{#if task.recurrence}
-							<button
-								type="button"
-								class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
-									column(task)
-								]}"
-								disabled={busy}
-								title={task.completedToday ? 'Undo today' : 'Mark done for today'}
-								onclick={() => toggleToday(task, !task.completedToday)}
-							>
-								{task.completedToday ? 'Done today' : 'Do today'}
-							</button>
-						{:else}
-							<button
-								type="button"
-								class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
-									task.status
-								]}"
-								disabled={busy}
-								title="Move to {TASK_STATUS_LABELS[
-									TASK_STATUSES[(TASK_STATUSES.indexOf(task.status) + 1) % TASK_STATUSES.length]
-								]}"
-								onclick={() => advance(task)}
-							>
-								{TASK_STATUS_LABELS[task.status]}
-							</button>
-						{/if}
+						{@const action = pill(task)}
+						<button
+							type="button"
+							class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
+								column(task)
+							]}"
+							disabled={busy}
+							title={action.title}
+							onclick={action.act}
+						>
+							{action.label}
+						</button>
 						{#if parent}
 							<a
 								href="/goals/{task.goalId}"
