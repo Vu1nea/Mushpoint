@@ -235,7 +235,7 @@ mod tests {
                 due_date: None,
                 goal_id,
                 subgoal_id,
-                is_recurring: false,
+                recurrence: None,
             },
         )
         .unwrap()

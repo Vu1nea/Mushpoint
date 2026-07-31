@@ -69,6 +69,12 @@ impl TaskStatus {
     }
 }
 
+sql_enum!(Recurrence {
+    Daily => "daily",
+    Weekdays => "weekdays",
+    Weekly => "weekly",
+});
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Category {
@@ -153,9 +159,22 @@ pub struct Task {
     pub due_date: Option<String>,
     pub goal_id: Option<i64>,
     pub subgoal_id: Option<i64>,
-    pub is_recurring: bool,
+    /// `None` means a one-off task. Anything else makes it a habit with a streak.
+    pub recurrence: Option<Recurrence>,
     pub created_at: String,
     pub updated_at: String,
+}
+
+impl Task {
+    pub fn is_recurring(&self) -> bool {
+        self.recurrence.is_some()
+    }
+
+    /// A habit has no end state, so it is not a fraction of anything its parent
+    /// goal can be "done" with — it is left out of the progress average entirely.
+    pub fn counts_toward_progress(&self) -> bool {
+        self.recurrence.is_none()
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -166,7 +185,7 @@ pub struct TaskInput {
     pub goal_id: Option<i64>,
     pub subgoal_id: Option<i64>,
     #[serde(default)]
-    pub is_recurring: bool,
+    pub recurrence: Option<Recurrence>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -177,7 +196,8 @@ pub struct TaskUpdate {
     pub due_date: Option<String>,
     pub goal_id: Option<i64>,
     pub subgoal_id: Option<i64>,
-    pub is_recurring: bool,
+    #[serde(default)]
+    pub recurrence: Option<Recurrence>,
 }
 
 #[derive(Debug, Clone, Serialize)]

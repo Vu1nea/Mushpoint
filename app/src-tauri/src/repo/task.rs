@@ -2,10 +2,10 @@ use rusqlite::{params, Connection, Row};
 
 use super::{now, optional_text, required_text};
 use crate::error::{Error, Result};
-use crate::models::{Task, TaskInput, TaskStatus, TaskUpdate};
+use crate::models::{Recurrence, Task, TaskInput, TaskStatus, TaskUpdate};
 
 const COLUMNS: &str =
-    "id, title, status, due_date, goal_id, subgoal_id, is_recurring, created_at, updated_at";
+    "id, title, status, due_date, goal_id, subgoal_id, recurrence, created_at, updated_at";
 
 fn map(row: &Row) -> rusqlite::Result<Task> {
     Ok(Task {
@@ -15,7 +15,7 @@ fn map(row: &Row) -> rusqlite::Result<Task> {
         due_date: row.get("due_date")?,
         goal_id: row.get("goal_id")?,
         subgoal_id: row.get("subgoal_id")?,
-        is_recurring: row.get("is_recurring")?,
+        recurrence: row.get("recurrence")?,
         created_at: row.get("created_at")?,
         updated_at: row.get("updated_at")?,
     })
@@ -69,14 +69,14 @@ pub fn create(conn: &Connection, input: TaskInput) -> Result<Task> {
     let timestamp = now();
 
     conn.execute(
-        "INSERT INTO tasks (title, status, due_date, goal_id, subgoal_id, is_recurring, created_at, updated_at)
+        "INSERT INTO tasks (title, status, due_date, goal_id, subgoal_id, recurrence, created_at, updated_at)
          VALUES (?1, 'todo', ?2, ?3, ?4, ?5, ?6, ?6)",
         params![
             title,
             optional_text(input.due_date),
             goal_id,
             subgoal_id,
-            input.is_recurring,
+            input.recurrence,
             timestamp
         ],
     )?;
@@ -91,7 +91,7 @@ pub fn update(conn: &Connection, id: i64, input: TaskUpdate) -> Result<Task> {
     let changed = conn.execute(
         "UPDATE tasks
          SET title = ?1, status = ?2, due_date = ?3, goal_id = ?4, subgoal_id = ?5,
-             is_recurring = ?6, updated_at = ?7
+             recurrence = ?6, updated_at = ?7
          WHERE id = ?8",
         params![
             title,
@@ -99,7 +99,7 @@ pub fn update(conn: &Connection, id: i64, input: TaskUpdate) -> Result<Task> {
             optional_text(input.due_date),
             goal_id,
             subgoal_id,
-            input.is_recurring,
+            input.recurrence,
             now(),
             id
         ],
@@ -189,7 +189,7 @@ mod tests {
             due_date: None,
             goal_id: None,
             subgoal_id: None,
-            is_recurring: false,
+            recurrence: None,
         }
     }
 
@@ -200,6 +200,25 @@ mod tests {
 
         assert_eq!(task.status, TaskStatus::Todo);
         assert_eq!(task.goal_id, None);
+    }
+
+    #[test]
+    fn a_cadence_makes_a_task_recurring() {
+        let conn = db::open_in_memory().unwrap();
+
+        let one_off = create(&conn, task_input("Buy a notebook")).unwrap();
+        let habit = create(
+            &conn,
+            TaskInput {
+                recurrence: Some(Recurrence::Weekdays),
+                ..task_input("Stretch")
+            },
+        )
+        .unwrap();
+
+        assert!(!one_off.is_recurring());
+        assert!(habit.is_recurring());
+        assert_eq!(get(&conn, habit.id).unwrap().recurrence, Some(Recurrence::Weekdays));
     }
 
     #[test]

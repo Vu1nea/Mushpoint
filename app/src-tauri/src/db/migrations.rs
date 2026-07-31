@@ -4,7 +4,7 @@ use crate::error::Result;
 
 /// Schema versions, applied in order. Each entry is one migration; append, never
 /// edit a shipped one — `PRAGMA user_version` records how many have run.
-const MIGRATIONS: &[&str] = &[M0001_INITIAL];
+const MIGRATIONS: &[&str] = &[M0001_INITIAL, M0002_STREAKS];
 
 const M0001_INITIAL: &str = r#"
 CREATE TABLE categories (
@@ -78,6 +78,32 @@ INSERT INTO categories (name, color_token, is_default, created_at) VALUES
     ('School',        'accent-tertiary',  1, datetime('now')),
     ('Side Projects', 'accent-primary',   1, datetime('now')),
     ('Social',        'accent-secondary', 1, datetime('now'));
+"#;
+
+const M0002_STREAKS: &str = r#"
+-- One cadence column replaces the boolean: "recurring" now means "has a recurrence",
+-- so `is_recurring = 1, recurrence IS NULL` cannot be represented at all.
+ALTER TABLE tasks ADD COLUMN recurrence TEXT
+    CHECK (recurrence IS NULL OR recurrence IN ('daily', 'weekdays', 'weekly'));
+
+UPDATE tasks SET recurrence = 'daily' WHERE is_recurring = 1;
+
+ALTER TABLE tasks DROP COLUMN is_recurring;
+
+-- `completed_on` is a LOCAL calendar date, never a UTC instant: a habit checked
+-- off at 11pm belongs to that evening, not to tomorrow in UTC.
+CREATE TABLE task_completions (
+    id           INTEGER PRIMARY KEY,
+    task_id      INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    completed_on TEXT    NOT NULL,
+    created_at   TEXT    NOT NULL,
+    UNIQUE (task_id, completed_on)
+);
+
+CREATE INDEX idx_completions_task ON task_completions(task_id, completed_on);
+
+ALTER TABLE settings ADD COLUMN streak_grace_days INTEGER NOT NULL DEFAULT 2
+    CHECK (streak_grace_days BETWEEN 0 AND 7);
 "#;
 
 /// Applies every migration the database has not seen yet. Safe to call on each start.
@@ -166,5 +192,100 @@ mod tests {
             .unwrap();
 
         assert_eq!(remaining, 0);
+    }
+
+    #[test]
+    fn migration_two_backfills_recurring_tasks_to_daily() {
+        // Start at schema version 1 so the upgrade path itself is exercised,
+        // not just the end state a fresh database lands on.
+        let mut conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(MIGRATIONS[0]).unwrap();
+        conn.pragma_update(None, "user_version", 1i64).unwrap();
+        conn.execute(
+            "INSERT INTO tasks (title, is_recurring, created_at, updated_at)
+             VALUES ('Stretch', 1, datetime('now'), datetime('now'))",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO tasks (title, is_recurring, created_at, updated_at)
+             VALUES ('Buy a notebook', 0, datetime('now'), datetime('now'))",
+            [],
+        )
+        .unwrap();
+
+        run(&mut conn).unwrap();
+
+        let mut stmt = conn
+            .prepare("SELECT title, recurrence FROM tasks ORDER BY id")
+            .unwrap();
+        let rows: Vec<(String, Option<String>)> = stmt
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap();
+
+        assert_eq!(
+            rows,
+            vec![
+                ("Stretch".to_string(), Some("daily".to_string())),
+                ("Buy a notebook".to_string(), None),
+            ]
+        );
+    }
+
+    #[test]
+    fn migration_two_drops_the_old_recurring_flag() {
+        let conn = db::open_in_memory().unwrap();
+        let err = conn
+            .query_row("SELECT is_recurring FROM tasks", [], |row| row.get::<_, i64>(0))
+            .unwrap_err();
+
+        assert!(
+            err.to_string().contains("is_recurring"),
+            "expected the dropped column to be unknown, got: {err}"
+        );
+    }
+
+    #[test]
+    fn completions_are_unique_per_task_and_day_and_cascade() {
+        let conn = db::open_in_memory().unwrap();
+        conn.execute(
+            "INSERT INTO tasks (id, title, recurrence, created_at, updated_at)
+             VALUES (1, 'Stretch', 'daily', datetime('now'), datetime('now'))",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO task_completions (task_id, completed_on, created_at)
+             VALUES (1, '2026-07-30', datetime('now'))",
+            [],
+        )
+        .unwrap();
+
+        let duplicate = conn.execute(
+            "INSERT INTO task_completions (task_id, completed_on, created_at)
+             VALUES (1, '2026-07-30', datetime('now'))",
+            [],
+        );
+        assert!(duplicate.is_err(), "the same day must not be logged twice");
+
+        conn.execute("DELETE FROM tasks WHERE id = 1", []).unwrap();
+        let remaining: i64 = conn
+            .query_row("SELECT COUNT(*) FROM task_completions", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(remaining, 0, "completions must cascade with their task");
+    }
+
+    #[test]
+    fn the_grace_period_defaults_to_two_days() {
+        let conn = db::open_in_memory().unwrap();
+        let grace: i64 = conn
+            .query_row("SELECT streak_grace_days FROM settings WHERE id = 1", [], |row| {
+                row.get(0)
+            })
+            .unwrap();
+
+        assert_eq!(grace, 2);
     }
 }

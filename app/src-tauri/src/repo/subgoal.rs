@@ -252,7 +252,7 @@ mod tests {
                     due_date: None,
                     goal_id: None,
                     subgoal_id: Some(subgoal.id),
-                    is_recurring: false,
+                    recurrence: None,
                 },
             )
             .unwrap();
@@ -275,7 +275,7 @@ mod tests {
                 due_date: None,
                 goal_id: None,
                 subgoal_id: Some(subgoal.id),
-                is_recurring: false,
+                recurrence: None,
             },
         )
         .unwrap();
