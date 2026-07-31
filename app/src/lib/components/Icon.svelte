@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { iconPath, type IconName } from '$lib/icons';
+	import { iconMarkup, type IconName } from '$lib/icons';
 	import { theme } from '$lib/theme/theme.svelte';
 
 	interface Props {
@@ -7,12 +7,15 @@
 		size?: number;
 		/** Give an icon a label when it carries meaning on its own. */
 		label?: string;
+		/** Stroke weight; the design draws outlines at 1.8 and emphasis at 2.4. */
+		weight?: number;
 		class?: string;
 	}
 
-	let { name, size = 20, label, class: className = '' }: Props = $props();
+	let { name, size = 20, label, weight = 1.8, class: className = '' }: Props = $props();
 
-	const path = $derived(iconPath(name, theme.current));
+	// Icon geometry is app-owned static markup from $lib/icons, never user input.
+	const markup = $derived(iconMarkup(name, theme.current));
 </script>
 
 <svg
@@ -21,13 +24,13 @@
 	viewBox="0 0 24 24"
 	fill="none"
 	stroke="currentColor"
-	stroke-width="1.75"
+	stroke-width={weight}
 	stroke-linecap="round"
 	stroke-linejoin="round"
-	class={className}
+	class="shrink-0 {className}"
 	role={label ? 'img' : 'presentation'}
 	aria-label={label}
 	aria-hidden={label ? undefined : 'true'}
 >
-	<path d={path} />
+	{@html markup}
 </svg>

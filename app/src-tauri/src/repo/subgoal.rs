@@ -21,6 +21,14 @@ fn map(row: &Row) -> rusqlite::Result<Subgoal> {
     })
 }
 
+/// Every subgoal in the database, grouped by goal. The Task Manager needs this
+/// to offer subgoals as task parents without loading one goal at a time.
+pub fn list_all(conn: &Connection) -> Result<Vec<Subgoal>> {
+    let mut stmt = conn.prepare(&format!("SELECT {COLUMNS} FROM subgoals ORDER BY goal_id, position, id"))?;
+    let subgoals = stmt.query_map([], map)?.collect::<rusqlite::Result<_>>()?;
+    Ok(subgoals)
+}
+
 pub fn list_for_goal(conn: &Connection, goal_id: i64) -> Result<Vec<Subgoal>> {
     let mut stmt = conn.prepare(&format!(
         "SELECT {COLUMNS} FROM subgoals WHERE goal_id = ?1 {ORDER}"
@@ -181,6 +189,25 @@ mod tests {
 
         assert_eq!((first.position, second.position), (0, 1));
         assert_eq!(list_for_goal(&conn, goal_id).unwrap().len(), 2);
+    }
+
+    #[test]
+    fn list_all_spans_every_goal_in_position_order() {
+        let conn = db::open_in_memory().unwrap();
+        let first_goal = seed_goal(&conn);
+        let second_goal = seed_goal(&conn);
+
+        add(&conn, first_goal, "Write the schema");
+        add(&conn, second_goal, "Book the flight");
+        add(&conn, first_goal, "Wire the UI");
+
+        let titles: Vec<String> = list_all(&conn)
+            .unwrap()
+            .into_iter()
+            .map(|subgoal| subgoal.title)
+            .collect();
+
+        assert_eq!(titles, ["Write the schema", "Wire the UI", "Book the flight"]);
     }
 
     #[test]

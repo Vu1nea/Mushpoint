@@ -178,7 +178,17 @@ pub fn set_status(conn: &Connection, id: i64, status: GoalStatus) -> Result<Goal
     get(conn, id)
 }
 
-pub fn delete(conn: &Connection, id: i64) -> Result<()> {
+/// Subgoals cascade-delete with the goal; their tasks only lose their link
+/// (ON DELETE SET NULL) and would otherwise survive as standalone tasks. The
+/// caller decides whether that's what the user wants.
+pub fn delete(conn: &Connection, id: i64, delete_orphaned_tasks: bool) -> Result<()> {
+    if delete_orphaned_tasks {
+        conn.execute(
+            "DELETE FROM tasks WHERE subgoal_id IN (SELECT id FROM subgoals WHERE goal_id = ?1)",
+            params![id],
+        )?;
+    }
+
     let changed = conn.execute("DELETE FROM goals WHERE id = ?1", params![id])?;
     if changed == 0 {
         return Err(Error::not_found("goal", id));
@@ -338,12 +348,29 @@ mod tests {
     fn deleting_a_goal_removes_its_subgoals_and_unlinks_its_tasks() {
         let conn = db::open_in_memory().unwrap();
         let goal = create(&conn, input("Ship v1")).unwrap();
-        add_subgoal(&conn, goal.id, "Write the schema");
-        let task_id = add_task(&conn, Some(goal.id), None);
+        let subgoal_id = add_subgoal(&conn, goal.id, "Write the schema");
+        let direct_task_id = add_task(&conn, Some(goal.id), None);
+        let subgoal_task_id = add_task(&conn, None, Some(subgoal_id));
 
-        delete(&conn, goal.id).unwrap();
+        delete(&conn, goal.id, false).unwrap();
 
         assert_eq!(get(&conn, goal.id).unwrap_err().kind(), "not_found");
-        assert_eq!(task::get(&conn, task_id).unwrap().goal_id, None);
+        assert_eq!(task::get(&conn, direct_task_id).unwrap().goal_id, None);
+        assert_eq!(task::get(&conn, subgoal_task_id).unwrap().subgoal_id, None);
+    }
+
+    #[test]
+    fn deleting_a_goal_can_also_delete_its_subgoal_tasks() {
+        let conn = db::open_in_memory().unwrap();
+        let goal = create(&conn, input("Ship v1")).unwrap();
+        let subgoal_id = add_subgoal(&conn, goal.id, "Write the schema");
+        let direct_task_id = add_task(&conn, Some(goal.id), None);
+        let subgoal_task_id = add_task(&conn, None, Some(subgoal_id));
+
+        delete(&conn, goal.id, true).unwrap();
+
+        // Direct tasks are unaffected by the flag — only ever the subgoal's.
+        assert_eq!(task::get(&conn, direct_task_id).unwrap().goal_id, None);
+        assert_eq!(task::get(&conn, subgoal_task_id).unwrap_err().kind(), "not_found");
     }
 }

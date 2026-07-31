@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { createCategory, deleteCategory, updateCategory } from '$lib/api';
+	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
-	import { button, card, field } from '$lib/components/ui';
+	import { button, field, sectionHeading } from '$lib/components/ui';
+	import { stagger } from '$lib/motion';
+	import { categoryColor } from '$lib/theme/category';
 	import {
 		theme,
 		THEME_LABELS,
-		THEME_SWATCHES,
+		THEME_PREVIEWS,
 		THEMES,
 		type ThemeName
 	} from '$lib/theme/theme.svelte';
@@ -19,6 +22,7 @@
 	let newCategoryName = $state('');
 	let editingId = $state<number | null>(null);
 	let editingName = $state('');
+	let deleting = $state<{ id: number; name: string } | null>(null);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -47,32 +51,38 @@
 
 	async function addCategory(event: SubmitEvent) {
 		event.preventDefault();
-		const name = newCategoryName;
+		const name = newCategoryName.trim();
+		if (!name) return;
 		newCategoryName = '';
 		await run(() => createCategory({ name, colorToken: null }));
-	}
-
-	function startEditing(id: number, name: string) {
-		editingId = id;
-		editingName = name;
 	}
 
 	async function saveEditing(event: SubmitEvent) {
 		event.preventDefault();
 		if (editingId === null) return;
-		await run(() => updateCategory(editingId!, { name: editingName, colorToken: null }));
+
+		const id = editingId;
+		const category = data.categories.find((entry) => entry.id === id);
+		await run(() =>
+			updateCategory(id, { name: editingName, colorToken: category?.colorToken ?? null })
+		);
 		if (!actionError) editingId = null;
 	}
 
-	async function removeCategory(id: number, name: string) {
-		if (!confirm(`Delete “${name}”? Goals in it become uncategorized.`)) return;
-		await run(() => deleteCategory(id));
+	async function removeCategory() {
+		const target = deleting;
+		if (!target) return;
+		deleting = null;
+		await run(() => deleteCategory(target.id));
 	}
 </script>
 
 <svelte:head><title>Settings · Mushpoint</title></svelte:head>
 
-<h1 class="mb-6 text-2xl font-semibold">Settings</h1>
+<header class="mb-6">
+	<h1 class="mb-1 font-display text-3xl font-bold">Settings</h1>
+	<p class="text-sm text-muted">How Mushpoint looks and what it tracks</p>
+</header>
 
 {#if actionError}
 	<div class="mb-4"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
@@ -82,52 +92,49 @@
 {/if}
 
 <section class="mb-8">
-	<h2 class="mb-1 text-lg font-medium">Theme</h2>
-	<p class="mb-3 text-sm text-muted">Applies everywhere and is remembered between launches.</p>
-
-	<div class="grid gap-3 sm:grid-cols-2">
+	<h2 class="{sectionHeading} mb-3">Theme</h2>
+	<div class="flex flex-wrap gap-3.5">
 		{#each THEMES as name (name)}
+			{@const preview = THEME_PREVIEWS[name]}
 			<button
 				type="button"
 				disabled={busy}
 				onclick={() => pickTheme(name)}
 				aria-pressed={theme.current === name}
-				class="rounded-xl border p-4 text-left transition-colors
-					{theme.current === name ? 'border-accent' : 'border-subtle hover:border-accent/60'}"
+				class="w-[220px] rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 {theme.current ===
+				name
+					? 'border-accent'
+					: 'border-transparent'}"
 			>
-				<div class="flex items-center justify-between">
-					<span class="text-sm font-medium">{THEME_LABELS[name]}</span>
-					{#if theme.current === name}
-						<Icon name="check" size={16} class="text-accent" />
-					{/if}
-				</div>
-				<div class="mt-3 flex gap-1.5">
-					{#each THEME_SWATCHES[name] as swatch (swatch)}
-						<span
-							class="size-6 rounded-full border border-subtle"
-							style="background-color: {swatch}"
-							aria-hidden="true"
-						></span>
-					{/each}
-				</div>
+				<span class="block overflow-hidden rounded-xl border border-subtle">
+					<span class="flex h-[60px] items-center gap-2 px-3.5" style="background:{preview.bg}">
+						{#each preview.accents as swatch (swatch)}
+							<span class="size-3.5 rounded-full" style="background:{swatch}"></span>
+						{/each}
+					</span>
+					<span class="block px-3 py-3 text-left" style="background:{preview.surface}">
+						<span class="text-[13.5px] font-bold" style="color:{preview.text}">
+							{THEME_LABELS[name]}
+						</span>
+					</span>
+				</span>
 			</button>
 		{/each}
 	</div>
 </section>
 
-<section>
-	<h2 class="mb-1 text-lg font-medium">Categories</h2>
-	<p class="mb-3 text-sm text-muted">
-		The five defaults ship with the app; add your own or rename any of them.
-	</p>
-
-	<ul class="{card} mb-3 grid">
-		{#each data.categories as category (category.id)}
-			<li class="flex items-center gap-3 border-b border-subtle py-2 last:border-b-0">
+<section class="mb-8">
+	<h2 class="{sectionHeading} mb-3">Categories</h2>
+	<div class="flex max-w-[420px] flex-col gap-2">
+		{#each data.categories as category, index (category.id)}
+			<div
+				class="mp-enter flex items-center gap-2.5 rounded-[10px] border border-subtle bg-surface px-3.5 py-2.5"
+				style="--mp-delay:{stagger(index, 30)}"
+			>
 				{#if editingId === category.id}
 					<form class="flex flex-1 gap-2" onsubmit={saveEditing}>
 						<input
-							class="{field.input} py-1 text-sm"
+							class="{field.input} py-1.5 text-[13.5px]"
 							bind:value={editingName}
 							required
 							aria-label="Rename {category.name}"
@@ -138,40 +145,58 @@
 						</button>
 					</form>
 				{:else}
-					<span class="flex-1 text-sm">{category.name}</span>
+					<span
+						class="size-2.5 rounded-full"
+						style="background:{categoryColor(category.colorToken)}"
+						aria-hidden="true"
+					></span>
+					<span class="flex-1 text-[13.5px]">{category.name}</span>
 					{#if category.isDefault}
-						<span class="text-xs text-muted">default</span>
+						<span class="text-[11px] text-muted">default</span>
 					{/if}
 					<button
 						type="button"
-						class={button.icon}
-						onclick={() => startEditing(category.id, category.name)}
+						class={button.bare}
+						onclick={() => {
+							editingId = category.id;
+							editingName = category.name;
+						}}
 					>
-						<Icon name="edit" size={15} label="Rename {category.name}" />
+						<Icon name="edit" size={14} label="Rename {category.name}" />
 					</button>
 					<button
 						type="button"
-						class={button.icon}
+						class={button.bare}
 						disabled={busy}
-						onclick={() => removeCategory(category.id, category.name)}
+						onclick={() => (deleting = { id: category.id, name: category.name })}
 					>
-						<Icon name="trash" size={15} label="Delete {category.name}" />
+						<Icon name="trash" size={14} label="Delete {category.name}" />
 					</button>
 				{/if}
-			</li>
+			</div>
 		{/each}
-	</ul>
 
-	<form class="flex gap-2" onsubmit={addCategory}>
-		<input
-			class="{field.input} py-1.5 text-sm"
-			bind:value={newCategoryName}
-			placeholder="New category"
-			required
-			aria-label="New category name"
-		/>
-		<button type="submit" class={button.ghost} disabled={busy}>
-			<Icon name="plus" size={15} /> Add
-		</button>
-	</form>
+		<form onsubmit={addCategory}>
+			<input
+				class="{field.dashed} w-full"
+				bind:value={newCategoryName}
+				placeholder="+ Add category…"
+				aria-label="New category name"
+			/>
+		</form>
+	</div>
 </section>
+
+<section>
+	<h2 class="{sectionHeading} mb-3">About</h2>
+	<p class="text-[13px] text-muted">Mushpoint · v0.1.0 · local-first, no cloud sync</p>
+</section>
+
+<ConfirmDialog
+	open={deleting !== null}
+	title="Delete “{deleting?.name ?? ''}”?"
+	body="Goals in this category become uncategorized. This cannot be undone."
+	{busy}
+	onConfirm={removeCategory}
+	onCancel={() => (deleting = null)}
+/>

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { daysUntil, dueLabel, isOverdue, parseDate, percent } from './format';
+import { daysUntil, dueLabel, dueTone, isOverdue, parseDate, percent } from './format';
 
 const NOW = new Date(2026, 6, 31); // 31 July 2026, local time.
 
@@ -50,6 +50,16 @@ describe('isOverdue', () => {
 		expect(isOverdue('2026-07-30', NOW)).toBe(true);
 		expect(isOverdue('2026-07-31', NOW)).toBe(false);
 		expect(isOverdue(null, NOW)).toBe(false);
+	});
+});
+
+describe('dueTone', () => {
+	it('escalates as the due date approaches', () => {
+		expect(dueTone(null, NOW)).toBe('none');
+		expect(dueTone('2026-07-30', NOW)).toBe('overdue');
+		expect(dueTone('2026-07-31', NOW)).toBe('soon');
+		expect(dueTone('2026-08-05', NOW)).toBe('soon');
+		expect(dueTone('2026-08-06', NOW)).toBe('later');
 	});
 });
 

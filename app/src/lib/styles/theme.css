@@ -6,6 +6,27 @@
  * The active theme is set as `data-theme` on <html> by src/lib/theme/theme.svelte.ts.
  */
 
+/*
+ * Fonts ship with the app rather than loading from Google — this is an offline,
+ * local-first desktop app, so a network font would simply never arrive. Both
+ * files are the latin subset of the variable font, so one file covers every weight.
+ */
+@font-face {
+	font-family: 'Bricolage Grotesque';
+	font-style: normal;
+	font-weight: 400 800;
+	font-display: swap;
+	src: url('../assets/fonts/bricolage-grotesque-latin.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Hanken Grotesk';
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url('../assets/fonts/hanken-grotesk-latin.woff2') format('woff2');
+}
+
 /* Nocturne — dark, the default. */
 :root,
 :root[data-theme='nocturne'] {
@@ -16,11 +37,14 @@
 	--mp-text: #f2f1fb;
 	--mp-text-muted: #9c9ee8;
 	--mp-accent: #7b6fc4;
-	--mp-accent-contrast: #f2f1fb;
+	/* Accent fills carry the page background as their text color, per the design. */
+	--mp-accent-contrast: #14152b;
 	--mp-accent-secondary: #4fd1c5;
 	--mp-accent-tertiary: #5ba8d4;
 	--mp-danger: #e2718a;
-	--mp-track: #2c2e5c;
+	/* Progress tracks and inset fields sit on the page color, not a lighter one. */
+	--mp-track: #14152b;
+	color-scheme: dark;
 }
 
 /* Coquette — light. */
@@ -32,11 +56,17 @@
 	--mp-text: #4a2e33;
 	--mp-text-muted: #b85c73;
 	--mp-accent: #e8879f;
-	--mp-accent-contrast: #ffffff;
+	--mp-accent-contrast: #fff8f5;
 	--mp-accent-secondary: #9cb88a;
 	--mp-accent-tertiary: #c9a8d4;
 	--mp-danger: #c2445f;
-	--mp-track: #f6e4e8;
+	--mp-track: #fff8f5;
+	color-scheme: light;
+}
+
+/* Overdue and blocked-save states use one warm alarm color in both themes. */
+:root {
+	--mp-warn: #e2725a;
 }
 
 @theme inline {
@@ -51,7 +81,12 @@
 	--color-accent-secondary: var(--mp-accent-secondary);
 	--color-accent-tertiary: var(--mp-accent-tertiary);
 	--color-danger: var(--mp-danger);
+	--color-warn: var(--mp-warn);
 	--color-track: var(--mp-track);
+
+	/* Headings and numerals are Bricolage; everything else is Hanken. */
+	--font-display: 'Bricolage Grotesque', 'Hanken Grotesk', system-ui, sans-serif;
+	--font-sans: 'Hanken Grotesk', system-ui, sans-serif;
 }
 
 /*
@@ -61,6 +96,7 @@
 :root {
 	--mp-duration-fast: 120ms;
 	--mp-duration-base: 220ms;
+	--mp-duration-slow: 450ms;
 	--mp-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 	/* Theme swaps cross-fade rather than hard-cutting. */
 	--mp-theme-transition:
@@ -69,15 +105,131 @@
 		border-color var(--mp-duration-base) var(--mp-ease-out);
 }
 
+/* The animated conic-gradient progress ring needs its angle to be a real type. */
+@property --mp-ring-angle {
+	syntax: '<angle>';
+	inherits: false;
+	initial-value: 0deg;
+}
+
+@keyframes mp-fade-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes mp-pop-in {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes mp-card-pulse {
+	0% {
+		transform: scale(1);
+	}
+	35% {
+		transform: scale(1.035);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes mp-shake-x {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	20% {
+		transform: translateX(-6px);
+	}
+	40% {
+		transform: translateX(5px);
+	}
+	60% {
+		transform: translateX(-4px);
+	}
+	80% {
+		transform: translateX(3px);
+	}
+}
+
+@keyframes mp-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Rows and cards arrive with a short rise; `--mp-delay` staggers a list. */
+.mp-enter {
+	animation: mp-fade-in-up var(--mp-duration-slow) var(--mp-ease-out) both;
+	animation-delay: var(--mp-delay, 0ms);
+}
+
+.mp-pop {
+	animation: mp-pop-in var(--mp-duration-base) var(--mp-ease-out) both;
+	animation-delay: var(--mp-delay, 0ms);
+}
+
+.mp-pulse {
+	animation: mp-card-pulse var(--mp-duration-slow) var(--mp-ease-out) both;
+}
+
+.mp-shake {
+	animation: mp-shake-x var(--mp-duration-slow) var(--mp-ease-out);
+}
+
+.mp-spin {
+	animation: mp-spin 0.7s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
 	:root {
 		--mp-duration-fast: 0ms;
 		--mp-duration-base: 0ms;
+		--mp-duration-slow: 0ms;
 		--mp-theme-transition: none;
+	}
+
+	.mp-enter,
+	.mp-pop,
+	.mp-pulse,
+	.mp-shake,
+	.mp-spin {
+		animation: none;
 	}
 }
 
 body,
 [data-theme-transition] {
 	transition: var(--mp-theme-transition);
+}
+
+body {
+	font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--mp-border);
+	border-radius: 8px;
 }

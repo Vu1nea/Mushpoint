@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { AppError } from '$lib/api';
 	import Icon from './Icon.svelte';
+	import { button } from './ui';
 
 	interface Props {
 		error: unknown;
@@ -16,17 +17,17 @@
 </script>
 
 <div
-	class="flex items-start gap-3 rounded-lg border border-danger/40 bg-danger/10 p-3 text-sm text-content"
+	class="mp-enter flex items-start gap-2.5 rounded-[10px] border border-warn/35 bg-warn/10 px-3.5 py-3"
 	role="alert"
 >
-	<Icon name="close" size={18} class="mt-0.5 shrink-0 text-danger" />
+	<Icon name="warning" size={16} weight={2} class="mt-px text-warn" />
 	<div class="flex-1">
-		<p class="font-medium text-danger">{heading}</p>
-		<p class="mt-0.5 text-muted">{normalized.message}</p>
+		<p class="text-[13px] font-semibold text-warn">{heading}</p>
+		<p class="text-[12.5px] text-muted">{normalized.message}</p>
 	</div>
 	{#if onDismiss}
-		<button type="button" class="text-muted hover:text-content" onclick={onDismiss}>
-			<Icon name="close" size={16} label="Dismiss" />
+		<button type="button" class={button.bare} onclick={onDismiss}>
+			<Icon name="close" size={15} weight={2} label="Dismiss" />
 		</button>
 	{/if}
 </div>

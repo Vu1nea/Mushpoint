@@ -189,3 +189,4 @@ Phases 1–6 are mostly backend/data-model work with minimal UI polish; the bulk
 - Mobile app
 - Code signing / notarization
 - AI features (deferred to Phase 9)
+- AI export with markdwon

@@ -35,8 +35,10 @@ export const updateGoal = (id: number, input: GoalInput) =>
 	call<Goal>('update_goal', { id, input });
 export const setGoalStatus = (id: number, status: GoalStatus) =>
 	call<Goal>('set_goal_status', { id, status });
-export const deleteGoal = (id: number) => call<void>('delete_goal', { id });
+export const deleteGoal = (id: number, deleteOrphanedTasks: boolean) =>
+	call<void>('delete_goal', { id, deleteOrphanedTasks });
 
+export const listSubgoals = () => call<Subgoal[]>('list_subgoals');
 export const createSubgoal = (input: SubgoalInput) => call<Subgoal>('create_subgoal', { input });
 export const updateSubgoal = (id: number, input: SubgoalUpdate) =>
 	call<Subgoal>('update_subgoal', { id, input });

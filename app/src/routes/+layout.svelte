@@ -5,59 +5,124 @@
 	import { page } from '$app/state';
 	import favicon from '$lib/assets/favicon.svg';
 	import Icon from '$lib/components/Icon.svelte';
+	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
-	import { theme } from '$lib/theme/theme.svelte';
+	import { THEME_LABELS, theme } from '$lib/theme/theme.svelte';
 
 	let { children } = $props();
 
-	/** Sidebar entries for the screens that exist; later phases append here. */
+	/**
+	 * Sidebar entries for the screens that exist. The design also lists Dashboard,
+	 * Project Manager, Idea Vault and Vision Board; each is added here as its phase
+	 * ships, rather than shipping a link that goes nowhere.
+	 */
 	const NAV: { href: string; label: string; icon: IconName }[] = [
-		{ href: '/goals', label: 'Goals', icon: 'goal' },
+		{ href: '/goals', label: 'Goal Tracker', icon: 'goal' },
+		{ href: '/tasks', label: 'Task Manager', icon: 'task' },
 		{ href: '/settings', label: 'Settings', icon: 'settings' }
 	];
+
+	const SIDEBAR_KEY = 'mushpoint:sidebar-open';
+
+	let sidebarOpen = $state(true);
 
 	onMount(() => {
 		// A failure here only means the palette stays on the default, so it must
 		// never take the app down with it.
 		theme.init().catch((error) => console.error('could not load the saved theme', error));
+		sidebarOpen = localStorage.getItem(SIDEBAR_KEY) !== 'false';
 	});
 
+	function toggleSidebar() {
+		sidebarOpen = !sidebarOpen;
+		localStorage.setItem(SIDEBAR_KEY, String(sidebarOpen));
+	}
+
 	const isCurrent = (href: string) => page.url.pathname.startsWith(href);
+
+	const otherTheme = $derived(theme.current === 'nocturne' ? 'coquette' : 'nocturne');
+
+	async function flipTheme() {
+		try {
+			await theme.set(otherTheme);
+		} catch (error) {
+			console.error('could not save the theme', error);
+		}
+	}
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<div class="flex min-h-screen bg-background text-content">
-	<aside class="flex w-56 shrink-0 flex-col border-r border-subtle bg-surface p-4">
-		<div class="mb-6 flex items-center gap-2">
+<div class="flex h-screen w-full overflow-hidden bg-background font-sans text-content">
+	<aside
+		class="flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] duration-[250ms] ease-out"
+		style="width:{sidebarOpen ? '236px' : '76px'}"
+	>
+		<div class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap">
 			<span
-				class="flex size-8 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-contrast"
+				class="grid size-7 shrink-0 place-items-center rounded-full bg-accent font-display text-[12.5px] font-bold text-accent-contrast"
 				aria-hidden="true">M</span
 			>
-			<div>
-				<p class="text-sm font-semibold">Mushpoint</p>
-				<p class="text-xs text-muted">Personal operating system</p>
-			</div>
+			{#if sidebarOpen}
+				<span class="font-display text-[15px] font-bold tracking-[0.2px]">Mushpoint</span>
+			{/if}
 		</div>
 
-		<nav class="flex flex-col gap-1">
+		{#if sidebarOpen}
+			<p class="px-4 pt-1 pb-1.5 text-[11px] text-muted/75">Workspace</p>
+		{/if}
+
+		<nav class="flex flex-1 flex-col gap-px overflow-y-auto px-2.5 py-1">
 			{#each NAV as item (item.href)}
 				<a
 					href={item.href}
 					aria-current={isCurrent(item.href) ? 'page' : undefined}
-					class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors
+					title={sidebarOpen ? undefined : item.label}
+					class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-[9px] px-[11px] py-[7px] whitespace-nowrap transition-colors
 						{isCurrent(item.href)
-						? 'bg-surface-raised font-medium text-content'
-						: 'text-muted hover:bg-surface-raised hover:text-content'}"
+						? 'bg-surface-raised font-semibold text-content'
+						: 'font-medium text-muted hover:bg-surface-raised hover:text-content'}"
 				>
-					<Icon name={item.icon} size={18} />
-					{item.label}
+					<Icon name={item.icon} size={16} label={sidebarOpen ? undefined : item.label} />
+					{#if sidebarOpen}
+						<span class="text-[13px]">{item.label}</span>
+					{/if}
 				</a>
 			{/each}
 		</nav>
+
+		<div class="flex items-center justify-between gap-2 border-t border-subtle px-3.5 py-3">
+			{#if sidebarOpen}
+				<span class="text-[11px] tracking-[0.06em] text-muted uppercase">
+					{THEME_LABELS[theme.current]}
+				</span>
+			{/if}
+			<button
+				type="button"
+				class="relative h-[22px] w-10 shrink-0 rounded-full border border-subtle bg-background"
+				role="switch"
+				aria-checked={theme.current === 'coquette'}
+				aria-label="Switch to the {THEME_LABELS[otherTheme]} theme"
+				onclick={flipTheme}
+			>
+				<span
+					class="absolute top-px size-[18px] rounded-full bg-accent transition-[left] duration-200"
+					style="left:{theme.current === 'nocturne' ? '1px' : '19px'}"
+				></span>
+			</button>
+		</div>
 	</aside>
 
-	<main class="flex-1 overflow-x-auto p-8">
-		{@render children()}
-	</main>
+	<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
+		<header class="flex shrink-0 items-center gap-2.5 border-b border-subtle px-6 py-3.5">
+			<button type="button" class={button.bare} onclick={toggleSidebar}>
+				<Icon name="sidebar" size={17} weight={1.7} label="Toggle sidebar" />
+			</button>
+			<span class="text-[13px] text-muted">Personal operating system</span>
+		</header>
+
+		<main class="flex-1 overflow-y-auto px-11 pt-9 pb-15">
+			{@render children()}
+		</main>
+	</div>
 </div>

@@ -48,6 +48,20 @@ export function formatDate(value: string | null, now: Date = new Date()): string
 	});
 }
 
+/**
+ * How loudly a due date should read. The design colors overdue dates with the
+ * alarm color, anything inside five days with the tertiary accent, and the rest
+ * like ordinary muted text.
+ */
+export type DueTone = 'none' | 'overdue' | 'soon' | 'later';
+
+export function dueTone(due: string | null, now: Date = new Date()): DueTone {
+	const days = daysUntil(due, now);
+	if (days === null) return 'none';
+	if (days < 0) return 'overdue';
+	return days <= 5 ? 'soon' : 'later';
+}
+
 /** Human due-date line used on goal, subgoal and task rows. */
 export function dueLabel(due: string | null, now: Date = new Date()): string {
 	const days = daysUntil(due, now);

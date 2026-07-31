@@ -17,11 +17,34 @@ test('the root route lands on Goals', async ({ page }) => {
 test('the sidebar links to every built screen', async ({ page }) => {
 	await page.goto('/goals');
 
-	await expect(page.getByRole('link', { name: 'Goals' })).toBeVisible();
-	await page.getByRole('link', { name: 'Settings' }).click();
+	await expect(page.getByRole('link', { name: 'Goal Tracker' })).toBeVisible();
 
+	await page.getByRole('link', { name: 'Task Manager' }).click();
+	await expect(page).toHaveURL(/\/tasks/);
+	await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible();
+
+	await page.getByRole('link', { name: 'Settings' }).click();
 	await expect(page).toHaveURL(/\/settings/);
 	await expect(page.getByRole('heading', { name: 'Theme' })).toBeVisible();
+});
+
+test('the task board shows all three columns', async ({ page }) => {
+	await page.goto('/tasks');
+
+	for (const column of ['To do', 'In progress', 'Done']) {
+		await expect(page.getByRole('heading', { name: column })).toBeVisible();
+	}
+});
+
+test('the sidebar collapses to an icon rail', async ({ page }) => {
+	await page.goto('/goals');
+	const wordmark = page.getByText('Mushpoint');
+	await expect(wordmark).toBeVisible();
+
+	await page.getByRole('button', { name: 'Toggle sidebar' }).click();
+
+	await expect(wordmark).toBeHidden();
+	await expect(page.getByRole('link', { name: 'Goal Tracker' })).toBeVisible();
 });
 
 test('a missing backend is reported instead of failing silently', async ({ page }) => {

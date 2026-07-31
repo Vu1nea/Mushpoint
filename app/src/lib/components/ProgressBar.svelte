@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	import { percent } from '$lib/format';
 
 	interface Props {
@@ -6,16 +8,27 @@
 		value: number;
 		label?: string;
 		showValue?: boolean;
+		/** Track height in pixels: 8 on a goal, 6 inside a subgoal row. */
+		height?: number;
+		color?: string;
 	}
 
-	let { value, label, showValue = true }: Props = $props();
+	let { value, label, showValue = true, height = 8, color = 'var(--mp-accent)' }: Props = $props();
 
 	const clamped = $derived(Math.min(1, Math.max(0, value)));
+
+	// Bars fill from empty on first paint, matching the ring.
+	let mounted = $state(false);
+	onMount(() => {
+		mounted = true;
+	});
+	const shown = $derived(mounted ? clamped : 0);
 </script>
 
 <div class="flex items-center gap-3">
 	<div
-		class="h-2 flex-1 overflow-hidden rounded-full bg-track"
+		class="flex-1 overflow-hidden rounded-full bg-track"
+		style="height:{height}px"
 		role="progressbar"
 		aria-valuemin={0}
 		aria-valuemax={100}
@@ -29,9 +42,9 @@
 			right end round at any value.
 		-->
 		<div
-			class="h-full w-full rounded-full bg-accent"
-			style="transform: translateX({(clamped - 1) *
-				100}%); transition: transform var(--mp-duration-base) var(--mp-ease-out);"
+			class="h-full w-full rounded-full"
+			style="background:{color}; transform: translateX({(shown - 1) *
+				100}%); transition: transform 1s var(--mp-ease-out);"
 		></div>
 	</div>
 	{#if showValue}

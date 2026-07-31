@@ -24,6 +24,7 @@ macro_rules! command_handlers {
             $crate::commands::update_goal,
             $crate::commands::set_goal_status,
             $crate::commands::delete_goal,
+            $crate::commands::list_subgoals,
             $crate::commands::create_subgoal,
             $crate::commands::update_subgoal,
             $crate::commands::set_subgoal_complete,
@@ -85,8 +86,13 @@ pub fn set_goal_status(db: State<Db>, id: i64, status: GoalStatus) -> Result<Goa
 }
 
 #[tauri::command]
-pub fn delete_goal(db: State<Db>, id: i64) -> Result<()> {
-    db.with(|conn| repo::goal::delete(conn, id))
+pub fn delete_goal(db: State<Db>, id: i64, delete_orphaned_tasks: bool) -> Result<()> {
+    db.with(|conn| repo::goal::delete(conn, id, delete_orphaned_tasks))
+}
+
+#[tauri::command]
+pub fn list_subgoals(db: State<Db>) -> Result<Vec<Subgoal>> {
+    db.with(|conn| repo::subgoal::list_all(conn))
 }
 
 #[tauri::command]

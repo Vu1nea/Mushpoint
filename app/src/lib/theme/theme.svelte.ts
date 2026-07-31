@@ -9,10 +9,31 @@ export const THEME_LABELS: Record<ThemeName, string> = {
 	coquette: 'Coquette'
 };
 
-/** Swatches for the settings picker, mirroring src/lib/styles/theme.css. */
-export const THEME_SWATCHES: Record<ThemeName, string[]> = {
-	nocturne: ['#14152b', '#1f2147', '#7b6fc4', '#4fd1c5'],
-	coquette: ['#fff8f5', '#ffffff', '#e8879f', '#9cb88a']
+interface ThemePreview {
+	bg: string;
+	surface: string;
+	text: string;
+	accents: string[];
+}
+
+/**
+ * Miniature of each palette for the settings picker. These are literal hex values
+ * on purpose: a preview has to paint the *other* theme's colors while the current
+ * one is active, so it cannot read the theme variables. Mirrors theme.css.
+ */
+export const THEME_PREVIEWS: Record<ThemeName, ThemePreview> = {
+	nocturne: {
+		bg: '#14152b',
+		surface: '#1f2147',
+		text: '#f2f1fb',
+		accents: ['#7b6fc4', '#4fd1c5', '#5ba8d4']
+	},
+	coquette: {
+		bg: '#fff8f5',
+		surface: '#ffffff',
+		text: '#4a2e33',
+		accents: ['#e8879f', '#9cb88a', '#c9a8d4']
+	}
 };
 
 const STORAGE_KEY = 'mushpoint:theme';

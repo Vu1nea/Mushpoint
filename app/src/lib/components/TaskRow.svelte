@@ -1,15 +1,9 @@
 <script lang="ts">
-	import {
-		deleteTask,
-		setTaskStatus,
-		TASK_STATUS_LABELS,
-		TASK_STATUSES,
-		type Task,
-		type TaskStatus
-	} from '$lib/api';
-	import { dueLabel, isOverdue } from '$lib/format';
-	import { button, field } from './ui';
+	import { deleteTask, setTaskStatus, type Task } from '$lib/api';
+	import { dueLabel, dueTone } from '$lib/format';
+	import Checkbox from './Checkbox.svelte';
 	import Icon from './Icon.svelte';
+	import { button } from './ui';
 
 	interface Props {
 		task: Task;
@@ -33,51 +27,53 @@
 		}
 	}
 
-	const changeStatus = (event: Event) =>
-		run(() =>
-			setTaskStatus(task.id, (event.currentTarget as HTMLSelectElement).value as TaskStatus)
-		);
+	const done = $derived(task.status === 'done');
 </script>
 
-<li class="flex items-center gap-3 border-b border-subtle py-2 last:border-b-0">
-	<select
-		class="{field.input} w-32 shrink-0 py-1 text-xs"
-		value={task.status}
+<li class="group flex items-center gap-2.5 py-1 text-[13.5px]">
+	<Checkbox
+		checked={done}
+		label="Mark {task.title} done"
 		disabled={busy}
-		aria-label="Status of {task.title}"
-		onchange={changeStatus}
-	>
-		{#each TASK_STATUSES as status (status)}
-			<option value={status}>{TASK_STATUS_LABELS[status]}</option>
-		{/each}
-	</select>
+		onchange={(checked) => run(() => setTaskStatus(task.id, checked ? 'done' : 'todo'))}
+	/>
 
-	<span
-		class="min-w-0 flex-1 truncate text-sm {task.status === 'done'
-			? 'text-muted line-through'
-			: ''}"
-	>
+	<span class="min-w-0 flex-1 truncate {done ? 'text-muted line-through' : ''}">
 		{task.title}
 	</span>
 
+	{#if task.status === 'in_progress'}
+		<span
+			class="shrink-0 rounded-full bg-accent-tertiary/20 px-2 py-0.5 text-[11px] font-semibold text-accent-tertiary"
+		>
+			In progress
+		</span>
+	{/if}
+
 	{#if task.isRecurring}
-		<span class="flex items-center gap-1 text-xs text-accent-secondary">
-			<Icon name="flame" size={14} /> recurring
+		<span
+			class="flex shrink-0 items-center gap-1 rounded-full bg-accent-secondary/15 px-2 py-0.5 text-[11px] font-semibold text-accent-secondary"
+		>
+			<Icon name="flame" size={12} /> recurring
 		</span>
 	{/if}
 
 	{#if task.dueDate}
-		<span class="text-xs {isOverdue(task.dueDate) ? 'text-danger' : 'text-muted'}">
+		<span
+			class="shrink-0 text-[11.5px] {dueTone(task.dueDate) === 'overdue'
+				? 'text-warn'
+				: 'text-muted'}"
+		>
 			{dueLabel(task.dueDate)}
 		</span>
 	{/if}
 
 	<button
 		type="button"
-		class={button.icon}
+		class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
 		disabled={busy}
 		onclick={() => run(() => deleteTask(task.id))}
 	>
-		<Icon name="trash" size={15} label="Delete {task.title}" />
+		<Icon name="trash" size={14} label="Delete {task.title}" />
 	</button>
 </li>
