@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { createCategory, deleteCategory, updateCategory } from '$lib/api';
+	import { setStreakGraceDays } from '$lib/api/settings';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
@@ -74,6 +75,15 @@
 		if (!target) return;
 		deleting = null;
 		await run(() => deleteCategory(target.id));
+	}
+
+	const grace = $derived(data.settings?.streakGraceDays ?? 2);
+
+	/** The schema and the backend both cap this at 0–7; the buttons just agree. */
+	async function nudgeGrace(delta: number) {
+		const next = Math.min(7, Math.max(0, grace + delta));
+		if (next === grace) return;
+		await run(() => setStreakGraceDays(next));
 	}
 </script>
 
@@ -184,6 +194,38 @@
 				aria-label="New category name"
 			/>
 		</form>
+	</div>
+</section>
+
+<section class="mb-8">
+	<h2 class="{sectionHeading} mb-3">Streaks</h2>
+	<div class="flex max-w-[420px] items-center gap-4 rounded-xl border border-subtle bg-surface p-4">
+		<div class="flex-1">
+			<div class="mb-0.5 text-[13.5px] font-semibold">Grace period</div>
+			<div class="text-xs text-muted">Missing days within this window won't break a streak</div>
+		</div>
+		<button
+			type="button"
+			class={button.icon}
+			disabled={busy || grace === 0}
+			aria-label="Decrease grace period"
+			onclick={() => nudgeGrace(-1)}
+		>
+			<Icon name="minus" size={13} />
+		</button>
+		<span class="min-w-[52px] text-center text-[15px] font-bold tabular-nums">
+			{grace}
+			{grace === 1 ? 'day' : 'days'}
+		</span>
+		<button
+			type="button"
+			class={button.icon}
+			disabled={busy || grace === 7}
+			aria-label="Increase grace period"
+			onclick={() => nudgeGrace(1)}
+		>
+			<Icon name="plus" size={13} />
+		</button>
 	</div>
 </section>
 
