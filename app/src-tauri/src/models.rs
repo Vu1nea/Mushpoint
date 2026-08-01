@@ -218,6 +218,8 @@ pub struct TaskUpdate {
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub active_theme: String,
+    /// How many days late an occurrence may be logged and still count. 0–7.
+    pub streak_grace_days: i64,
     pub updated_at: String,
 }
 

@@ -34,6 +34,9 @@ macro_rules! command_handlers {
             $crate::commands::update_task,
             $crate::commands::set_task_status,
             $crate::commands::delete_task,
+            $crate::commands::list_streaks,
+            $crate::commands::set_task_completion,
+            $crate::commands::set_streak_grace_days,
             $crate::commands::get_settings,
             $crate::commands::set_active_theme,
         ]
@@ -138,6 +141,37 @@ pub fn set_task_status(db: State<Db>, id: i64, status: TaskStatus) -> Result<Tas
 #[tauri::command]
 pub fn delete_task(db: State<Db>, id: i64) -> Result<()> {
     db.with(|conn| repo::task::delete(conn, id))
+}
+
+#[tauri::command]
+pub fn list_streaks(db: State<Db>, days: Option<i64>) -> Result<Vec<StreakCard>> {
+    let days = days.unwrap_or(repo::streak::DEFAULT_CELL_DAYS);
+    db.with(|conn| repo::streak::list(conn, days))
+}
+
+/// `date` is a local `YYYY-MM-DD`; omitting it means today, so the frontend
+/// never has to decide what "today" is.
+#[tauri::command]
+pub fn set_task_completion(
+    db: State<Db>,
+    id: i64,
+    date: Option<String>,
+    done: bool,
+) -> Result<StreakCard> {
+    let on = match date {
+        Some(text) => Some(
+            chrono::NaiveDate::parse_from_str(&text, repo::completion::DATE_FORMAT)
+                .map_err(|err| crate::error::Error::Validation(format!("bad date {text}: {err}")))?,
+        ),
+        None => None,
+    };
+
+    db.with(|conn| repo::streak::set_completion(conn, id, on, done, repo::streak::DEFAULT_CELL_DAYS))
+}
+
+#[tauri::command]
+pub fn set_streak_grace_days(db: State<Db>, days: i64) -> Result<Settings> {
+    db.with(|conn| repo::settings::set_grace_days(conn, days))
 }
 
 #[tauri::command]
