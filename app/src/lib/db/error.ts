@@ -23,4 +23,15 @@ export class AppError extends Error {
 	static validation(message: string): AppError {
 		return new AppError('validation', message);
 	}
+
+	static from(raw: unknown): AppError {
+		if (raw instanceof AppError) return raw;
+
+		if (typeof raw === 'object' && raw !== null && 'kind' in raw && 'message' in raw) {
+			const { kind, message } = raw as { kind: string; message: string };
+			return new AppError(kind as ErrorKind, message);
+		}
+
+		return new AppError('internal', typeof raw === 'string' ? raw : String(raw));
+	}
 }
