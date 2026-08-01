@@ -1847,6 +1847,9 @@ Puts the cards on the board, makes recurring cards derive their column from the 
 **Files:**
 - Modify: `app/src/routes/tasks/+page.svelte`
 - Modify: `app/src/lib/components/TaskDrawer.svelte`
+- Modify: `app/src/lib/components/TaskRow.svelte` (recurring badge)
+- Modify: `app/src/lib/components/SubgoalCard.svelte` (createTask payload)
+- Modify: `app/src/routes/goals/[id]/+page.svelte` (createTask payload)
 - Modify: `app/src/lib/format.ts` (add `weeklyAnchorLabel`)
 - Modify: `app/src/lib/format.spec.ts`
 
@@ -2144,7 +2147,27 @@ Also change the strike-through condition on the title so a habit reads as done w
 						>
 ```
 
-- [ ] **Step 8: Type-check and lint**
+- [ ] **Step 8: Update the three remaining `isRecurring` references**
+
+Three files outside the board still name the dropped field. In `app/src/lib/components/SubgoalCard.svelte` and `app/src/routes/goals/[id]/+page.svelte`, both build a `createTask` payload ending in `isRecurring: false` — change that line in each to:
+
+```typescript
+					recurrence: null
+```
+
+In `app/src/lib/components/TaskRow.svelte`, the recurring badge names the cadence now, matching the board. Add `RECURRENCE_LABELS` to its `$lib/api` import, then replace the badge block:
+
+```svelte
+	{#if task.recurrence}
+		<span
+			class="flex shrink-0 items-center gap-1 rounded-full bg-accent-secondary/15 px-2 py-0.5 text-[11px] font-semibold text-accent-secondary"
+		>
+			<Icon name="flame" size={12} /> {RECURRENCE_LABELS[task.recurrence]}
+		</span>
+	{/if}
+```
+
+- [ ] **Step 9: Type-check and lint**
 
 Run: `npm run check`
 Expected: PASS with zero errors — the `isRecurring` errors from Task 5 are now resolved.
@@ -2152,10 +2175,10 @@ Expected: PASS with zero errors — the `isRecurring` errors from Task 5 are now
 Run: `npm run format && npm run lint`
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
-git add src/routes/tasks/+page.svelte src/lib/components/TaskDrawer.svelte src/lib/format.ts src/lib/format.spec.ts
+git add src/routes/tasks/+page.svelte src/routes/goals src/lib/components src/lib/format.ts src/lib/format.spec.ts
 git commit -m "feat: show streaks and daily check-off on the task board"
 ```
 
