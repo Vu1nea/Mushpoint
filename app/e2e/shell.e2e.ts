@@ -61,3 +61,22 @@ test('the theme picker offers both shipped themes', async ({ page }) => {
 	await expect(page.getByRole('button', { name: /Nocturne/ })).toBeVisible();
 	await expect(page.getByRole('button', { name: /Coquette/ })).toBeVisible();
 });
+
+test('the settings screen offers the streak grace period', async ({ page }) => {
+	await page.goto('/settings');
+
+	await expect(page.getByRole('heading', { name: 'Streaks' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Increase grace period' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Decrease grace period' })).toBeVisible();
+});
+
+test('the task drawer offers every cadence', async ({ page }) => {
+	await page.goto('/tasks');
+	await page.getByRole('button', { name: 'New Task' }).click();
+
+	const repeats = page.getByLabel('Repeats');
+	await expect(repeats).toBeVisible();
+	for (const option of ["Doesn't repeat", 'Daily', 'Weekdays', 'Weekly']) {
+		await expect(repeats.getByRole('option', { name: option })).toBeAttached();
+	}
+});
