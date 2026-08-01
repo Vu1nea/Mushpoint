@@ -2,7 +2,7 @@ use rusqlite::{params, Connection, Row};
 
 use super::{now, optional_text, required_text};
 use crate::error::{Error, Result};
-use crate::models::{Recurrence, Task, TaskInput, TaskStatus, TaskUpdate};
+use crate::models::{Recurrence, Task, TaskInput, TaskStatus, TaskSummary, TaskUpdate};
 
 const COLUMNS: &str =
     "id, title, status, due_date, goal_id, subgoal_id, recurrence, created_at, updated_at";
@@ -23,8 +23,37 @@ fn map(row: &Row) -> rusqlite::Result<Task> {
 
 const ORDER: &str = "ORDER BY (due_date IS NULL), due_date, id";
 
-pub fn list(conn: &Connection) -> Result<Vec<Task>> {
-    let mut stmt = conn.prepare(&format!("SELECT {COLUMNS} FROM tasks {ORDER}"))?;
+/// Columns qualified with the table alias, for the joined summary query.
+const SUMMARY_COLUMNS: &str = "t.id, t.title, t.status, t.due_date, t.goal_id, t.subgoal_id,
+     t.recurrence, t.created_at, t.updated_at";
+
+/// The board's list. One join rather than a completion query per row.
+pub fn list(conn: &Connection) -> Result<Vec<TaskSummary>> {
+    let mut stmt = conn.prepare(&format!(
+        "SELECT {SUMMARY_COLUMNS}, c.id IS NOT NULL AS completed_today
+         FROM tasks t
+         LEFT JOIN task_completions c
+             ON c.task_id = t.id AND c.completed_on = ?1
+         ORDER BY (t.due_date IS NULL), t.due_date, t.id"
+    ))?;
+
+    let tasks = stmt
+        .query_map(params![super::completion::format(super::today())], |row| {
+            Ok(TaskSummary {
+                completed_today: row.get("completed_today")?,
+                task: map(row)?,
+            })
+        })?
+        .collect::<rusqlite::Result<_>>()?;
+
+    Ok(tasks)
+}
+
+/// Every habit, for the streak cards.
+pub fn list_recurring(conn: &Connection) -> Result<Vec<Task>> {
+    let mut stmt = conn.prepare(&format!(
+        "SELECT {COLUMNS} FROM tasks WHERE recurrence IS NOT NULL {ORDER}"
+    ))?;
     let tasks = stmt.query_map([], map)?.collect::<rusqlite::Result<_>>()?;
     Ok(tasks)
 }

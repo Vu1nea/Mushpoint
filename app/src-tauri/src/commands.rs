@@ -116,7 +116,7 @@ pub fn delete_subgoal(db: State<Db>, id: i64) -> Result<()> {
 }
 
 #[tauri::command]
-pub fn list_tasks(db: State<Db>) -> Result<Vec<Task>> {
+pub fn list_tasks(db: State<Db>) -> Result<Vec<TaskSummary>> {
     db.with(|conn| repo::task::list(conn))
 }
 

@@ -22,6 +22,17 @@ pub fn get(conn: &Connection) -> Result<Settings> {
     Ok(settings)
 }
 
+/// Just the grace number, for the streak math. Read on every streak computation
+/// so changing it in Settings updates every card immediately.
+pub fn grace_days(conn: &Connection) -> Result<i64> {
+    let grace = conn.query_row(
+        "SELECT streak_grace_days FROM settings WHERE id = 1",
+        [],
+        |row| row.get(0),
+    )?;
+    Ok(grace)
+}
+
 pub fn set_theme(conn: &Connection, theme: &str) -> Result<Settings> {
     if !THEMES.contains(&theme) {
         return Err(Error::Validation(format!("unknown theme: {theme}")));

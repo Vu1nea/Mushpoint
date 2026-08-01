@@ -253,3 +253,34 @@ pub struct GoalDetail {
     /// Tasks linked straight to the goal, with no subgoal in between.
     pub direct_tasks: Vec<Task>,
 }
+
+/// One square on a streak heatmap. The backend decides the state so the frontend
+/// only paints.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DayCell {
+    /// Local calendar date, `YYYY-MM-DD`.
+    pub date: String,
+    pub state: CellState,
+}
+
+/// Everything the streak card on the Task Manager needs for one habit.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StreakCard {
+    pub task: Task,
+    pub current: i64,
+    pub longest: i64,
+    pub done_today: bool,
+    pub cells: Vec<DayCell>,
+}
+
+/// A task as the board shows it: the record plus whether today is already logged.
+/// Always `false` for a one-off task, which has no daily state to be in.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskSummary {
+    #[serde(flatten)]
+    pub task: Task,
+    pub completed_today: bool,
+}

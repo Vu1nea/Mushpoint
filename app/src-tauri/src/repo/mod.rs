@@ -2,12 +2,14 @@
 //! against the real database file and against an in-memory one in tests.
 
 pub mod category;
+pub mod completion;
 pub mod goal;
 pub mod settings;
+pub mod streak;
 pub mod subgoal;
 pub mod task;
 
-use chrono::{SecondsFormat, Utc};
+use chrono::{DateTime, Local, NaiveDate, SecondsFormat, Utc};
 
 use crate::error::{Error, Result};
 
@@ -32,4 +34,17 @@ pub fn optional_text(value: Option<String>) -> Option<String> {
     value
         .map(|text| text.trim().to_string())
         .filter(|text| !text.is_empty())
+}
+
+/// Streaks are reckoned in local calendar days: a habit checked off at 11pm
+/// belongs to that evening, not to tomorrow in UTC.
+pub fn today() -> NaiveDate {
+    Local::now().date_naive()
+}
+
+/// The local calendar day a stored RFC 3339 timestamp fell on.
+pub fn local_date_of(timestamp: &str) -> Result<NaiveDate> {
+    DateTime::parse_from_rfc3339(timestamp)
+        .map(|moment| moment.with_timezone(&Local).date_naive())
+        .map_err(|err| Error::Validation(format!("unreadable timestamp {timestamp}: {err}")))
 }

@@ -47,8 +47,11 @@ pub fn list(conn: &Connection, status: Option<GoalStatus>) -> Result<Vec<GoalSum
         .map(|goal| {
             let subgoal_progresses = subgoal::progresses_for_goal(conn, goal.id)?;
             let direct_tasks = task::list_direct_for_goal(conn, goal.id)?;
-            let completions: Vec<f64> =
-                direct_tasks.iter().map(|t| t.status.completion()).collect();
+            let completions: Vec<f64> = direct_tasks
+                .iter()
+                .filter(|task| task.counts_toward_progress())
+                .map(|t| t.status.completion())
+                .collect();
 
             Ok(GoalSummary {
                 progress: progress::goal_progress(&subgoal_progresses, &completions),
@@ -67,7 +70,11 @@ pub fn get_detail(conn: &Connection, id: i64) -> Result<GoalDetail> {
     let direct_tasks = task::list_direct_for_goal(conn, id)?;
 
     let subgoal_progresses: Vec<f64> = subgoals.iter().map(|s| s.progress).collect();
-    let completions: Vec<f64> = direct_tasks.iter().map(|t| t.status.completion()).collect();
+    let completions: Vec<f64> = direct_tasks
+        .iter()
+        .filter(|task| task.counts_toward_progress())
+        .map(|t| t.status.completion())
+        .collect();
     let category = match goal.category_id {
         Some(category_id) => Some(category::get(conn, category_id)?),
         None => None,

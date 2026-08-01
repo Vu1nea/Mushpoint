@@ -45,7 +45,11 @@ pub fn detail_for_goal(conn: &Connection, goal_id: i64) -> Result<Vec<SubgoalDet
         .into_iter()
         .map(|subgoal| {
             let tasks = task::list_for_subgoal(conn, subgoal.id)?;
-            let completions: Vec<f64> = tasks.iter().map(|t| t.status.completion()).collect();
+            let completions: Vec<f64> = tasks
+                .iter()
+                .filter(|task| task.counts_toward_progress())
+                .map(|t| t.status.completion())
+                .collect();
             Ok(SubgoalDetail {
                 progress: progress::subgoal_progress(subgoal.is_complete, &completions),
                 subgoal,
