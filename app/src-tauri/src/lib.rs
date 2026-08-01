@@ -1,4 +1,3 @@
-use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 /// Connection string shared with the JS side (`app/src/lib/db/connection.ts`) —
