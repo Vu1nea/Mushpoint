@@ -109,8 +109,11 @@
 						<TaskRow {task} {onMutated} {onError} />
 					{/each}
 				</ul>
-			{:else}
-				<!-- With no tasks to average, the subgoal's own checkbox is its progress. -->
+			{/if}
+			{#if !subgoal.tasks.some((task) => task.recurrence === null)}
+				<!-- The backend averages only tasks that count toward progress (recurrence
+				     is null); habits are excluded. With no such task, there is nothing to
+				     average, so the subgoal's own checkbox is its progress instead. -->
 				<Checkbox
 					checked={subgoal.isComplete}
 					label="Mark {subgoal.title} complete"

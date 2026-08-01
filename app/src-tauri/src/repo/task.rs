@@ -2,7 +2,7 @@ use rusqlite::{params, Connection, Row};
 
 use super::{now, optional_text, required_text};
 use crate::error::{Error, Result};
-use crate::models::{Recurrence, Task, TaskInput, TaskStatus, TaskSummary, TaskUpdate};
+use crate::models::{Task, TaskInput, TaskStatus, TaskSummary, TaskUpdate};
 
 const COLUMNS: &str =
     "id, title, status, due_date, goal_id, subgoal_id, recurrence, created_at, updated_at";
@@ -192,7 +192,7 @@ fn resolve_parents(
 mod tests {
     use super::*;
     use crate::db;
-    use crate::models::{GoalInput, SubgoalInput, Timeframe};
+    use crate::models::{GoalInput, Recurrence, SubgoalInput, Timeframe};
     use crate::repo::{goal, subgoal};
 
     fn seed_goal(conn: &Connection) -> i64 {

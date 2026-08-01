@@ -12,10 +12,6 @@ use crate::streak;
 /// How many trailing days the Task Manager's heatmap strip shows.
 pub const DEFAULT_CELL_DAYS: i64 = 20;
 
-pub fn card(conn: &Connection, task_id: i64, days: i64) -> Result<StreakCard> {
-    build(conn, task::get(conn, task_id)?, days)
-}
-
 /// One card per habit, in the same order `task::list` uses.
 pub fn list(conn: &Connection, days: i64) -> Result<Vec<StreakCard>> {
     task::list_recurring(conn)?
@@ -122,9 +118,9 @@ mod tests {
     #[test]
     fn a_fresh_habit_has_an_empty_streak() {
         let conn = db::open_in_memory().unwrap();
-        let id = habit(&conn, "Stretch", Recurrence::Daily);
+        habit(&conn, "Stretch", Recurrence::Daily);
 
-        let card = card(&conn, id, 20).unwrap();
+        let card = list(&conn, 20).unwrap().into_iter().next().unwrap();
 
         assert_eq!((card.current, card.longest), (0, 0));
         assert!(!card.done_today);
@@ -173,9 +169,9 @@ mod tests {
     #[test]
     fn days_before_the_task_existed_are_not_misses() {
         let conn = db::open_in_memory().unwrap();
-        let id = habit(&conn, "Stretch", Recurrence::Daily);
+        habit(&conn, "Stretch", Recurrence::Daily);
 
-        let card = card(&conn, id, 20).unwrap();
+        let card = list(&conn, 20).unwrap().into_iter().next().unwrap();
 
         // The task was created today, so every earlier cell is outside its history.
         let not_expected = card
@@ -202,7 +198,6 @@ mod tests {
         .unwrap()
         .id;
 
-        assert_eq!(card(&conn, one_off, 20).unwrap_err().kind(), "validation");
         assert_eq!(
             set_completion(&conn, one_off, None, true, 20).unwrap_err().kind(),
             "validation"
@@ -248,11 +243,13 @@ mod tests {
 
         conn.execute("UPDATE settings SET streak_grace_days = 0 WHERE id = 1", [])
             .unwrap();
-        assert_eq!(card(&conn, id, 20).unwrap().current, 0, "grace 0 breaks on the gap");
+        let card = list(&conn, 20).unwrap().into_iter().next().unwrap();
+        assert_eq!(card.current, 0, "grace 0 breaks on the gap");
 
         conn.execute("UPDATE settings SET streak_grace_days = 7 WHERE id = 1", [])
             .unwrap();
-        assert_eq!(card(&conn, id, 20).unwrap().current, 1, "grace 7 keeps it alive");
+        let card = list(&conn, 20).unwrap().into_iter().next().unwrap();
+        assert_eq!(card.current, 1, "grace 7 keeps it alive");
     }
 
     #[test]

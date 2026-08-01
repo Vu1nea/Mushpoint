@@ -96,7 +96,7 @@
 		await run(() => setTaskStatus(task.id, next));
 	}
 
-	async function toggleToday(task: TaskSummary, done: boolean) {
+	async function toggleToday(task: { id: number }, done: boolean) {
 		justMovedId = task.id;
 		clearTimeout(moveTimer);
 		moveTimer = setTimeout(() => (justMovedId = null), 500);
@@ -170,11 +170,7 @@
 		<h2 class="{sectionHeading} mb-3">Streaks</h2>
 		<div class="grid gap-4 sm:grid-cols-2">
 			{#each data.streaks as card (card.task.id)}
-				<StreakCard
-					{card}
-					{busy}
-					onToggle={(done) => toggleToday(card.task as TaskSummary, done)}
-				/>
+				<StreakCard {card} {busy} onToggle={(done) => toggleToday(card.task, done)} />
 			{/each}
 		</div>
 	</section>
