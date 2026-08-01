@@ -1,16 +1,5 @@
-#[macro_use]
-mod commands;
-mod db;
-mod error;
-mod models;
-mod progress;
-mod repo;
-mod streak;
-
 use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
-
-const DATABASE_FILE: &str = "mushpoint.sqlite3";
 
 /// Connection string shared with the JS side (`app/src/lib/db/connection.ts`) —
 /// tauri-plugin-sql keys registered migrations by this exact string, so it must
@@ -50,16 +39,8 @@ pub fn run() {
                         .build(),
                 )?;
             }
-
-            // Per-OS app data dir, so the database survives app updates and is a
-            // single file the user can copy as a backup.
-            let path = app.path().app_data_dir()?.join(DATABASE_FILE);
-            log::info!("opening database at {}", path.display());
-            app.manage(db::Db::new(db::open(&path)?));
-
             Ok(())
         })
-        .invoke_handler(command_handlers!())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
