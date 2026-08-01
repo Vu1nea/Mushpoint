@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { daysUntil, dueLabel, dueTone, isOverdue, parseDate, percent } from './format';
+import { cellTitle, daysUntil, dueLabel, dueTone, isOverdue, parseDate, percent } from './format';
 
 const NOW = new Date(2026, 6, 31); // 31 July 2026, local time.
 
@@ -60,6 +60,22 @@ describe('dueTone', () => {
 		expect(dueTone('2026-07-31', NOW)).toBe('soon');
 		expect(dueTone('2026-08-05', NOW)).toBe('soon');
 		expect(dueTone('2026-08-06', NOW)).toBe('later');
+	});
+});
+
+describe('cellTitle', () => {
+	const now = new Date(2026, 6, 31);
+
+	it('names the state of a day', () => {
+		expect(cellTitle({ date: '2026-07-30', state: 'done' }, now)).toBe('Jul 30 · done');
+		expect(cellTitle({ date: '2026-07-28', state: 'missed' }, now)).toBe('Jul 28 · missed');
+		expect(cellTitle({ date: '2026-07-31', state: 'pending' }, now)).toBe('Jul 31 · not yet');
+	});
+
+	it('says a day was never expected', () => {
+		expect(cellTitle({ date: '2026-07-25', state: 'not_expected' }, now)).toBe(
+			'Jul 25 · not scheduled'
+		);
 	});
 });
 

@@ -1,5 +1,7 @@
 /** Presentation helpers. Pure, so `now` is always passed in rather than read. */
 
+import type { CellState, DayCell } from '$lib/api/types';
+
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** Progress arrives as a 0–1 ratio; screens show whole percents. */
@@ -60,6 +62,18 @@ export function dueTone(due: string | null, now: Date = new Date()): DueTone {
 	if (days === null) return 'none';
 	if (days < 0) return 'overdue';
 	return days <= 5 ? 'soon' : 'later';
+}
+
+const CELL_WORDS: Record<CellState, string> = {
+	done: 'done',
+	missed: 'missed',
+	pending: 'not yet',
+	not_expected: 'not scheduled'
+};
+
+/** Hover text for one heatmap square: "Jul 30 · done". */
+export function cellTitle(cell: DayCell, now: Date = new Date()): string {
+	return `${formatDate(cell.date, now)} · ${CELL_WORDS[cell.state]}`;
 }
 
 /** Human due-date line used on goal, subgoal and task rows. */
