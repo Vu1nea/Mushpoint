@@ -12,9 +12,9 @@ export function createTestDriver(): SqlDriver {
 
 	return {
 		select: async <T>(sql: string, params: unknown[] = []) =>
-			db.prepare(sql).all(...params) as T[],
+			db.prepare(sql).all(...(params as any[])) as T[],
 		execute: async (sql: string, params: unknown[] = []): Promise<QueryResult> => {
-			const result = db.prepare(sql).run(...params);
+			const result = db.prepare(sql).run(...(params as any[]));
 			return {
 				lastInsertId: Number(result.lastInsertRowid),
 				rowsAffected: Number(result.changes)
