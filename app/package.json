@@ -38,6 +38,7 @@
 		"vitest": "^4.1.3"
 	},
 	"dependencies": {
-		"@tauri-apps/api": "^2.11.1"
+		"@tauri-apps/api": "^2.11.1",
+		"@tauri-apps/plugin-sql": "^2.4.0"
 	}
 }
