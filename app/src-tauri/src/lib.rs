@@ -5,6 +5,7 @@ mod error;
 mod models;
 mod progress;
 mod repo;
+mod streak;
 
 use tauri::Manager;
 

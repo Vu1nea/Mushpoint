@@ -75,6 +75,20 @@ sql_enum!(Recurrence {
     Weekly => "weekly",
 });
 
+/// How one calendar day reads on a streak heatmap.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CellState {
+    /// The occurrence was satisfied — on the day itself or within the grace window.
+    Done,
+    /// The window closed with nothing logged.
+    Missed,
+    /// Nothing logged yet, but the window is still open.
+    Pending,
+    /// The cadence does not expect this day at all.
+    NotExpected,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Category {
