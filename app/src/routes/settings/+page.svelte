@@ -81,6 +81,7 @@
 
 	/** The schema and the backend both cap this at 0–7; the buttons just agree. */
 	async function nudgeGrace(delta: number) {
+		if (!data.settings) return;
 		const next = Math.min(7, Math.max(0, grace + delta));
 		if (next === grace) return;
 		await run(() => setStreakGraceDays(next));
@@ -207,20 +208,24 @@
 		<button
 			type="button"
 			class={button.icon}
-			disabled={busy || grace === 0}
+			disabled={busy || !data.settings || grace === 0}
 			aria-label="Decrease grace period"
 			onclick={() => nudgeGrace(-1)}
 		>
 			<Icon name="minus" size={13} />
 		</button>
 		<span class="min-w-[52px] text-center text-[15px] font-bold tabular-nums">
-			{grace}
-			{grace === 1 ? 'day' : 'days'}
+			{#if data.settings}
+				{grace}
+				{grace === 1 ? 'day' : 'days'}
+			{:else}
+				&mdash;
+			{/if}
 		</span>
 		<button
 			type="button"
 			class={button.icon}
-			disabled={busy || grace === 7}
+			disabled={busy || !data.settings || grace === 7}
 			aria-label="Increase grace period"
 			onclick={() => nudgeGrace(1)}
 		>
