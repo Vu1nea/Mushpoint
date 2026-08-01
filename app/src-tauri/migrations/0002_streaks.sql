@@ -1,3 +1,4 @@
+
 -- One cadence column replaces the boolean: "recurring" now means "has a recurrence",
 -- so `is_recurring = 1, recurrence IS NULL` cannot be represented at all.
 ALTER TABLE tasks ADD COLUMN recurrence TEXT
