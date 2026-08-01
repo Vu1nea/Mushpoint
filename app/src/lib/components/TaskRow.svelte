@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { deleteTask, setTaskStatus, type Task } from '$lib/api';
+	import { deleteTask, RECURRENCE_LABELS, setTaskStatus, type Task } from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
 	import Checkbox from './Checkbox.svelte';
 	import Icon from './Icon.svelte';
@@ -50,11 +50,12 @@
 		</span>
 	{/if}
 
-	{#if task.isRecurring}
+	{#if task.recurrence}
 		<span
 			class="flex shrink-0 items-center gap-1 rounded-full bg-accent-secondary/15 px-2 py-0.5 text-[11px] font-semibold text-accent-secondary"
 		>
-			<Icon name="flame" size={12} /> recurring
+			<Icon name="flame" size={12} />
+			{RECURRENCE_LABELS[task.recurrence]}
 		</span>
 	{/if}
 

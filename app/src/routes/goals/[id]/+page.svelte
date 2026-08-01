@@ -77,7 +77,7 @@
 				dueDate: null,
 				goalId: data.goal!.id,
 				subgoalId: null,
-				isRecurring: false
+				recurrence: null
 			})
 		);
 	}

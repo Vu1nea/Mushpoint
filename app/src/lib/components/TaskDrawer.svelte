@@ -1,9 +1,18 @@
 <script lang="ts">
-	import { createTask, updateTask, type GoalSummary, type Subgoal, type Task } from '$lib/api';
-	import Checkbox from './Checkbox.svelte';
+	import {
+		createTask,
+		RECURRENCE_LABELS,
+		RECURRENCES,
+		updateTask,
+		type GoalSummary,
+		type Recurrence,
+		type Subgoal,
+		type Task
+	} from '$lib/api';
 	import Drawer from './Drawer.svelte';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
+	import { weeklyAnchorLabel } from '$lib/format';
 	import { field } from './ui';
 
 	interface Props {
@@ -33,7 +42,7 @@
 		return '';
 	}
 
-	let form = $state({ title: '', parent: '', dueDate: '', isRecurring: false });
+	let form = $state({ title: '', parent: '', dueDate: '', recurrence: '' });
 
 	$effect(() => {
 		if (!open) return;
@@ -43,7 +52,7 @@
 			title: task?.title ?? '',
 			parent: parentKey(task),
 			dueDate: task?.dueDate ?? '',
-			isRecurring: task?.isRecurring ?? false
+			recurrence: task?.recurrence ?? ''
 		};
 	});
 
@@ -53,6 +62,18 @@
 			grouped.set(subgoal.goalId, [...(grouped.get(subgoal.goalId) ?? []), subgoal]);
 		}
 		return grouped;
+	});
+
+	/**
+	 * A weekly habit is expected on the weekday it was created, so an existing task
+	 * can say which day that is. A new one has no creation date to read yet.
+	 */
+	const anchorNote = $derived.by(() => {
+		if (form.recurrence !== 'weekly') return null;
+		if (!task) return 'Weekly habits repeat on the day you create them.';
+
+		const weekday = weeklyAnchorLabel(task.createdAt);
+		return weekday ? `Repeats weekly · ${weekday}` : null;
 	});
 
 	async function submit() {
@@ -72,7 +93,7 @@
 			dueDate: form.dueDate || null,
 			goalId: kind === 'goal' ? parentId : null,
 			subgoalId: kind === 'subgoal' ? parentId : null,
-			isRecurring: form.isRecurring
+			recurrence: (form.recurrence || null) as Recurrence | null
 		};
 
 		try {
@@ -136,10 +157,16 @@
 		<input id="task-due" type="date" class={field.input} bind:value={form.dueDate} />
 	</div>
 
-	<Checkbox
-		checked={form.isRecurring}
-		label="Recurring task"
-		showLabel
-		onchange={(checked) => (form.isRecurring = checked)}
-	/>
+	<div>
+		<label class={field.label} for="task-recurrence">Repeats</label>
+		<Select id="task-recurrence" bind:value={form.recurrence}>
+			<option value="">Doesn't repeat</option>
+			{#each RECURRENCES as recurrence (recurrence)}
+				<option value={recurrence}>{RECURRENCE_LABELS[recurrence]}</option>
+			{/each}
+		</Select>
+		{#if anchorNote}
+			<p class="mt-1.5 text-xs text-muted">{anchorNote}</p>
+		{/if}
+	</div>
 </Drawer>

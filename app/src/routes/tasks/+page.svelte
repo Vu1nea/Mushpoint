@@ -2,15 +2,18 @@
 	import { invalidateAll } from '$app/navigation';
 	import {
 		deleteTask,
+		RECURRENCE_LABELS,
+		setTaskCompletion,
 		setTaskStatus,
 		TASK_STATUS_LABELS,
 		TASK_STATUSES,
-		type Task,
+		type TaskSummary,
 		type TaskStatus
 	} from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import StreakCard from '$lib/components/StreakCard.svelte';
 	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
 	import { button, sectionHeading } from '$lib/components/ui';
 	import { dueLabel, dueTone } from '$lib/format';
@@ -19,8 +22,8 @@
 	let { data } = $props();
 
 	let drawerOpen = $state(false);
-	let editingTask = $state<Task | null>(null);
-	let deletingTask = $state<Task | null>(null);
+	let editingTask = $state<TaskSummary | null>(null);
+	let deletingTask = $state<TaskSummary | null>(null);
 	let busy = $state(false);
 	let actionError = $state<unknown>(null);
 	/** Set for a moment after a card changes column, to play the move pulse. */
@@ -33,7 +36,7 @@
 	);
 
 	/** "Goal / Subgoal", "Goal", or nothing at all for a standalone task. */
-	function parentLabel(task: Task): string | null {
+	function parentLabel(task: TaskSummary): string | null {
 		const goal = task.goalId ? goalTitles.get(task.goalId) : null;
 		const subgoal = task.subgoalId ? subgoalTitles.get(task.subgoalId) : null;
 
@@ -41,11 +44,23 @@
 		return subgoal ?? goal ?? null;
 	}
 
+	/**
+	 * A habit has no lasting status: its column is today's completion state, so the
+	 * board empties itself at midnight without any scheduled job.
+	 *
+	 * Named `taskColumn` rather than `column` because the board markup below already
+	 * uses `column` as the loop variable for each board column.
+	 */
+	function taskColumn(task: TaskSummary): TaskStatus {
+		if (!task.recurrence) return task.status;
+		return task.completedToday ? 'done' : 'todo';
+	}
+
 	const columns = $derived(
 		TASK_STATUSES.map((status) => ({
 			status,
 			label: TASK_STATUS_LABELS[status],
-			tasks: data.tasks.filter((task) => task.status === status)
+			tasks: data.tasks.filter((task) => taskColumn(task) === status)
 		}))
 	);
 
@@ -70,7 +85,7 @@
 	}
 
 	/** Clicking a card walks it to the next column, wrapping Done back to To Do. */
-	async function advance(task: Task) {
+	async function advance(task: TaskSummary) {
 		const next: TaskStatus =
 			TASK_STATUSES[(TASK_STATUSES.indexOf(task.status) + 1) % TASK_STATUSES.length];
 
@@ -81,6 +96,35 @@
 		await run(() => setTaskStatus(task.id, next));
 	}
 
+	async function toggleToday(task: TaskSummary, done: boolean) {
+		justMovedId = task.id;
+		clearTimeout(moveTimer);
+		moveTimer = setTimeout(() => (justMovedId = null), 500);
+
+		await run(() => setTaskCompletion(task.id, done));
+	}
+
+	/**
+	 * The pill is the same control either way: a habit toggles today's completion,
+	 * an ordinary task walks to the next column.
+	 */
+	function pill(task: TaskSummary) {
+		if (task.recurrence) {
+			return {
+				label: task.completedToday ? 'Done today' : 'Do today',
+				title: task.completedToday ? 'Undo today' : 'Mark done for today',
+				act: () => toggleToday(task, !task.completedToday)
+			};
+		}
+
+		const next = TASK_STATUSES[(TASK_STATUSES.indexOf(task.status) + 1) % TASK_STATUSES.length];
+		return {
+			label: TASK_STATUS_LABELS[task.status],
+			title: `Move to ${TASK_STATUS_LABELS[next]}`,
+			act: () => advance(task)
+		};
+	}
+
 	async function removeTask() {
 		const task = deletingTask;
 		if (!task) return;
@@ -88,7 +132,7 @@
 		await run(() => deleteTask(task.id));
 	}
 
-	function edit(task: Task) {
+	function edit(task: TaskSummary) {
 		editingTask = task;
 		drawerOpen = true;
 	}
@@ -121,6 +165,21 @@
 	<div class="mb-6"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
 {/if}
 
+{#if data.streaks.length > 0}
+	<section class="mb-6">
+		<h2 class="{sectionHeading} mb-3">Streaks</h2>
+		<div class="grid gap-4 sm:grid-cols-2">
+			{#each data.streaks as card (card.task.id)}
+				<StreakCard
+					{card}
+					{busy}
+					onToggle={(done) => toggleToday(card.task as TaskSummary, done)}
+				/>
+			{/each}
+		</div>
+	</section>
+{/if}
+
 <div class="grid gap-4 md:grid-cols-3">
 	{#each columns as column (column.status)}
 		<section
@@ -133,6 +192,7 @@
 
 			{#each column.tasks as task, index (task.id)}
 				{@const parent = parentLabel(task)}
+				{@const action = pill(task)}
 				<div
 					class="group relative rounded-xl border bg-background p-3.5 transition-shadow {justMovedId ===
 					task.id
@@ -142,7 +202,7 @@
 				>
 					<div class="flex items-start gap-2">
 						<span
-							class="min-w-0 flex-1 text-sm leading-snug font-semibold {task.status === 'done'
+							class="min-w-0 flex-1 text-sm leading-snug font-semibold {taskColumn(task) === 'done'
 								? 'text-muted line-through'
 								: ''}"
 						>
@@ -170,15 +230,13 @@
 						<button
 							type="button"
 							class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
-								task.status
+								taskColumn(task)
 							]}"
 							disabled={busy}
-							title="Move to {TASK_STATUS_LABELS[
-								TASK_STATUSES[(TASK_STATUSES.indexOf(task.status) + 1) % TASK_STATUSES.length]
-							]}"
-							onclick={() => advance(task)}
+							title={action.title}
+							onclick={action.act}
 						>
-							{TASK_STATUS_LABELS[task.status]}
+							{action.label}
 						</button>
 						{#if parent}
 							<a
@@ -188,11 +246,12 @@
 								{parent}
 							</a>
 						{/if}
-						{#if task.isRecurring}
+						{#if task.recurrence}
 							<span
 								class="flex items-center gap-1 rounded-full bg-accent-secondary/15 px-2.5 py-1 text-[11px] font-semibold text-accent-secondary"
 							>
-								<Icon name="flame" size={11} /> recurring
+								<Icon name="flame" size={11} />
+								{RECURRENCE_LABELS[task.recurrence]}
 							</span>
 						{/if}
 						{#if task.dueDate}

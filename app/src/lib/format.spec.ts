@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { cellTitle, daysUntil, dueLabel, dueTone, isOverdue, parseDate, percent } from './format';
+import {
+	cellTitle,
+	daysUntil,
+	dueLabel,
+	dueTone,
+	isOverdue,
+	parseDate,
+	percent,
+	weeklyAnchorLabel
+} from './format';
 
 const NOW = new Date(2026, 6, 31); // 31 July 2026, local time.
 
@@ -76,6 +85,17 @@ describe('cellTitle', () => {
 		expect(cellTitle({ date: '2026-07-25', state: 'not_expected' }, now)).toBe(
 			'Jul 25 · not scheduled'
 		);
+	});
+});
+
+describe('weeklyAnchorLabel', () => {
+	it('names the weekday a habit was created on', () => {
+		// 2026-07-28T09:00:00Z is a Tuesday.
+		expect(weeklyAnchorLabel('2026-07-28T09:00:00Z')).toBe('Tuesdays');
+	});
+
+	it('is blank when the timestamp cannot be read', () => {
+		expect(weeklyAnchorLabel('not a date')).toBe('');
 	});
 });
 

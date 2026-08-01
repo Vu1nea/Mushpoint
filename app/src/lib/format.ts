@@ -76,6 +76,17 @@ export function cellTitle(cell: DayCell, now: Date = new Date()): string {
 	return `${formatDate(cell.date, now)} · ${CELL_WORDS[cell.state]}`;
 }
 
+/**
+ * Which weekday a weekly habit lands on. The backend anchors weekly recurrence
+ * to the task's creation weekday, so this reads the same value back for display.
+ */
+export function weeklyAnchorLabel(createdAt: string): string {
+	const created = new Date(createdAt);
+	if (Number.isNaN(created.getTime())) return '';
+
+	return `${created.toLocaleDateString(undefined, { weekday: 'long' })}s`;
+}
+
 /** Human due-date line used on goal, subgoal and task rows. */
 export function dueLabel(due: string | null, now: Date = new Date()): string {
 	const days = daysUntil(due, now);

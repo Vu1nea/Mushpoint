@@ -45,7 +45,7 @@
 				dueDate: null,
 				goalId: null,
 				subgoalId: subgoal.id,
-				isRecurring: false
+				recurrence: null
 			})
 		);
 	}
