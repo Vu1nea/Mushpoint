@@ -56,3 +56,6 @@ TODO.md
 # subagent-driven-development scratch (ledger, briefs, review packages)
 .superpowers/
 .impeccable/
+
+# local git worktrees
+.worktrees/
