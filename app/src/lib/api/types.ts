@@ -3,10 +3,19 @@
 export type Timeframe = 'short' | 'mid' | 'long';
 export type GoalStatus = 'active' | 'completed' | 'archived';
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type Recurrence = 'daily' | 'weekdays' | 'weekly';
+export type CellState = 'done' | 'missed' | 'pending' | 'not_expected';
 
 export const TIMEFRAMES: Timeframe[] = ['short', 'mid', 'long'];
 export const GOAL_STATUSES: GoalStatus[] = ['active', 'completed', 'archived'];
 export const TASK_STATUSES: TaskStatus[] = ['todo', 'in_progress', 'done'];
+export const RECURRENCES: Recurrence[] = ['daily', 'weekdays', 'weekly'];
+
+export const RECURRENCE_LABELS: Record<Recurrence, string> = {
+	daily: 'Daily',
+	weekdays: 'Weekdays',
+	weekly: 'Weekly'
+};
 
 export const TIMEFRAME_LABELS: Record<Timeframe, string> = {
 	short: 'Short term',
@@ -93,7 +102,7 @@ export interface Task {
 	dueDate: string | null;
 	goalId: number | null;
 	subgoalId: number | null;
-	isRecurring: boolean;
+	recurrence: Recurrence | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -103,7 +112,7 @@ export interface TaskInput {
 	dueDate: string | null;
 	goalId: number | null;
 	subgoalId: number | null;
-	isRecurring: boolean;
+	recurrence: Recurrence | null;
 }
 
 export interface TaskUpdate {
@@ -112,7 +121,7 @@ export interface TaskUpdate {
 	dueDate: string | null;
 	goalId: number | null;
 	subgoalId: number | null;
-	isRecurring: boolean;
+	recurrence: Recurrence | null;
 }
 
 /** `progress` is a 0–1 ratio computed by the backend, never stored. */
@@ -136,5 +145,25 @@ export interface GoalDetail extends Goal {
 
 export interface Settings {
 	activeTheme: string;
+	streakGraceDays: number;
 	updatedAt: string;
+}
+
+/** One square on a heatmap. `date` is a local `YYYY-MM-DD`. */
+export interface DayCell {
+	date: string;
+	state: CellState;
+}
+
+export interface StreakCard {
+	task: Task;
+	current: number;
+	longest: number;
+	doneToday: boolean;
+	cells: DayCell[];
+}
+
+/** A task as the board lists it: the record plus today's completion state. */
+export interface TaskSummary extends Task {
+	completedToday: boolean;
 }

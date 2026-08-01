@@ -7,12 +7,14 @@ import type {
 	GoalInput,
 	GoalStatus,
 	GoalSummary,
+	StreakCard,
 	Subgoal,
 	SubgoalInput,
 	SubgoalUpdate,
 	Task,
 	TaskInput,
 	TaskStatus,
+	TaskSummary,
 	TaskUpdate
 } from './types';
 
@@ -46,10 +48,16 @@ export const setSubgoalComplete = (id: number, isComplete: boolean) =>
 	call<Subgoal>('set_subgoal_complete', { id, isComplete });
 export const deleteSubgoal = (id: number) => call<void>('delete_subgoal', { id });
 
-export const listTasks = () => call<Task[]>('list_tasks');
+export const listTasks = () => call<TaskSummary[]>('list_tasks');
 export const createTask = (input: TaskInput) => call<Task>('create_task', { input });
 export const updateTask = (id: number, input: TaskUpdate) =>
 	call<Task>('update_task', { id, input });
 export const setTaskStatus = (id: number, status: TaskStatus) =>
 	call<Task>('set_task_status', { id, status });
 export const deleteTask = (id: number) => call<void>('delete_task', { id });
+
+export const listStreaks = (days?: number) =>
+	call<StreakCard[]>('list_streaks', { days: days ?? null });
+/** `date` is a local `YYYY-MM-DD`; omit it to mean today. */
+export const setTaskCompletion = (id: number, done: boolean, date: string | null = null) =>
+	call<StreakCard>('set_task_completion', { id, date, done });
