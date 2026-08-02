@@ -1,4 +1,9 @@
+mod db_baseline;
+
+use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
+
+const DATABASE_FILE: &str = "mushpoint.sqlite3";
 
 /// Connection string shared with the JS side (`app/src/lib/db/connection.ts`) —
 /// tauri-plugin-sql keys registered migrations by this exact string, so it must
@@ -38,6 +43,14 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
+            // Must resolve to the exact same path tauri-plugin-sql itself will
+            // open (app_config_dir()/DATABASE_FILE) and must run before the
+            // frontend ever calls Database.load(), which is what triggers the
+            // plugin's own migration run.
+            let db_path = app.path().app_config_dir()?.join(DATABASE_FILE);
+            tauri::async_runtime::block_on(db_baseline::baseline_if_needed(&db_path))?;
+
             Ok(())
         })
         .run(tauri::generate_context!())

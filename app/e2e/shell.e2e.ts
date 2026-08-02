@@ -2,9 +2,13 @@ import { expect, test } from '@playwright/test';
 
 /*
  * These run against the plain web build, where no Tauri backend exists. That
- * limits them to the app shell and the "backend missing" path — CRUD flows are
- * covered by the Rust tests until a Tauri-driven harness lands (see
- * plans/playwright-test-plan.md).
+ * limits them to the app shell and the "backend missing" path — they do not
+ * exercise CRUD flows, SQL, or the real @tauri-apps/plugin-sql connection at
+ * all. CRUD/repo logic is covered by vitest against an in-memory node:sqlite
+ * database (src/lib/db/repo/*.spec.ts), which is not the same thing as the
+ * real plugin-sql path — that only runs inside an actual `npm run tauri dev`
+ * or built app. A Tauri-driven e2e harness that exercises the real backend
+ * has not landed yet (see plans/playwright-test-plan.md).
  */
 
 test('the root route lands on Goals', async ({ page }) => {

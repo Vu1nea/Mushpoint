@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../driver';
 import { AppError } from '../error';
 import type { CellState, DayCell, StreakCard, Task } from '../../api/types';
-import { localDateOf, today as todayFn } from './helpers';
+import { localDateOf, parseDateOrThrow, today as todayFn } from './helpers';
 import * as task from './task';
 import * as settings from './settings';
 import * as completion from './completion';
@@ -33,7 +33,8 @@ export async function setCompletion(
 	const habit = await task.get(driver, taskId);
 	ensureRecurring(habit);
 
-	await completion.set(driver, taskId, on ?? todayFn(), done);
+	const validatedOn = on === null ? todayFn() : parseDateOrThrow(on);
+	await completion.set(driver, taskId, validatedOn, done);
 	return build(driver, habit, days);
 }
 

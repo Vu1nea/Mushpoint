@@ -62,6 +62,16 @@ describe('streak', () => {
 		expect(rows).toHaveLength(1);
 	});
 
+	it('rejects a malformed explicit date without writing anything', async () => {
+		const id = await habit('Stretch', 'daily');
+
+		await expect(streak.setCompletion(driver, id, '2026-02-30', true, 20)).rejects.toMatchObject({
+			kind: 'validation'
+		});
+		const rows = await driver.select('SELECT * FROM task_completions');
+		expect(rows).toHaveLength(0);
+	});
+
 	it('days before the task existed are not misses', async () => {
 		await habit('Stretch', 'daily');
 		const [card] = await streak.list(driver, 20);

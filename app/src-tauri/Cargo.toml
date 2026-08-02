@@ -24,3 +24,10 @@ log = "0.4"
 tauri = { version = "2.11.3", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-sql = { version = "2.4.0", features = ["sqlite"] }
+# Used directly (not just transitively via tauri-plugin-sql) to baseline a
+# pre-existing database into sqlx's migration-tracking scheme — see db_baseline.rs.
+sqlx = { version = "0.8", default-features = false, features = ["sqlite", "runtime-tokio"] }
+sha2 = "0.10"
+
+[dev-dependencies]
+futures-core = "0.3"
