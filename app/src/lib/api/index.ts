@@ -1,4 +1,10 @@
-import { call } from './client';
+import { getDriver } from '../db/connection';
+import { AppError } from '../db/error';
+import * as categoryRepo from '../db/repo/category';
+import * as goalRepo from '../db/repo/goal';
+import * as subgoalRepo from '../db/repo/subgoal';
+import * as taskRepo from '../db/repo/task';
+import * as streakRepo from '../db/repo/streak';
 import type {
 	Category,
 	CategoryInput,
@@ -19,45 +25,51 @@ import type {
 } from './types';
 
 export * from './types';
-export { AppError } from './client';
-export type { ErrorKind } from './client';
+export { AppError };
+export type { ErrorKind } from '../db/error';
 
-export const listCategories = () => call<Category[]>('list_categories');
-export const createCategory = (input: CategoryInput) =>
-	call<Category>('create_category', { input });
-export const updateCategory = (id: number, input: CategoryInput) =>
-	call<Category>('update_category', { id, input });
-export const deleteCategory = (id: number) => call<void>('delete_category', { id });
+export const listCategories = async (): Promise<Category[]> => categoryRepo.list(await getDriver());
+export const createCategory = async (input: CategoryInput): Promise<Category> =>
+	categoryRepo.create(await getDriver(), input);
+export const updateCategory = async (id: number, input: CategoryInput): Promise<Category> =>
+	categoryRepo.update(await getDriver(), id, input);
+export const deleteCategory = async (id: number): Promise<void> =>
+	categoryRepo.remove(await getDriver(), id);
 
-export const listGoals = (status: GoalStatus | null = null) =>
-	call<GoalSummary[]>('list_goals', { status });
-export const getGoal = (id: number) => call<GoalDetail>('get_goal', { id });
-export const createGoal = (input: GoalInput) => call<Goal>('create_goal', { input });
-export const updateGoal = (id: number, input: GoalInput) =>
-	call<Goal>('update_goal', { id, input });
-export const setGoalStatus = (id: number, status: GoalStatus) =>
-	call<Goal>('set_goal_status', { id, status });
-export const deleteGoal = (id: number, deleteOrphanedTasks: boolean) =>
-	call<void>('delete_goal', { id, deleteOrphanedTasks });
+export const listGoals = async (status: GoalStatus | null = null): Promise<GoalSummary[]> =>
+	goalRepo.list(await getDriver(), status);
+export const getGoal = async (id: number): Promise<GoalDetail> => goalRepo.getDetail(await getDriver(), id);
+export const createGoal = async (input: GoalInput): Promise<Goal> => goalRepo.create(await getDriver(), input);
+export const updateGoal = async (id: number, input: GoalInput): Promise<Goal> =>
+	goalRepo.update(await getDriver(), id, input);
+export const setGoalStatus = async (id: number, status: GoalStatus): Promise<Goal> =>
+	goalRepo.setStatus(await getDriver(), id, status);
+export const deleteGoal = async (id: number, deleteOrphanedTasks: boolean): Promise<void> =>
+	goalRepo.remove(await getDriver(), id, deleteOrphanedTasks);
 
-export const listSubgoals = () => call<Subgoal[]>('list_subgoals');
-export const createSubgoal = (input: SubgoalInput) => call<Subgoal>('create_subgoal', { input });
-export const updateSubgoal = (id: number, input: SubgoalUpdate) =>
-	call<Subgoal>('update_subgoal', { id, input });
-export const setSubgoalComplete = (id: number, isComplete: boolean) =>
-	call<Subgoal>('set_subgoal_complete', { id, isComplete });
-export const deleteSubgoal = (id: number) => call<void>('delete_subgoal', { id });
+export const listSubgoals = async (): Promise<Subgoal[]> => subgoalRepo.listAll(await getDriver());
+export const createSubgoal = async (input: SubgoalInput): Promise<Subgoal> =>
+	subgoalRepo.create(await getDriver(), input);
+export const updateSubgoal = async (id: number, input: SubgoalUpdate): Promise<Subgoal> =>
+	subgoalRepo.update(await getDriver(), id, input);
+export const setSubgoalComplete = async (id: number, isComplete: boolean): Promise<Subgoal> =>
+	subgoalRepo.setComplete(await getDriver(), id, isComplete);
+export const deleteSubgoal = async (id: number): Promise<void> =>
+	subgoalRepo.remove(await getDriver(), id);
 
-export const listTasks = () => call<TaskSummary[]>('list_tasks');
-export const createTask = (input: TaskInput) => call<Task>('create_task', { input });
-export const updateTask = (id: number, input: TaskUpdate) =>
-	call<Task>('update_task', { id, input });
-export const setTaskStatus = (id: number, status: TaskStatus) =>
-	call<Task>('set_task_status', { id, status });
-export const deleteTask = (id: number) => call<void>('delete_task', { id });
+export const listTasks = async (): Promise<TaskSummary[]> => taskRepo.list(await getDriver());
+export const createTask = async (input: TaskInput): Promise<Task> => taskRepo.create(await getDriver(), input);
+export const updateTask = async (id: number, input: TaskUpdate): Promise<Task> =>
+	taskRepo.update(await getDriver(), id, input);
+export const setTaskStatus = async (id: number, status: TaskStatus): Promise<Task> =>
+	taskRepo.setStatus(await getDriver(), id, status);
+export const deleteTask = async (id: number): Promise<void> => taskRepo.remove(await getDriver(), id);
 
-export const listStreaks = (days?: number) =>
-	call<StreakCard[]>('list_streaks', { days: days ?? null });
+export const listStreaks = async (days?: number): Promise<StreakCard[]> =>
+	streakRepo.list(await getDriver(), days ?? streakRepo.DEFAULT_CELL_DAYS);
 /** `date` is a local `YYYY-MM-DD`; omit it to mean today. */
-export const setTaskCompletion = (id: number, done: boolean, date: string | null = null) =>
-	call<StreakCard>('set_task_completion', { id, date, done });
+export const setTaskCompletion = async (
+	id: number,
+	done: boolean,
+	date: string | null = null
+): Promise<StreakCard> => streakRepo.setCompletion(await getDriver(), id, date, done, streakRepo.DEFAULT_CELL_DAYS);

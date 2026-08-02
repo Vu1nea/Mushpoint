@@ -1,7 +1,9 @@
-import { call } from './client';
+import { getDriver } from '../db/connection';
+import * as settingsRepo from '../db/repo/settings';
 import type { Settings } from './types';
 
-export const getSettings = () => call<Settings>('get_settings');
-export const setActiveTheme = (theme: string) => call<Settings>('set_active_theme', { theme });
-export const setStreakGraceDays = (days: number) =>
-	call<Settings>('set_streak_grace_days', { days });
+export const getSettings = async (): Promise<Settings> => settingsRepo.get(await getDriver());
+export const setActiveTheme = async (theme: string): Promise<Settings> =>
+	settingsRepo.setTheme(await getDriver(), theme);
+export const setStreakGraceDays = async (days: number): Promise<Settings> =>
+	settingsRepo.setGraceDays(await getDriver(), days);

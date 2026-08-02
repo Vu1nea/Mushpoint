@@ -1,8 +1,7 @@
-import { invoke } from '@tauri-apps/api/core';
-
 export type ErrorKind = 'not_found' | 'validation' | 'database' | 'internal' | 'unavailable';
 
-/** Backend failures, normalized so the UI can branch on `kind`. */
+/** Every failure the UI can observe. Thrown directly by repo code — there is
+ * no process boundary left to serialize across. */
 export class AppError extends Error {
 	readonly kind: ErrorKind;
 
@@ -17,6 +16,14 @@ export class AppError extends Error {
 		return this.kind === 'validation' || this.kind === 'not_found';
 	}
 
+	static notFound(entity: string, id: number): AppError {
+		return new AppError('not_found', `${entity} ${id} not found`);
+	}
+
+	static validation(message: string): AppError {
+		return new AppError('validation', message);
+	}
+
 	static from(raw: unknown): AppError {
 		if (raw instanceof AppError) return raw;
 
@@ -26,25 +33,5 @@ export class AppError extends Error {
 		}
 
 		return new AppError('internal', typeof raw === 'string' ? raw : String(raw));
-	}
-}
-
-function hasBackend() {
-	return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
-}
-
-/** Calls a Tauri command, turning any failure into an {@link AppError}. */
-export async function call<T>(command: string, args: Record<string, unknown> = {}): Promise<T> {
-	if (!hasBackend()) {
-		throw new AppError(
-			'unavailable',
-			'The desktop backend is not running. Start the app with `npm run tauri dev` instead of `npm run dev`.'
-		);
-	}
-
-	try {
-		return await invoke<T>(command, args);
-	} catch (raw) {
-		throw AppError.from(raw);
 	}
 }
