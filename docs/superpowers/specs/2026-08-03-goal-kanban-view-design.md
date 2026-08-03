@@ -10,9 +10,10 @@ separate board/project entity, no schema change. Columns are fixed
 
 ## Scope
 
-`app/src/routes/goals/[id]/+page.svelte` only. Task Manager (`/tasks`) keeps
-its flat table; this is specific to a single goal's task set (direct tasks +
-all subgoal tasks).
+`app/src/routes/goals/[id]/+page.svelte` only. Task Manager (`/tasks`)
+already renders its own independent three-column status board; this feature
+does not touch or share code with it — it's specific to a single goal's task
+set (direct tasks + all subgoal tasks).
 
 ## View toggle
 

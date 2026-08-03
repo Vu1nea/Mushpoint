@@ -5,6 +5,7 @@
 	import {
 		createTask,
 		RECURRENCE_LABELS,
+		setTaskCompletion,
 		setTaskStatus,
 		TASK_STATUS_LABELS,
 		TASK_STATUSES,
@@ -52,14 +53,31 @@
 		}
 	}
 
-	function moveTask(taskId: number, status: TaskStatus) {
-		return run(() => setTaskStatus(taskId, status));
+	/**
+	 * A habit (recurrence set) has no lasting `status` — see `taskColumn()` in
+	 * `$lib/kanban` and the rule at `TaskRow.svelte:36-38`. Ticking it logs today's
+	 * completion instead of writing a status, so the streak/heatmap stay in sync.
+	 */
+	function moveTask(task: TaskSummary, status: TaskStatus) {
+		if (task.recurrence) {
+			if (status === 'in_progress') return; // a habit has no in-progress state
+			return run(() => setTaskCompletion(task.id, status === 'done'));
+		}
+		return run(() => setTaskStatus(task.id, status));
 	}
 
-	/** One column left/right; a no-op past either edge. */
+	/**
+	 * One column left/right; a no-op past either edge. A habit's raw `status` never
+	 * moves, so we step from its *displayed* column and skip straight between
+	 * todo/done — it has no in-progress state.
+	 */
 	function step(task: TaskSummary, direction: 1 | -1) {
+		if (task.recurrence) {
+			if (!task.expectedToday) return;
+			return moveTask(task, direction === 1 ? 'done' : 'todo');
+		}
 		const next = TASK_STATUSES[TASK_STATUSES.indexOf(task.status) + direction];
-		if (next) moveTask(task.id, next);
+		if (next) moveTask(task, next);
 	}
 
 	function dragStart(event: DragEvent, task: TaskSummary) {
@@ -78,8 +96,10 @@
 	function drop(event: DragEvent, status: TaskStatus) {
 		event.preventDefault();
 		dragOverStatus = null;
+		if (busy) return;
 		const id = Number(event.dataTransfer?.getData('text/plain'));
-		if (Number.isInteger(id)) moveTask(id, status);
+		const task = tasks.find((t) => t.id === id);
+		if (task) moveTask(task, status);
 	}
 
 	async function quickAdd(event: SubmitEvent, status: TaskStatus) {
@@ -119,9 +139,10 @@
 
 			{#each columns[status] as task (task.id)}
 				{@const subgoalName = task.subgoalId ? subgoalNames.get(task.subgoalId) : null}
+				{@const inert = busy || Boolean(task.recurrence && !task.expectedToday)}
 				<div
 					class="group rounded-card border border-subtle bg-background p-3.5"
-					draggable="true"
+					draggable={!inert}
 					ondragstart={(event) => dragStart(event, task)}
 					animate:flip={{ duration: motion(200) }}
 				>
@@ -165,17 +186,22 @@
 							<button
 								type="button"
 								class={button.bare}
-								disabled={busy}
+								disabled={inert}
 								onclick={() => step(task, -1)}
 							>
-								<Icon name="chevron-right" size={13} class="rotate-180" label="Move {task.title} left" />
+								<Icon
+									name="chevron-right"
+									size={13}
+									class="rotate-180"
+									label="Move {task.title} left"
+								/>
 							</button>
 						{/if}
 						{#if status !== 'done'}
 							<button
 								type="button"
 								class={button.bare}
-								disabled={busy}
+								disabled={inert}
 								onclick={() => step(task, 1)}
 							>
 								<Icon name="chevron-right" size={13} label="Move {task.title} right" />
