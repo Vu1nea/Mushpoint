@@ -70,7 +70,8 @@
 			timeframe: form.timeframe,
 			dueDate: form.dueDate || null,
 			motivationText: form.motivationText.trim() || null,
-			motivationImagePath: goal?.motivationImagePath ?? null
+			motivationImagePath: goal?.motivationImagePath ?? null,
+			repoUrl: goal?.repoUrl ?? null
 		};
 
 		try {

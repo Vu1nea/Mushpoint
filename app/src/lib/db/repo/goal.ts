@@ -8,7 +8,7 @@ import * as task from './task';
 import { countsTowardProgress, goalProgress, taskCompletion } from '../logic/progress';
 
 const COLUMNS = `id, category_id, title, description, timeframe, status, due_date,
-     motivation_text, motivation_image_path, created_at, updated_at`;
+     motivation_text, motivation_image_path, repo_url, created_at, updated_at`;
 const ORDER = 'ORDER BY (due_date IS NULL), due_date, created_at DESC, id DESC';
 
 interface GoalRow {
@@ -21,6 +21,7 @@ interface GoalRow {
 	due_date: string | null;
 	motivation_text: string | null;
 	motivation_image_path: string | null;
+	repo_url: string | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -36,6 +37,7 @@ function map(row: GoalRow): Goal {
 		dueDate: row.due_date,
 		motivationText: row.motivation_text,
 		motivationImagePath: row.motivation_image_path,
+		repoUrl: row.repo_url,
 		createdAt: row.created_at,
 		updatedAt: row.updated_at
 	};
@@ -106,8 +108,8 @@ export async function create(driver: SqlDriver, input: GoalInput): Promise<Goal>
 
 	const result = await driver.execute(
 		`INSERT INTO goals (category_id, title, description, timeframe, status, due_date,
-                            motivation_text, motivation_image_path, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, 'active', ?5, ?6, ?7, ?8, ?8)`,
+                            motivation_text, motivation_image_path, repo_url, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, 'active', ?5, ?6, ?7, ?8, ?9, ?9)`,
 		[
 			input.categoryId,
 			title,
@@ -116,6 +118,7 @@ export async function create(driver: SqlDriver, input: GoalInput): Promise<Goal>
 			optionalText(input.dueDate),
 			optionalText(input.motivationText),
 			optionalText(input.motivationImagePath),
+			optionalText(input.repoUrl),
 			timestamp
 		]
 	);
@@ -132,8 +135,8 @@ export async function update(driver: SqlDriver, id: number, input: GoalInput): P
 	const result = await driver.execute(
 		`UPDATE goals
          SET category_id = ?1, title = ?2, description = ?3, timeframe = ?4, due_date = ?5,
-             motivation_text = ?6, motivation_image_path = ?7, updated_at = ?8
-         WHERE id = ?9`,
+             motivation_text = ?6, motivation_image_path = ?7, repo_url = ?8, updated_at = ?9
+         WHERE id = ?10`,
 		[
 			input.categoryId,
 			title,
@@ -142,6 +145,7 @@ export async function update(driver: SqlDriver, id: number, input: GoalInput): P
 			optionalText(input.dueDate),
 			optionalText(input.motivationText),
 			optionalText(input.motivationImagePath),
+			optionalText(input.repoUrl),
 			now(),
 			id
 		]

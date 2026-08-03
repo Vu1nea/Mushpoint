@@ -21,7 +21,8 @@ function input(title: string): GoalInput {
 		timeframe: 'mid',
 		dueDate: null,
 		motivationText: null,
-		motivationImagePath: null
+		motivationImagePath: null,
+		repoUrl: null
 	};
 }
 
@@ -46,6 +47,18 @@ describe('goal', () => {
 		const created = await goal.create(driver, input('Ship v1'));
 		expect(created.status).toBe('active');
 		expect(created.timeframe).toBe('mid');
+	});
+
+	it('stores and updates the repo URL', async () => {
+		const created = await goal.create(driver, {
+			...input('Ship v1'),
+			repoUrl: 'https://github.com/acme/widget'
+		});
+		expect(created.repoUrl).toBe('https://github.com/acme/widget');
+		expect((await goal.get(driver, created.id)).repoUrl).toBe('https://github.com/acme/widget');
+
+		const updated = await goal.update(driver, created.id, { ...input('Ship v1'), repoUrl: '  ' });
+		expect(updated.repoUrl).toBeNull();
 	});
 
 	it('rejects a blank title or missing category', async () => {

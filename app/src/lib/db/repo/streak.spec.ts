@@ -138,7 +138,8 @@ describe('streak', () => {
 			timeframe: 'mid',
 			dueDate: null,
 			motivationText: null,
-			motivationImagePath: null
+			motivationImagePath: null,
+			repoUrl: null
 		});
 
 		const ordinary = (
