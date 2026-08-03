@@ -80,7 +80,6 @@
 				<a
 					href={item.href}
 					aria-current={isCurrent(item.href) ? 'page' : undefined}
-					title={sidebarOpen ? undefined : item.label}
 					class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap transition-colors
 						{isCurrent(item.href)
 						? 'bg-surface-raised font-semibold text-content'

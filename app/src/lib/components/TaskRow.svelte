@@ -8,6 +8,7 @@
 	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
 	import Checkbox from './Checkbox.svelte';
+	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
 	import { button } from './ui';
 
@@ -20,6 +21,7 @@
 
 	let { task, onMutated, onError }: Props = $props();
 	let busy = $state(false);
+	let confirmingDelete = $state(false);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -41,6 +43,11 @@
 	function toggle(checked: boolean) {
 		if (task.recurrence) return run(() => setTaskCompletion(task.id, checked));
 		return run(() => setTaskStatus(task.id, checked ? 'done' : 'todo'));
+	}
+
+	async function removeTask() {
+		confirmingDelete = false;
+		await run(() => deleteTask(task.id));
 	}
 </script>
 
@@ -80,8 +87,17 @@
 		type="button"
 		class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
 		disabled={busy}
-		onclick={() => run(() => deleteTask(task.id))}
+		onclick={() => (confirmingDelete = true)}
 	>
 		<Icon name="trash" size={14} label="Delete {task.title}" />
 	</button>
+
+	<ConfirmDialog
+		open={confirmingDelete}
+		title="Delete “{task.title}”?"
+		body="The task is removed from the board. This cannot be undone."
+		busy={busy}
+		onConfirm={removeTask}
+		onCancel={() => (confirmingDelete = false)}
+	/>
 </li>

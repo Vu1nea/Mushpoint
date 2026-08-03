@@ -5,6 +5,7 @@
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { motion } from '$lib/motion';
 	import Checkbox from './Checkbox.svelte';
+	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
 	import ProgressBar from './ProgressBar.svelte';
 	import TaskRow from './TaskRow.svelte';
@@ -21,6 +22,7 @@
 	let expanded = $state(false);
 	let busy = $state(false);
 	let newTaskTitle = $state('');
+	let confirmingDelete = $state(false);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -32,6 +34,11 @@
 		} finally {
 			busy = false;
 		}
+	}
+
+	async function removeSubgoal() {
+		confirmingDelete = false;
+		await run(() => deleteSubgoal(subgoal.id));
 	}
 
 	async function addTask(event: SubmitEvent) {
@@ -92,11 +99,20 @@
 			type="button"
 			class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
 			disabled={busy}
-			onclick={() => run(() => deleteSubgoal(subgoal.id))}
+			onclick={() => (confirmingDelete = true)}
 		>
 			<Icon name="trash" size={14} label="Delete {subgoal.title}" />
 		</button>
 	</div>
+
+	<ConfirmDialog
+		open={confirmingDelete}
+		title="Delete “{subgoal.title}”?"
+		body="Its tasks stay, moved to the goal directly. This cannot be undone."
+		busy={busy}
+		onConfirm={removeSubgoal}
+		onCancel={() => (confirmingDelete = false)}
+	/>
 
 	{#if expanded}
 		<div

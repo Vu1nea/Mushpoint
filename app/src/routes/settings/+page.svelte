@@ -209,10 +209,9 @@
 			type="button"
 			class={button.icon}
 			disabled={busy || !data.settings || grace === 0}
-			aria-label="Decrease grace period"
 			onclick={() => nudgeGrace(-1)}
 		>
-			<Icon name="minus" size={13} />
+			<Icon name="minus" size={13} label="Decrease grace period" />
 		</button>
 		<span class="min-w-13 text-center text-base font-bold tabular-nums">
 			{#if data.settings}
@@ -226,10 +225,9 @@
 			type="button"
 			class={button.icon}
 			disabled={busy || !data.settings || grace === 7}
-			aria-label="Increase grace period"
 			onclick={() => nudgeGrace(1)}
 		>
-			<Icon name="plus" size={13} />
+			<Icon name="plus" size={13} label="Increase grace period" />
 		</button>
 	</div>
 </section>
