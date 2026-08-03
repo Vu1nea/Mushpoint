@@ -5,6 +5,7 @@ import * as goal from './goal';
 import * as subgoal from './subgoal';
 import * as task from './task';
 import * as category from './category';
+import * as idea from './idea';
 import type { GoalInput } from '../../api/types';
 
 let driver: SqlDriver;
@@ -143,5 +144,19 @@ describe('goal', () => {
 
 		expect((await task.get(driver, directTaskId)).goalId).toBeNull();
 		await expect(task.get(driver, subgoalTaskId)).rejects.toMatchObject({ kind: 'not_found' });
+	});
+
+	it('flags a goal as fromIdea once an idea promotes into it', async () => {
+		const created = await goal.create(driver, input('Ship v1'));
+		const [summaryBefore] = await goal.list(driver, null);
+		expect(summaryBefore.fromIdea).toBe(false);
+		expect((await goal.getDetail(driver, created.id)).fromIdea).toBe(false);
+
+		const createdIdea = await idea.create(driver, { title: 'An idea', note: null, tagNames: [] });
+		await idea.promote(driver, createdIdea.id, created.id);
+
+		const [summaryAfter] = await goal.list(driver, null);
+		expect(summaryAfter.fromIdea).toBe(true);
+		expect((await goal.getDetail(driver, created.id)).fromIdea).toBe(true);
 	});
 });

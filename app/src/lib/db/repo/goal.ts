@@ -43,6 +43,19 @@ function map(row: GoalRow): Goal {
 	};
 }
 
+/** Which of these goal ids were promoted from an idea. One query keyed by
+ * the goal id set, same shape as how `list`/`getDetail` already do per-row
+ * lookups for subgoal/task counts — avoids an extra query per goal. */
+async function fromIdeaIds(driver: SqlDriver, goalIds: number[]): Promise<Set<number>> {
+	if (goalIds.length === 0) return new Set();
+	const placeholders = goalIds.map((_, i) => `?${i + 1}`).join(', ');
+	const rows = await driver.select<{ promoted_goal_id: number }>(
+		`SELECT promoted_goal_id FROM ideas WHERE promoted_goal_id IN (${placeholders})`,
+		goalIds
+	);
+	return new Set(rows.map((r) => r.promoted_goal_id));
+}
+
 /** Lists goals, optionally narrowed to one status — the Goals page shows active
  * ones by default and completed/archived behind a filter. */
 export async function list(driver: SqlDriver, status: GoalStatus | null): Promise<GoalSummary[]> {
@@ -51,9 +64,11 @@ export async function list(driver: SqlDriver, status: GoalStatus | null): Promis
 		`SELECT ${COLUMNS} FROM goals ${filter} ${ORDER}`,
 		status !== null ? [status] : []
 	);
+	const mapped = rows.map(map);
+	const fromIdea = await fromIdeaIds(driver, mapped.map((row) => row.id));
 
 	const summaries: GoalSummary[] = [];
-	for (const row of rows.map(map)) {
+	for (const row of mapped) {
 		const subgoalProgresses = await subgoal.progressesForGoal(driver, row.id);
 		const directTasks = await task.listDirectForGoal(driver, row.id);
 		const completions = directTasks.filter(countsTowardProgress).map((t) => taskCompletion(t.status));
@@ -62,7 +77,8 @@ export async function list(driver: SqlDriver, status: GoalStatus | null): Promis
 			...row,
 			progress: goalProgress(subgoalProgresses, completions),
 			subgoalCount: subgoalProgresses.length,
-			taskCount: directTasks.length
+			taskCount: directTasks.length,
+			fromIdea: fromIdea.has(row.id)
 		});
 	}
 	return summaries;
@@ -77,13 +93,15 @@ export async function getDetail(driver: SqlDriver, id: number): Promise<GoalDeta
 	const subgoalProgresses = subgoals.map((s) => s.progress);
 	const completions = directTasks.filter(countsTowardProgress).map((t) => taskCompletion(t.status));
 	const category_ = goal.categoryId !== null ? await category.get(driver, goal.categoryId) : null;
+	const fromIdea = (await fromIdeaIds(driver, [id])).has(id);
 
 	return {
 		...goal,
 		progress: goalProgress(subgoalProgresses, completions),
 		category: category_,
 		subgoals,
-		directTasks
+		directTasks,
+		fromIdea
 	};
 }
 
