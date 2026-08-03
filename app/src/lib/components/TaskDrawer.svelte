@@ -12,6 +12,7 @@
 	import Drawer from './Drawer.svelte';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
+	import DatePicker from './DatePicker.svelte';
 	import { weeklyAnchorLabel } from '$lib/format';
 	import { field } from './ui';
 
@@ -158,7 +159,7 @@
 
 	<div>
 		<label class={field.label} for="task-due">Due date (optional)</label>
-		<input id="task-due" type="date" class={field.input} bind:value={form.dueDate} />
+		<DatePicker id="task-due" bind:value={form.dueDate} class={field.input} />
 	</div>
 
 	<div>

@@ -11,6 +11,7 @@
 	import Drawer from './Drawer.svelte';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
+	import DatePicker from './DatePicker.svelte';
 	import { field, segment } from './ui';
 
 	interface Props {
@@ -209,6 +210,6 @@
 
 	<div>
 		<label class={field.label} for="goal-due">Due date (optional)</label>
-		<input id="goal-due" type="date" class={field.input} bind:value={form.dueDate} />
+		<DatePicker id="goal-due" bind:value={form.dueDate} class={field.input} />
 	</div>
 </Drawer>

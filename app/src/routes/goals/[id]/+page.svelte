@@ -13,6 +13,7 @@
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
+	import DatePicker from '$lib/components/DatePicker.svelte';
 	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
 	import GoalStatusSegment from '$lib/components/GoalStatusSegment.svelte';
 	import Icon from '$lib/components/Icon.svelte';
@@ -299,11 +300,10 @@
 							placeholder="+ Add subgoal…"
 							aria-label="New subgoal"
 						/>
-						<input
-							type="date"
-							class="{field.dashed} w-37.5 shrink-0"
+						<DatePicker
 							bind:value={newSubgoalDue}
-							aria-label="New subgoal due date"
+							ariaLabel="New subgoal due date"
+							class="{field.dashed} w-37.5 shrink-0"
 						/>
 					</form>
 				</section>
