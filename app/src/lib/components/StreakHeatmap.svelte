@@ -22,14 +22,14 @@
 </script>
 
 <div
-	class="grid w-full gap-[3px]"
+	class="grid w-full gap-0.75"
 	style="grid-template-columns:repeat({cells.length}, minmax(0, 1fr))"
 	role="img"
 	aria-label="Completion history for the last {cells.length} days"
 >
 	{#each cells as cell, index (cell.date)}
 		<span
-			class="mp-enter aspect-square w-full rounded-[2px] {CELL_CLASSES[cell.state]}"
+			class="mp-enter aspect-square w-full rounded-xs {CELL_CLASSES[cell.state]}"
 			style="--mp-delay:{stagger(index, 12)}"
 			title={cellTitle(cell)}
 		></span>
