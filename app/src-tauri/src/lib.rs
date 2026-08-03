@@ -41,7 +41,7 @@ pub fn run() {
                 .add_migrations(SQL_CONNECTION, migrations())
                 .build(),
         )
-        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

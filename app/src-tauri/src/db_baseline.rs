@@ -17,6 +17,13 @@ use std::path::Path;
 /// applied, so sqlx's migrator skips replaying them and only runs whichever
 /// migration a database stopped short of. Backs the file up first. A no-op
 /// for a fresh install or an already-baselined database.
+///
+/// Deliberately only ever checks migrations 1 and 2: any database predating
+/// this app's move to tauri-plugin-sql predates migration 3 too, so baselining
+/// only ever needs to cover the pre-tauri-plugin-sql migrations. Migration 3
+/// onward ship after that move and are always applied normally by the real
+/// migrator — they never need baselining, so this function doesn't grow a
+/// case for them.
 pub async fn baseline_if_needed(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
     if !path.exists() {
         return Ok(());
