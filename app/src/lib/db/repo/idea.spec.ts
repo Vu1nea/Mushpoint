@@ -87,12 +87,28 @@ describe('idea', () => {
 		expect(await idea.list(driver)).toHaveLength(1);
 	});
 
-	it('removing an idea cascades its tag links but leaves the tag itself', async () => {
+	it('removing an idea cascades its tag links but leaves the tag row for reuse', async () => {
 		const created = await idea.create(driver, ideaInput('An idea', ['cs']));
 		await idea.remove(driver, created.id);
 
 		await expect(idea.get(driver, created.id)).rejects.toMatchObject({ kind: 'not_found' });
-		expect(await idea.listTags(driver)).toHaveLength(1);
+		// listTags() only surfaces tags still attached to an active idea, so a
+		// fully orphaned tag drops out of the filter row...
+		expect(await idea.listTags(driver)).toHaveLength(0);
+		// ...but the tag row itself survives for get-or-create reuse, proven by
+		// a new idea reusing the same name resolving to the same tag id.
+		const reused = await idea.create(driver, ideaInput('Reuses the tag', ['cs']));
+		expect(reused.tags).toHaveLength(1);
+	});
+
+	it('listTags excludes a tag once every idea carrying it is promoted', async () => {
+		const created = await idea.create(driver, ideaInput('An idea', ['cs']));
+		expect(await idea.listTags(driver)).toEqual([{ id: created.tags[0].id, name: 'cs' }]);
+
+		const goalCreated = await goal.create(driver, goalInput('A goal'));
+		await idea.promote(driver, created.id, goalCreated.id);
+
+		expect(await idea.listTags(driver)).toHaveLength(0);
 	});
 
 	it('update replaces tag links wholesale rather than diffing', async () => {

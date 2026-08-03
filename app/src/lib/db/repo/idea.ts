@@ -157,8 +157,16 @@ export async function promote(driver: SqlDriver, id: number, goalId: number): Pr
 	return get(driver, id);
 }
 
-/** Every existing tag, for the filter-chip row. */
+/** Only tags still attached to an active (unpromoted) idea — a promoted or
+ * deleted idea's tag would otherwise leave a permanent, dead chip in the
+ * filter row with no way to remove it. */
 export async function listTags(driver: SqlDriver): Promise<Tag[]> {
-	const rows = await driver.select<TagRow>('SELECT id, name FROM idea_tags ORDER BY name');
+	const rows = await driver.select<TagRow>(
+		`SELECT DISTINCT t.id, t.name FROM idea_tags t
+         JOIN idea_tag_links l ON l.tag_id = t.id
+         JOIN ideas i ON i.id = l.idea_id
+         WHERE i.promoted_goal_id IS NULL
+         ORDER BY t.name`
+	);
 	return rows.map(mapTag);
 }

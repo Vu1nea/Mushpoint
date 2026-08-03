@@ -18,7 +18,9 @@
 	function commit() {
 		const name = draft.trim();
 		draft = '';
-		if (name && !tags.includes(name)) tags = [...tags, name];
+		if (name && !tags.some((tag) => tag.toLowerCase() === name.toLowerCase())) {
+			tags = [...tags, name];
+		}
 	}
 
 	function remove(name: string) {
