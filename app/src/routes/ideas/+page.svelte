@@ -79,22 +79,9 @@
 
 <svelte:head><title>Idea Vault · Mushpoint</title></svelte:head>
 
-<header class="mb-6 flex items-start justify-between gap-4">
-	<div>
-		<h1 class="mb-1 font-display text-3xl font-bold">Idea Vault</h1>
-		<p class="text-sm text-muted">Capture it now, sort it later</p>
-	</div>
-	<button
-		type="button"
-		class={button.primary}
-		onclick={() => {
-			editingIdea = null;
-			drawerOpen = true;
-		}}
-	>
-		<Icon name="plus" size={15} weight={2.4} />
-		New Idea
-	</button>
+<header class="mb-6">
+	<h1 class="mb-1 font-display text-3xl font-bold">Idea Vault</h1>
+	<p class="text-sm text-muted">Capture it now, sort it later</p>
 </header>
 
 {#if data.error}
@@ -157,10 +144,10 @@
 			: 'No ideas yet — capture one above.'}
 	</p>
 {:else}
-	<ul class="flex flex-col gap-2.5">
+	<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 		{#each data.ideas as idea, index (idea.id)}
 			<li class="mp-enter" style="--mp-delay:{stagger(index)}">
-				<article class="rounded-card border border-subtle bg-surface p-4">
+				<article class="h-full rounded-card border border-subtle bg-surface p-4">
 					<div class="flex items-start gap-3">
 						<div class="min-w-0 flex-1">
 							<p class="truncate text-base font-semibold">{idea.title}</p>
