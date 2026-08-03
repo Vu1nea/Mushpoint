@@ -60,16 +60,16 @@
 	>
 		<div class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap">
 			<span
-				class="grid size-7 shrink-0 place-items-center rounded-full bg-accent font-display text-[12.5px] font-bold text-accent-contrast"
+				class="grid size-7 shrink-0 place-items-center rounded-full bg-accent font-display text-xs font-bold text-accent-contrast"
 				aria-hidden="true">M</span
 			>
 			{#if sidebarOpen}
-				<span class="font-display text-[15px] font-bold tracking-[0.2px]">Mushpoint</span>
+				<span class="font-display text-base font-bold tracking-[0.2px]">Mushpoint</span>
 			{/if}
 		</div>
 
 		{#if sidebarOpen}
-			<p class="px-4 pt-1 pb-1.5 text-[11px] text-muted/75">Workspace</p>
+			<p class="px-4 pt-1 pb-1.5 text-2xs text-muted/75">Workspace</p>
 		{/if}
 
 		<nav class="flex flex-1 flex-col gap-px overflow-y-auto px-2.5 py-1">
@@ -78,14 +78,14 @@
 					href={item.href}
 					aria-current={isCurrent(item.href) ? 'page' : undefined}
 					title={sidebarOpen ? undefined : item.label}
-					class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-[9px] px-[11px] py-[7px] whitespace-nowrap transition-colors
+					class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap transition-colors
 						{isCurrent(item.href)
 						? 'bg-surface-raised font-semibold text-content'
 						: 'font-medium text-muted hover:bg-surface-raised hover:text-content'}"
 				>
 					<Icon name={item.icon} size={16} label={sidebarOpen ? undefined : item.label} />
 					{#if sidebarOpen}
-						<span class="text-[13px]">{item.label}</span>
+						<span class="text-sm">{item.label}</span>
 					{/if}
 				</a>
 			{/each}
@@ -93,20 +93,20 @@
 
 		<div class="flex items-center justify-between gap-2 border-t border-subtle px-3.5 py-3">
 			{#if sidebarOpen}
-				<span class="text-[11px] tracking-[0.06em] text-muted uppercase">
+				<span class="text-2xs tracking-[0.06em] text-muted uppercase">
 					{THEME_LABELS[theme.current]}
 				</span>
 			{/if}
 			<button
 				type="button"
-				class="relative h-[22px] w-10 shrink-0 rounded-full border border-subtle bg-background"
+				class="relative h-5.5 w-10 shrink-0 rounded-full border border-subtle bg-background"
 				role="switch"
 				aria-checked={theme.current === 'coquette'}
 				aria-label="Switch to the {THEME_LABELS[otherTheme]} theme"
 				onclick={flipTheme}
 			>
 				<span
-					class="absolute top-px size-[18px] rounded-full bg-accent transition-[left] duration-200"
+					class="absolute top-px size-4.5 rounded-full bg-accent transition-[left] duration-200"
 					style="left:{theme.current === 'nocturne' ? '1px' : '19px'}"
 				></span>
 			</button>
@@ -118,7 +118,7 @@
 			<button type="button" class={button.bare} onclick={toggleSidebar}>
 				<Icon name="sidebar" size={17} weight={1.7} label="Toggle sidebar" />
 			</button>
-			<span class="text-[13px] text-muted">Personal operating system</span>
+			<span class="text-sm text-muted">Personal operating system</span>
 		</header>
 
 		<main class="flex-1 overflow-y-auto px-11 pt-9 pb-15">

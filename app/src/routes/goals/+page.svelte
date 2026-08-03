@@ -87,7 +87,7 @@
 	{/each}
 </nav>
 
-<Select bind:value={categoryFilter} ariaLabel="Filter goals by category" class="mb-7 max-w-[220px]">
+<Select bind:value={categoryFilter} ariaLabel="Filter goals by category" class="mb-7 max-w-55">
 	<option value="all">All categories</option>
 	{#each data.categories as category (category.id)}
 		<option value={String(category.id)}>{category.name}</option>
@@ -100,7 +100,7 @@
 {/if}
 
 {#if visible.length === 0 && !data.error}
-	<p class="px-5 py-12 text-center text-[13.5px] text-muted">
+	<p class="px-5 py-12 text-center text-md text-muted">
 		No {data.filter === 'all' ? '' : data.filter} goals here yet.
 		{data.filter === 'active' ? 'Create one to start tracking progress.' : ''}
 	</p>
@@ -119,7 +119,7 @@
 					<li class="mp-enter" style="--mp-delay:{stagger(index)}">
 						<a
 							href="/goals/{goal.id}"
-							class="flex items-center gap-4 rounded-[14px] border border-subtle bg-surface px-[18px] py-4 {lift}"
+							class="flex items-center gap-4 rounded-card border border-subtle bg-surface px-4.5 py-4 {lift}"
 						>
 							<ProgressRing
 								value={goal.progress}
@@ -127,8 +127,8 @@
 								color={group.color}
 							/>
 							<div class="min-w-0 flex-1">
-								<p class="truncate text-[15px] font-semibold">{goal.title}</p>
-								<p class="mt-1 text-[12.5px] text-muted">
+								<p class="truncate text-base font-semibold">{goal.title}</p>
+								<p class="mt-1 text-xs text-muted">
 									{goal.subgoalCount}
 									{goal.subgoalCount === 1 ? 'subgoal' : 'subgoals'} · {goal.taskCount} direct
 									{goal.taskCount === 1 ? 'task' : 'tasks'}
@@ -136,7 +136,7 @@
 							</div>
 							{#if goal.status !== 'active'}
 								<span
-									class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase {STATUS_CLASSES[
+									class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-bold tracking-wider uppercase {STATUS_CLASSES[
 										goal.status
 									]}"
 								>
@@ -144,12 +144,12 @@
 								</span>
 							{/if}
 							<span
-								class="shrink-0 rounded-full bg-background px-2.5 py-1 text-[11px] font-bold tracking-[0.05em] text-muted uppercase"
+								class="shrink-0 rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider text-muted uppercase"
 							>
 								{TIMEFRAME_LABELS[goal.timeframe]}
 							</span>
 							<span
-								class="min-w-[86px] shrink-0 text-right text-[12.5px] {DUE_CLASSES[
+								class="min-w-21.5 shrink-0 text-right text-xs {DUE_CLASSES[
 									dueTone(goal.dueDate)
 								]}"
 							>

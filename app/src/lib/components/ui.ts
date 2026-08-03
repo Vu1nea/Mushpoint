@@ -12,18 +12,18 @@ const focusRing =
 
 export const button = {
 	/** The one loud action per screen: "New Goal", "New Task", drawer submit. */
-	primary: `inline-flex items-center justify-center gap-1.5 rounded-[10px] bg-accent px-[18px] py-[11px] text-sm font-semibold text-accent-contrast transition-opacity hover:opacity-90 disabled:opacity-75 ${focusRing}`,
-	ghost: `inline-flex items-center justify-center gap-1.5 rounded-lg border border-subtle bg-transparent px-3.5 py-2 text-[13px] font-semibold text-muted transition-colors hover:border-accent/60 hover:text-content disabled:opacity-50 ${focusRing}`,
-	danger: `inline-flex items-center justify-center gap-1.5 rounded-lg border border-subtle bg-transparent px-3.5 py-2 text-[13px] font-semibold text-danger transition-colors hover:border-danger disabled:opacity-50 ${focusRing}`,
+	primary: `inline-flex items-center justify-center gap-1.5 rounded-control bg-accent px-4.5 py-2.75 text-sm font-semibold text-accent-contrast transition-opacity hover:opacity-90 disabled:opacity-75 ${focusRing}`,
+	ghost: `inline-flex items-center justify-center gap-1.5 rounded-control border border-subtle bg-transparent px-3.5 py-2 text-sm font-semibold text-muted transition-colors hover:border-accent/60 hover:text-content disabled:opacity-50 ${focusRing}`,
+	danger: `inline-flex items-center justify-center gap-1.5 rounded-control border border-subtle bg-transparent px-3.5 py-2 text-sm font-semibold text-danger transition-colors hover:border-danger disabled:opacity-50 ${focusRing}`,
 	/** Square, bordered, icon-only — the edit/delete pair on a detail panel. */
-	icon: `inline-flex items-center justify-center rounded-lg border border-subtle p-1.5 text-muted transition-colors hover:border-accent/60 hover:text-content disabled:opacity-50 ${focusRing}`,
+	icon: `inline-flex items-center justify-center rounded-control border border-subtle p-1.5 text-muted transition-colors hover:border-accent/60 hover:text-content disabled:opacity-50 ${focusRing}`,
 	/** Icon with no chrome at all: sidebar collapse, drawer close. */
-	bare: `inline-flex items-center justify-center rounded-lg p-1 text-muted transition-colors hover:text-content disabled:opacity-50 ${focusRing}`
+	bare: `inline-flex items-center justify-center rounded-control p-1 text-muted transition-colors hover:text-content disabled:opacity-50 ${focusRing}`
 };
 
 /** Rounded filter pill. Active reads as a filled accent tab. */
 export function chip(active: boolean): string {
-	return `rounded-full border px-3.5 py-[7px] text-[13px] font-semibold transition-colors ${focusRing} ${
+	return `rounded-full border px-3.5 py-1.75 text-sm font-semibold transition-colors ${focusRing} ${
 		active
 			? 'border-accent bg-accent text-accent-contrast'
 			: 'border-subtle bg-transparent text-muted hover:text-content'
@@ -32,7 +32,7 @@ export function chip(active: boolean): string {
 
 /** Small square-ish toggle used in rows of equal-width options (timeframe, status). */
 export function segment(active: boolean): string {
-	return `flex-1 rounded-lg border px-2 py-2 text-[12px] font-semibold transition-colors ${focusRing} ${
+	return `flex-1 rounded-control border px-2 py-2 text-xs font-semibold transition-colors ${focusRing} ${
 		active
 			? 'border-accent bg-accent text-accent-contrast'
 			: 'border-subtle bg-transparent text-muted hover:text-content'
@@ -40,17 +40,17 @@ export function segment(active: boolean): string {
 }
 
 export const field = {
-	input: `w-full rounded-[9px] border border-subtle bg-track px-[13px] py-[11px] text-sm text-content transition-colors placeholder:text-muted/60 focus:border-accent focus:outline-none`,
+	input: `w-full rounded-control border border-subtle bg-track px-3.25 py-2.75 text-sm text-content transition-colors placeholder:text-muted/60 focus:border-accent focus:outline-none`,
 	/**
 	 * Inline "add another one" affordance — dashed so it reads as optional. Width
 	 * is left to the caller, since these often sit side by side in a flex row.
 	 */
-	dashed: `rounded-[10px] border border-dashed border-subtle bg-transparent px-3.5 py-[11px] text-[13.5px] text-content transition-colors placeholder:text-muted/60 focus:border-accent focus:outline-none`,
+	dashed: `rounded-control border border-dashed border-subtle bg-transparent px-3.5 py-2.75 text-md text-content transition-colors placeholder:text-muted/60 focus:border-accent focus:outline-none`,
 	label: 'mb-1.5 block text-xs font-semibold text-muted'
 };
 
 /** Section titles above a group of cards. */
-export const sectionHeading = 'text-[13px] font-semibold tracking-[0.06em] text-muted uppercase';
+export const sectionHeading = 'text-sm font-semibold tracking-[0.06em] text-muted uppercase';
 
 /** Hover response for anything clickable that is card-shaped. */
 export const lift =

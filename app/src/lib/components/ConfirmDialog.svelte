@@ -44,14 +44,14 @@
 	></button>
 
 	<div
-		class="fixed top-1/2 left-1/2 z-50 w-[90vw] max-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-subtle bg-surface p-6 shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+		class="fixed top-1/2 left-1/2 z-50 w-[90vw] max-w-90 -translate-x-1/2 -translate-y-1/2 rounded-card border border-subtle bg-surface p-4.5 shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
 		role="alertdialog"
 		aria-modal="true"
 		aria-labelledby="confirm-title"
 		transition:scale={{ start: 0.94, duration: motion(180) }}
 	>
-		<h2 id="confirm-title" class="mb-2.5 font-display text-[17px] font-bold">{title}</h2>
-		<p class="mb-5 text-[13.5px] leading-relaxed text-muted">{body}</p>
+		<h2 id="confirm-title" class="mb-2.5 font-display text-lg font-bold">{title}</h2>
+		<p class="mb-5 text-md leading-relaxed text-muted">{body}</p>
 		{#if children}
 			<div class="mb-5">
 				{@render children()}
@@ -60,14 +60,14 @@
 		<div class="flex justify-end gap-2.5">
 			<button
 				type="button"
-				class="rounded-[9px] border border-subtle px-4 py-2.5 text-[13.5px] font-semibold text-content transition-colors hover:bg-surface-raised"
+				class="rounded-control border border-subtle px-4 py-2.5 text-md font-semibold text-content transition-colors hover:bg-surface-raised"
 				onclick={onCancel}
 			>
 				Cancel
 			</button>
 			<button
 				type="button"
-				class="rounded-[9px] bg-warn px-4 py-2.5 text-[13.5px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+				class="rounded-control bg-warn px-4 py-2.5 text-md font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
 				disabled={busy}
 				onclick={onConfirm}
 			>

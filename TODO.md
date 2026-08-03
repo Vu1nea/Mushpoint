@@ -4,6 +4,7 @@
 - Plan api
 - Implement and test api
 - Make logs (e.g What to do when there's error etc.)
+- Done today incorrect streak ui
 
 ## Open after Phase 3 (streaks)
 

@@ -179,9 +179,9 @@
 <div class="grid gap-4 md:grid-cols-3">
 	{#each columns as column (column.status)}
 		<section
-			class="flex min-h-[200px] flex-col gap-2.5 rounded-[14px] border border-subtle bg-surface p-3.5"
+			class="flex min-h-50 flex-col gap-2.5 rounded-card border border-subtle bg-surface p-3.5"
 		>
-			<h2 class="flex justify-between {sectionHeading} text-[12.5px]">
+			<h2 class="flex justify-between {sectionHeading} text-xs">
 				<span>{column.label}</span>
 				<span class="tabular-nums">{column.tasks.length}</span>
 			</h2>
@@ -190,7 +190,7 @@
 				{@const parent = parentLabel(task)}
 				{@const action = pill(task)}
 				<div
-					class="group relative rounded-xl border bg-background p-3.5 transition-shadow {justMovedId ===
+					class="group relative rounded-card border bg-background p-4.5 transition-shadow {justMovedId ===
 					task.id
 						? 'mp-pulse border-accent ring-3 ring-accent/30'
 						: 'mp-enter border-subtle'}"
@@ -225,7 +225,7 @@
 					<div class="mt-2.5 flex flex-wrap items-center gap-2">
 						<button
 							type="button"
-							class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
+							class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
 								taskColumn(task)
 							]}"
 							disabled={busy}
@@ -237,14 +237,14 @@
 						{#if parent}
 							<a
 								href="/goals/{task.goalId}"
-								class="max-w-[180px] truncate rounded-full bg-accent/15 px-2.5 py-1 text-[11px] font-semibold text-accent transition-colors hover:bg-accent/25"
+								class="max-w-45 truncate rounded-full bg-accent/15 px-2.5 py-1 text-2xs font-semibold text-accent transition-colors hover:bg-accent/25"
 							>
 								{parent}
 							</a>
 						{/if}
 						{#if task.recurrence}
 							<span
-								class="flex items-center gap-1 rounded-full bg-accent-secondary/15 px-2.5 py-1 text-[11px] font-semibold text-accent-secondary"
+								class="flex items-center gap-1 rounded-full bg-accent-secondary/15 px-2.5 py-1 text-2xs font-semibold text-accent-secondary"
 							>
 								<Icon name="flame" size={11} />
 								{RECURRENCE_LABELS[task.recurrence]}
@@ -252,7 +252,7 @@
 						{/if}
 						{#if task.dueDate}
 							<span
-								class="text-[11.5px] {dueTone(task.dueDate) === 'overdue'
+								class="text-2xs {dueTone(task.dueDate) === 'overdue'
 									? 'font-semibold text-warn'
 									: 'text-muted'}"
 							>
@@ -264,7 +264,7 @@
 			{/each}
 
 			{#if column.tasks.length === 0}
-				<p class="px-2 py-6 text-center text-[12.5px] text-muted/70">Nothing here.</p>
+				<p class="px-2 py-6 text-center text-xs text-muted/70">Nothing here.</p>
 			{/if}
 		</section>
 	{/each}

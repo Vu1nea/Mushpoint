@@ -87,6 +87,30 @@
 	/* Headings and numerals are Bricolage; everything else is Hanken. */
 	--font-display: 'Bricolage Grotesque', 'Hanken Grotesk', system-ui, sans-serif;
 	--font-sans: 'Hanken Grotesk', system-ui, sans-serif;
+
+	/*
+	 * UI type scale. Replaces the one-off `text-[13.5px]` etc. that had
+	 * accumulated from pixel-copying the static mockup — same sizes, now
+	 * named. `xs`/`sm`/`base`/`lg` override the Tailwind defaults (12/14/16/18)
+	 * by half a step or less; nothing in the app used those defaults before,
+	 * so there's no visual regression to reconcile.
+	 */
+	--text-2xs: 11px;
+	--text-2xs--line-height: 1.35;
+	--text-xs: 12.5px;
+	--text-xs--line-height: 1.35;
+	--text-sm: 13px;
+	--text-sm--line-height: 1.4;
+	--text-md: 13.5px;
+	--text-md--line-height: 1.4;
+	--text-base: 15px;
+	--text-base--line-height: 1.4;
+	--text-lg: 17px;
+	--text-lg--line-height: 1.35;
+
+	/* One radius for every button/input/pill, one for every card/panel/dialog. */
+	--radius-control: 9px;
+	--radius-card: 14px;
 }
 
 /*

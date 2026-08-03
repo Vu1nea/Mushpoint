@@ -51,7 +51,7 @@
 	}
 </script>
 
-<article class="overflow-hidden rounded-[14px] border border-subtle bg-surface">
+<article class="overflow-hidden rounded-card border border-subtle bg-surface">
 	<div class="group flex items-center gap-3.5 px-4 py-3.5">
 		<button
 			type="button"
@@ -66,7 +66,7 @@
 				class="text-muted transition-transform duration-200 {expanded ? 'rotate-90' : ''}"
 			/>
 			<div class="min-w-0 flex-1">
-				<p class="mb-1.5 truncate text-[14.5px] font-semibold">{subgoal.title}</p>
+				<p class="mb-1.5 truncate text-md font-semibold">{subgoal.title}</p>
 				<div class="max-w-[280px]">
 					<ProgressBar
 						value={subgoal.progress}
@@ -79,7 +79,7 @@
 			</div>
 			<span class="shrink-0 text-xs text-muted tabular-nums">{percent(subgoal.progress)}</span>
 			<span
-				class="min-w-[70px] shrink-0 text-right text-[11.5px] {dueTone(subgoal.dueDate) ===
+				class="min-w-[70px] shrink-0 text-right text-2xs {dueTone(subgoal.dueDate) ===
 				'overdue'
 					? 'text-warn'
 					: 'text-muted'}"
@@ -125,7 +125,7 @@
 
 			<form class="mt-1" onsubmit={addTask}>
 				<input
-					class="{field.input} py-2 text-[13px]"
+					class="{field.input} py-2 text-sm"
 					bind:value={newTaskTitle}
 					placeholder="Add a task…"
 					aria-label="New task for {subgoal.title}"

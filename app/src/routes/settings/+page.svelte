@@ -112,19 +112,19 @@
 				disabled={busy}
 				onclick={() => pickTheme(name)}
 				aria-pressed={theme.current === name}
-				class="w-[220px] rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 {theme.current ===
+				class="w-55 rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 {theme.current ===
 				name
 					? 'border-accent'
 					: 'border-transparent'}"
 			>
 				<span class="block overflow-hidden rounded-xl border border-subtle">
-					<span class="flex h-[60px] items-center gap-2 px-3.5" style="background:{preview.bg}">
+					<span class="flex h-15 items-center gap-2 px-3.5" style="background:{preview.bg}">
 						{#each preview.accents as swatch (swatch)}
 							<span class="size-3.5 rounded-full" style="background:{swatch}"></span>
 						{/each}
 					</span>
 					<span class="block px-3 py-3 text-left" style="background:{preview.surface}">
-						<span class="text-[13.5px] font-bold" style="color:{preview.text}">
+						<span class="text-md font-bold" style="color:{preview.text}">
 							{THEME_LABELS[name]}
 						</span>
 					</span>
@@ -136,16 +136,16 @@
 
 <section class="mb-8">
 	<h2 class="{sectionHeading} mb-3">Categories</h2>
-	<div class="flex max-w-[420px] flex-col gap-2">
+	<div class="flex max-w-105 flex-col gap-2">
 		{#each data.categories as category, index (category.id)}
 			<div
-				class="mp-enter flex items-center gap-2.5 rounded-[10px] border border-subtle bg-surface px-3.5 py-2.5"
+				class="mp-enter flex items-center gap-2.5 rounded-card border border-subtle bg-surface px-3.5 py-2.5"
 				style="--mp-delay:{stagger(index, 30)}"
 			>
 				{#if editingId === category.id}
 					<form class="flex flex-1 gap-2" onsubmit={saveEditing}>
 						<input
-							class="{field.input} py-1.5 text-[13.5px]"
+							class="{field.input} py-1.5 text-md"
 							bind:value={editingName}
 							required
 							aria-label="Rename {category.name}"
@@ -161,9 +161,9 @@
 						style="background:{categoryColor(category.colorToken)}"
 						aria-hidden="true"
 					></span>
-					<span class="flex-1 text-[13.5px]">{category.name}</span>
+					<span class="flex-1 text-md">{category.name}</span>
 					{#if category.isDefault}
-						<span class="text-[11px] text-muted">default</span>
+						<span class="text-2xs text-muted">default</span>
 					{/if}
 					<button
 						type="button"
@@ -200,9 +200,9 @@
 
 <section class="mb-8">
 	<h2 class="{sectionHeading} mb-3">Streaks</h2>
-	<div class="flex max-w-[420px] items-center gap-4 rounded-xl border border-subtle bg-surface p-4">
+	<div class="flex max-w-105 items-center gap-4 rounded-card border border-subtle bg-surface p-4.5">
 		<div class="flex-1">
-			<div class="mb-0.5 text-[13.5px] font-semibold">Grace period</div>
+			<div class="mb-0.5 text-md font-semibold">Grace period</div>
 			<div class="text-xs text-muted">Missing days within this window won't break a streak</div>
 		</div>
 		<button
@@ -214,7 +214,7 @@
 		>
 			<Icon name="minus" size={13} />
 		</button>
-		<span class="min-w-[52px] text-center text-[15px] font-bold tabular-nums">
+		<span class="min-w-13 text-center text-base font-bold tabular-nums">
 			{#if data.settings}
 				{grace}
 				{grace === 1 ? 'day' : 'days'}
@@ -236,7 +236,7 @@
 
 <section>
 	<h2 class="{sectionHeading} mb-3">About</h2>
-	<p class="text-[13px] text-muted">Mushpoint · v0.1.0 · local-first, no cloud sync</p>
+	<p class="text-sm text-muted">Mushpoint · v0.1.0 · local-first, no cloud sync</p>
 </section>
 
 <ConfirmDialog

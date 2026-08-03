@@ -22,8 +22,8 @@
 >
 	<Icon name="warning" size={16} weight={2} class="mt-px text-warn" />
 	<div class="flex-1">
-		<p class="text-[13px] font-semibold text-warn">{heading}</p>
-		<p class="text-[12.5px] text-muted">{normalized.message}</p>
+		<p class="text-sm font-semibold text-warn">{heading}</p>
+		<p class="text-xs text-muted">{normalized.message}</p>
 	</div>
 	{#if onDismiss}
 		<button type="button" class={button.bare} onclick={onDismiss}>

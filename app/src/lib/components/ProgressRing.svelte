@@ -36,7 +36,7 @@
 	aria-label={label}
 >
 	<div
-		class="absolute inset-[4px] grid place-items-center rounded-full bg-surface text-[11px] font-bold tabular-nums"
+		class="absolute inset-1 grid place-items-center rounded-full bg-surface text-2xs font-bold tabular-nums"
 	>
 		{percent(clamped)}
 	</div>

@@ -60,25 +60,25 @@
 	></button>
 
 	<div
-		class="fixed inset-y-0 right-0 z-50 flex w-[440px] max-w-[92vw] flex-col border-l border-subtle bg-surface shadow-[-8px_0_30px_rgba(0,0,0,0.25)]"
+		class="fixed inset-y-0 right-0 z-50 flex w-110 max-w-[92vw] flex-col border-l border-subtle bg-surface shadow-[-8px_0_30px_rgba(0,0,0,0.25)]"
 		role="dialog"
 		aria-modal="true"
 		aria-label={title}
 		transition:fly={{ x: 440, duration: motion(300) }}
 	>
-		<div class="flex items-center justify-between border-b border-subtle px-[22px] py-5">
-			<h2 class="font-display text-[17px] font-bold">{title}</h2>
+		<div class="flex items-center justify-between border-b border-subtle px-5.5 py-5">
+			<h2 class="font-display text-lg font-bold">{title}</h2>
 			<button type="button" class={button.bare} onclick={onClose}>
 				<Icon name="close" size={18} weight={2} label="Close" />
 			</button>
 		</div>
 
 		<form class="flex min-h-0 flex-1 flex-col" onsubmit={submit}>
-			<div class="flex flex-1 flex-col gap-4 overflow-y-auto p-[22px]" bind:this={panel}>
+			<div class="flex flex-1 flex-col gap-4 overflow-y-auto p-5.5" bind:this={panel}>
 				{@render children()}
 			</div>
 
-			<div class="flex flex-col gap-3 border-t border-subtle px-[22px] py-[18px]">
+			<div class="flex flex-col gap-3 border-t border-subtle px-5.5 py-4.5">
 				{#if error}
 					{@const failure = AppError.from(error)}
 					<div
@@ -87,8 +87,8 @@
 					>
 						<Icon name="warning" size={16} weight={2} class="mt-px text-warn" />
 						<div class="flex-1">
-							<p class="text-[13px] font-semibold text-warn">Couldn't save</p>
-							<p class="text-[12.5px] text-muted">{failure.message}</p>
+							<p class="text-sm font-semibold text-warn">Couldn't save</p>
+							<p class="text-xs text-muted">{failure.message}</p>
 						</div>
 						<button
 							type="submit"

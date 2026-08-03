@@ -30,7 +30,7 @@
 	const done = $derived(task.status === 'done');
 </script>
 
-<li class="group flex items-center gap-2.5 py-1 text-[13.5px]">
+<li class="group flex items-center gap-2.5 py-1 text-md">
 	<Checkbox
 		checked={done}
 		label="Mark {task.title} done"
@@ -44,7 +44,7 @@
 
 	{#if task.status === 'in_progress'}
 		<span
-			class="shrink-0 rounded-full bg-accent-tertiary/20 px-2 py-0.5 text-[11px] font-semibold text-accent-tertiary"
+			class="shrink-0 rounded-full bg-accent-tertiary/20 px-2 py-0.5 text-2xs font-semibold text-accent-tertiary"
 		>
 			In progress
 		</span>
@@ -52,7 +52,7 @@
 
 	{#if task.recurrence}
 		<span
-			class="flex shrink-0 items-center gap-1 rounded-full bg-accent-secondary/15 px-2 py-0.5 text-[11px] font-semibold text-accent-secondary"
+			class="flex shrink-0 items-center gap-1 rounded-full bg-accent-secondary/15 px-2 py-0.5 text-2xs font-semibold text-accent-secondary"
 		>
 			<Icon name="flame" size={12} />
 			{RECURRENCE_LABELS[task.recurrence]}
@@ -61,7 +61,7 @@
 
 	{#if task.dueDate}
 		<span
-			class="shrink-0 text-[11.5px] {dueTone(task.dueDate) === 'overdue'
+			class="shrink-0 text-2xs {dueTone(task.dueDate) === 'overdue'
 				? 'text-warn'
 				: 'text-muted'}"
 		>

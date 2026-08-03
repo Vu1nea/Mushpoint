@@ -18,16 +18,16 @@
 	);
 </script>
 
-<div class="rounded-[14px] border border-subtle bg-surface p-[18px]">
+<div class="rounded-card border border-subtle bg-surface p-4.5">
 	<div class="mb-3 flex items-center gap-2.5">
 		<Icon name="flame" size={14} class="shrink-0 text-accent" />
-		<span class="min-w-0 flex-1 truncate text-[13.5px] font-semibold">{card.task.title}</span>
+		<span class="min-w-0 flex-1 truncate text-md font-semibold">{card.task.title}</span>
 		<b class="text-sm tabular-nums">{card.current}</b>
 		<span class="text-xs text-muted">best {card.longest}</span>
 	</div>
 
 	<div class="mb-3 flex items-center justify-between gap-3">
-		<span class="text-[11.5px] text-muted">{cadence}</span>
+		<span class="text-2xs text-muted">{cadence}</span>
 		{#if onToggle}
 			<Checkbox
 				checked={card.doneToday}

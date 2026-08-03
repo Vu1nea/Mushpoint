@@ -110,7 +110,7 @@
 
 	<a
 		href="/goals"
-		class="mb-4 inline-flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-content"
+		class="mb-4 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-content"
 	>
 		<Icon name="chevron-right" size={13} weight={2.4} class="rotate-180" /> Back to Goals
 	</a>
@@ -122,10 +122,10 @@
 	{/if}
 
 	<div class="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
-		<div class="rounded-2xl border border-subtle bg-surface p-[22px] lg:sticky lg:top-0">
+		<div class="rounded-card border border-subtle bg-surface p-4.5 lg:sticky lg:top-0">
 			<div class="flex items-center justify-between gap-2">
 				<span
-					class="rounded-full bg-background px-2.5 py-1 text-[11px] font-bold tracking-[0.05em] uppercase"
+					class="rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider uppercase"
 					style="color:{accent}"
 				>
 					{goal.category?.name ?? 'Uncategorized'}
@@ -147,7 +147,7 @@
 
 			<h1 class="mt-3.5 mb-2 font-display text-2xl leading-tight font-bold">{goal.title}</h1>
 
-			<div class="mb-4 flex gap-2.5 text-[12.5px] text-muted">
+			<div class="mb-4 flex gap-2.5 text-xs text-muted">
 				<span>{TIMEFRAME_LABELS[goal.timeframe]}</span>
 				<span aria-hidden="true">·</span>
 				<span class={dueTone(goal.dueDate) === 'overdue' ? 'font-semibold text-warn' : ''}>
@@ -181,22 +181,22 @@
 			</div>
 
 			<div class="border-t border-subtle pt-4">
-				<h2 class="mb-2 text-[11px] font-semibold tracking-[0.06em] text-muted uppercase">
+				<h2 class="mb-2 text-2xs font-semibold tracking-[0.06em] text-muted uppercase">
 					Motivation
 				</h2>
 				{#if goal.motivationText}
-					<p class="text-[13.5px] leading-relaxed italic">“{goal.motivationText}”</p>
+					<p class="text-md leading-relaxed italic">“{goal.motivationText}”</p>
 				{:else}
-					<p class="text-[13px] text-muted">
+					<p class="text-sm text-muted">
 						No motivation yet — edit the goal to say why it matters.
 					</p>
 				{/if}
 
 				{#if goal.description}
-					<h2 class="mt-4 mb-2 text-[11px] font-semibold tracking-[0.06em] text-muted uppercase">
+					<h2 class="mt-4 mb-2 text-2xs font-semibold tracking-[0.06em] text-muted uppercase">
 						Description
 					</h2>
-					<p class="text-[13.5px] leading-relaxed">{goal.description}</p>
+					<p class="text-md leading-relaxed">{goal.description}</p>
 				{/if}
 			</div>
 		</div>
@@ -226,7 +226,7 @@
 					/>
 					<input
 						type="date"
-						class="{field.dashed} w-[150px] shrink-0"
+						class="{field.dashed} w-37.5 shrink-0"
 						bind:value={newSubgoalDue}
 						aria-label="New subgoal due date"
 					/>
@@ -235,12 +235,12 @@
 
 			<section>
 				<h2 class="{sectionHeading} mb-1.5">Direct tasks</h2>
-				<p class="mb-3.5 text-[13px] text-muted">
+				<p class="mb-3.5 text-sm text-muted">
 					Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
 				</p>
 
 				{#if goal.directTasks.length > 0}
-					<ul class="mb-3 flex flex-col rounded-[14px] border border-subtle bg-surface px-4 py-2.5">
+					<ul class="mb-3 flex flex-col rounded-card border border-subtle bg-surface px-4 py-2.5">
 						{#each goal.directTasks as task (task.id)}
 							<TaskRow
 								{task}
