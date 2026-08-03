@@ -97,6 +97,27 @@ export interface SubgoalUpdate {
 	isComplete: boolean;
 }
 
+export interface Tag {
+	id: number;
+	name: string;
+}
+
+export interface Idea {
+	id: number;
+	title: string;
+	note: string | null;
+	promotedGoalId: number | null;
+	tags: Tag[];
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface IdeaInput {
+	title: string;
+	note: string | null;
+	tagNames: string[];
+}
+
 export interface Task {
 	id: number;
 	title: string;
@@ -131,6 +152,7 @@ export interface GoalSummary extends Goal {
 	progress: number;
 	subgoalCount: number;
 	taskCount: number;
+	fromIdea: boolean;
 }
 
 export interface SubgoalDetail extends Subgoal {
@@ -143,6 +165,7 @@ export interface GoalDetail extends Goal {
 	category: Category | null;
 	subgoals: SubgoalDetail[];
 	directTasks: TaskSummary[];
+	fromIdea: boolean;
 }
 
 export interface Settings {

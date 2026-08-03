@@ -1,4 +1,4 @@
-/** Mirrors app/src-tauri/migrations/0001_initial.sql + 0002_streaks.sql + 0003_repo_url.sql exactly.
+/** Mirrors app/src-tauri/migrations/0001_initial.sql + 0002_streaks.sql + 0003_repo_url.sql + 0004_ideas.sql exactly.
  * Used only to build the in-memory schema for vitest; the real app applies
  * these same statements through the Rust plugin-sql migration registration in
  * src-tauri/src/lib.rs. Keep the two in sync when adding a migration. */
@@ -85,4 +85,27 @@ CREATE TABLE task_completions (
 );
 
 CREATE INDEX idx_completions_task ON task_completions(task_id, completed_on);
+
+CREATE TABLE ideas (
+    id                INTEGER PRIMARY KEY,
+    title             TEXT    NOT NULL,
+    note              TEXT,
+    promoted_goal_id  INTEGER REFERENCES goals(id) ON DELETE SET NULL,
+    created_at        TEXT    NOT NULL,
+    updated_at        TEXT    NOT NULL
+);
+CREATE INDEX idx_ideas_promoted ON ideas(promoted_goal_id);
+
+CREATE TABLE idea_tags (
+    id         INTEGER PRIMARY KEY,
+    name       TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE idea_tag_links (
+    idea_id INTEGER NOT NULL REFERENCES ideas(id) ON DELETE CASCADE,
+    tag_id  INTEGER NOT NULL REFERENCES idea_tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (idea_id, tag_id)
+);
+CREATE INDEX idx_idea_tag_links_tag ON idea_tag_links(tag_id);
 `;

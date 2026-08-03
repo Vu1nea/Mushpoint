@@ -34,6 +34,7 @@ describe('TEST_SCHEMA', () => {
 		fromMigrations.exec(readFileSync(join(migrationsDir, '0001_initial.sql'), 'utf-8'));
 		fromMigrations.exec(readFileSync(join(migrationsDir, '0002_streaks.sql'), 'utf-8'));
 		fromMigrations.exec(readFileSync(join(migrationsDir, '0003_repo_url.sql'), 'utf-8'));
+		fromMigrations.exec(readFileSync(join(migrationsDir, '0004_ideas.sql'), 'utf-8'));
 
 		const testSchemaTables = tableNames(fromTestSchema);
 		expect(testSchemaTables).toEqual(tableNames(fromMigrations));
