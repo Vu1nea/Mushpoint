@@ -55,7 +55,7 @@
 
 <div class="flex h-screen w-full overflow-hidden bg-background font-sans text-content">
 	<aside
-		class="flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] duration-[250ms] ease-out"
+		class="flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] duration-250ms ease-out"
 		style="width:{sidebarOpen ? '236px' : '76px'}"
 	>
 		<div class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap">
