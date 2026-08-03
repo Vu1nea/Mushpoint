@@ -18,12 +18,16 @@
 		categories: Category[];
 		/** Null creates a goal; a goal edits it in place. */
 		goal?: Goal | null;
+		/** Seeds a blank (create) drawer's initial title/description — used by
+		 * the ideas Promote flow. Ignored once `goal` is set, since editing
+		 * always starts from the record itself. */
+		prefill?: { title: string; description: string | null } | null;
 		onClose: () => void;
-		/** Called after a successful save, before the drawer closes. */
-		onSaved: () => Promise<void> | void;
+		/** Called with the created/updated goal after a successful save, before the drawer closes. */
+		onSaved: (goal: Goal) => Promise<void> | void;
 	}
 
-	let { open, categories, goal = null, onClose, onSaved }: Props = $props();
+	let { open, categories, goal = null, prefill = null, onClose, onSaved }: Props = $props();
 
 	let submitting = $state(false);
 	let error = $state<unknown>(null);
@@ -50,18 +54,19 @@
 		repoUrl: ''
 	});
 
-	// Each opening starts from the record being edited, or from a blank goal.
+	// Each opening starts from the record being edited, from the Promote
+	// flow's prefill, or from a blank goal.
 	$effect(() => {
 		if (!open) return;
 		error = null;
 		titleMissing = false;
 		urlInvalid = false;
 		form = {
-			title: goal?.title ?? '',
+			title: goal?.title ?? prefill?.title ?? '',
 			categoryId: goal?.categoryId ? String(goal.categoryId) : '',
 			timeframe: goal?.timeframe ?? 'short',
 			motivationText: goal?.motivationText ?? '',
-			description: goal?.description ?? '',
+			description: goal?.description ?? prefill?.description ?? '',
 			dueDate: goal?.dueDate ?? '',
 			repoUrl: goal?.repoUrl ?? ''
 		};
@@ -95,8 +100,8 @@
 		};
 
 		try {
-			await (goal ? updateGoal(goal.id, input) : createGoal(input));
-			await onSaved();
+			const saved = goal ? await updateGoal(goal.id, input) : await createGoal(input);
+			await onSaved(saved);
 			onClose();
 		} catch (failure) {
 			error = failure;

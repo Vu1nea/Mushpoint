@@ -13,12 +13,13 @@
 
 	/**
 	 * Sidebar entries for the screens that exist. The design also lists Dashboard,
-	 * Project Manager, Idea Vault and Vision Board; each is added here as its phase
-	 * ships, rather than shipping a link that goes nowhere.
+	 * Project Manager and Vision Board; each is added here as its phase ships,
+	 * rather than shipping a link that goes nowhere.
 	 */
 	const NAV: { href: string; label: string; icon: IconName }[] = [
 		{ href: '/goals', label: 'Goal Tracker', icon: 'goal' },
 		{ href: '/tasks', label: 'Task Manager', icon: 'task' },
+		{ href: '/ideas', label: 'Idea Vault', icon: 'idea' },
 		{ href: '/settings', label: 'Settings', icon: 'settings' }
 	];
 
@@ -55,7 +56,7 @@
 
 <div class="flex h-screen w-full overflow-hidden bg-background font-sans text-content">
 	<aside
-		class="flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] duration-250ms ease-out"
+		class="duration-250ms flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] ease-out"
 		style="width:{sidebarOpen ? '236px' : '76px'}"
 	>
 		<div class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap">
