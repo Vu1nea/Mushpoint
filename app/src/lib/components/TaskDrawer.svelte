@@ -64,6 +64,20 @@
 		return grouped;
 	});
 
+	const parentOptions = $derived.by(() => [
+		{ value: '', label: 'Standalone' },
+		...goals.map((goal) => ({
+			label: goal.title,
+			options: [
+				{ value: `goal:${goal.id}`, label: `${goal.title} (whole goal)` },
+				...(subgoalsByGoal.get(goal.id) ?? []).map((subgoal) => ({
+					value: `subgoal:${subgoal.id}`,
+					label: `↳ ${subgoal.title}`
+				}))
+			]
+		}))
+	]);
+
 	/**
 	 * A weekly habit is expected on the weekday it was created, so an existing task
 	 * can say which day that is. A new one has no creation date to read yet.
@@ -139,17 +153,7 @@
 
 	<div>
 		<label class={field.label} for="task-parent">Parent goal or subgoal (optional)</label>
-		<Select id="task-parent" bind:value={form.parent}>
-			<option value="">Standalone</option>
-			{#each goals as goal (goal.id)}
-				<optgroup label={goal.title}>
-					<option value="goal:{goal.id}">{goal.title} (whole goal)</option>
-					{#each subgoalsByGoal.get(goal.id) ?? [] as subgoal (subgoal.id)}
-						<option value="subgoal:{subgoal.id}">↳ {subgoal.title}</option>
-					{/each}
-				</optgroup>
-			{/each}
-		</Select>
+		<Select id="task-parent" bind:value={form.parent} options={parentOptions} />
 	</div>
 
 	<div>
@@ -159,12 +163,17 @@
 
 	<div>
 		<label class={field.label} for="task-recurrence">Repeats</label>
-		<Select id="task-recurrence" bind:value={form.recurrence}>
-			<option value="">Doesn't repeat</option>
-			{#each RECURRENCES as recurrence (recurrence)}
-				<option value={recurrence}>{RECURRENCE_LABELS[recurrence]}</option>
-			{/each}
-		</Select>
+		<Select
+			id="task-recurrence"
+			bind:value={form.recurrence}
+			options={[
+				{ value: '', label: "Doesn't repeat" },
+				...RECURRENCES.map((recurrence) => ({
+					value: recurrence,
+					label: RECURRENCE_LABELS[recurrence]
+				}))
+			]}
+		/>
 		{#if anchorNote}
 			<p class="mt-1.5 text-xs text-muted">{anchorNote}</p>
 		{/if}

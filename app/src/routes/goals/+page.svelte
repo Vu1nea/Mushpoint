@@ -87,13 +87,16 @@
 	{/each}
 </nav>
 
-<Select bind:value={categoryFilter} ariaLabel="Filter goals by category" class="mb-7 max-w-55">
-	<option value="all">All categories</option>
-	{#each data.categories as category (category.id)}
-		<option value={String(category.id)}>{category.name}</option>
-	{/each}
-	<option value="">Uncategorized</option>
-</Select>
+<Select
+	bind:value={categoryFilter}
+	ariaLabel="Filter goals by category"
+	class="mb-7 max-w-55"
+	options={[
+		{ value: 'all', label: 'All categories' },
+		...data.categories.map((category) => ({ value: String(category.id), label: category.name })),
+		{ value: '', label: 'Uncategorized' }
+	]}
+/>
 
 {#if data.error}
 	<div class="mb-6"><ErrorBanner error={data.error} /></div>
@@ -156,9 +159,7 @@
 								{TIMEFRAME_LABELS[goal.timeframe]}
 							</span>
 							<span
-								class="min-w-21.5 shrink-0 text-right text-xs {DUE_CLASSES[
-									dueTone(goal.dueDate)
-								]}"
+								class="min-w-21.5 shrink-0 text-right text-xs {DUE_CLASSES[dueTone(goal.dueDate)]}"
 							>
 								{dueLabel(goal.dueDate)}
 							</span>

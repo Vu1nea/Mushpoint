@@ -140,12 +140,14 @@
 
 	<div>
 		<label class={field.label} for="goal-category">Category</label>
-		<Select id="goal-category" bind:value={form.categoryId}>
-			<option value="">Uncategorized</option>
-			{#each categories as category (category.id)}
-				<option value={String(category.id)}>{category.name}</option>
-			{/each}
-		</Select>
+		<Select
+			id="goal-category"
+			bind:value={form.categoryId}
+			options={[
+				{ value: '', label: 'Uncategorized' },
+				...categories.map((category) => ({ value: String(category.id), label: category.name }))
+			]}
+		/>
 	</div>
 
 	<fieldset>
