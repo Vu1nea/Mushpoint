@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 
 	import { page } from '$app/state';
-	import favicon from '$lib/assets/favicon.svg';
+	import mushIcon from '$lib/assets/mush-icon.png';
 	import Icon from '$lib/components/Icon.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
@@ -51,7 +51,7 @@
 	}
 </script>
 
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head><link rel="icon" href={mushIcon} /></svelte:head>
 
 <div class="flex h-screen w-full overflow-hidden bg-background font-sans text-content">
 	<aside
@@ -59,10 +59,12 @@
 		style="width:{sidebarOpen ? '236px' : '76px'}"
 	>
 		<div class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap">
-			<span
-				class="grid size-7 shrink-0 place-items-center rounded-full bg-accent font-display text-xs font-bold text-accent-contrast"
-				aria-hidden="true">M</span
-			>
+			<img
+				src={mushIcon}
+				alt=""
+				class="size-7 shrink-0 rounded-full object-cover"
+				aria-hidden="true"
+			/>
 			{#if sidebarOpen}
 				<span class="font-display text-base font-bold tracking-[0.2px]">Mushpoint</span>
 			{/if}
