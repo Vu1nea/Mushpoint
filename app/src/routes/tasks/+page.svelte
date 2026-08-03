@@ -88,7 +88,7 @@
 
 <KanbanBoard
 	tasks={data.tasks}
-	subgoals={data.subgoals as any}
+	subgoals={data.subgoals}
 	goals={data.goals}
 	parentChipMode="goal-and-subgoal"
 	onMutated={invalidateAll}
@@ -96,7 +96,6 @@
 	onEditTask={edit}
 	onDeleteTask={(task) => (deletingTask = task)}
 />
-
 
 <TaskDrawer
 	open={drawerOpen}

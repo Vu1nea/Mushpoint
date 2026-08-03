@@ -23,7 +23,7 @@
 	interface Props {
 		goalId?: number | null;
 		tasks: TaskSummary[];
-		subgoals: SubgoalDetail[];
+		subgoals: Pick<SubgoalDetail, 'id' | 'title'>[];
 		goals?: GoalSummary[];
 		parentChipMode: 'subgoal-only' | 'goal-and-subgoal';
 		onMutated: () => Promise<void> | void;
