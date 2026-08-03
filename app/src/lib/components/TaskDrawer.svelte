@@ -159,7 +159,7 @@
 
 	<div>
 		<label class={field.label} for="task-due">Due date (optional)</label>
-		<DatePicker id="task-due" bind:value={form.dueDate} class={field.input} />
+		<DatePicker id="task-due" bind:value={form.dueDate} />
 	</div>
 
 	<div>

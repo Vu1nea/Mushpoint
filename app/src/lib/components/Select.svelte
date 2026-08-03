@@ -47,6 +47,16 @@
 		popover.open && flat[highlighted] ? `${listboxId}-${flat[highlighted].value}` : undefined
 	);
 
+	// Keep the highlighted row in view as arrow keys move past the visible
+	// window — the panel is capped at max-h-70 (~7 rows) but option lists
+	// (e.g. goals + subgoals) can easily run longer.
+	$effect(() => {
+		if (!popover.open) return;
+		const option = flat[highlighted];
+		if (!option) return;
+		document.getElementById(`${listboxId}-${option.value}`)?.scrollIntoView({ block: 'nearest' });
+	});
+
 	function openPanel() {
 		if (disabled || !trigger) return;
 		const index = flat.findIndex((option) => option.value === value);
@@ -85,17 +95,33 @@
 			if (option) choose(option.value);
 		} else if (event.key === 'Escape') {
 			event.preventDefault();
+			event.stopPropagation();
 			closePanel();
 			trigger?.focus();
 		}
 	}
 
+	function onTriggerFocusOut(event: FocusEvent) {
+		if (!popover.open) return;
+		const next = event.relatedTarget as Node | null;
+		if (next && (root?.contains(next) || panel?.contains(next))) return;
+		closePanel();
+	}
+
 	function onWindowMousedown(event: MouseEvent) {
 		if (popover.open && isOutside(event, root, panel)) closePanel();
 	}
+
+	function onWindowScrollOrResize() {
+		if (popover.open) closePanel();
+	}
 </script>
 
-<svelte:window onmousedown={onWindowMousedown} />
+<svelte:window
+	onmousedown={onWindowMousedown}
+	onscrollcapture={onWindowScrollOrResize}
+	onresize={onWindowScrollOrResize}
+/>
 
 <div class="relative {className}" bind:this={root}>
 	<button
@@ -114,6 +140,7 @@
 			: 'cursor-pointer'}"
 		onclick={() => (popover.open ? closePanel() : openPanel())}
 		onkeydown={onTriggerKeydown}
+		onfocusout={onTriggerFocusOut}
 	>
 		<span class="truncate {selectedLabel ? '' : 'text-muted'}">{selectedLabel ?? '—'}</span>
 		<Icon

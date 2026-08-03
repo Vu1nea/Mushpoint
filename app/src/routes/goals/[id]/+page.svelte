@@ -303,7 +303,8 @@
 						<DatePicker
 							bind:value={newSubgoalDue}
 							ariaLabel="New subgoal due date"
-							class="{field.dashed} w-37.5 shrink-0"
+							dashed
+							class="w-37.5 shrink-0"
 						/>
 					</form>
 				</section>

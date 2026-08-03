@@ -210,6 +210,6 @@
 
 	<div>
 		<label class={field.label} for="goal-due">Due date (optional)</label>
-		<DatePicker id="goal-due" bind:value={form.dueDate} class={field.input} />
+		<DatePicker id="goal-due" bind:value={form.dueDate} />
 	</div>
 </Drawer>

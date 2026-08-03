@@ -24,6 +24,8 @@
 		ariaLabel?: string;
 		placeholder?: string;
 		disabled?: boolean;
+		/** Use the dashed "optional inline field" style instead of the solid input style. */
+		dashed?: boolean;
 		class?: string;
 	}
 
@@ -33,21 +35,28 @@
 		ariaLabel,
 		placeholder = 'Pick a date',
 		disabled = false,
+		dashed = false,
 		class: className = ''
 	}: Props = $props();
 
 	const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-	const today = todayIso();
+	// Recomputed on every open (see openPanel) rather than left as a one-time
+	// const, so "today" doesn't go stale on a component that stays mounted
+	// across midnight.
+	let today = $state(todayIso());
 
 	const popover = new Popover();
 
 	let root: HTMLElement | undefined = $state();
-	let trigger: HTMLElement | undefined = $state();
+	let trigger: HTMLButtonElement | undefined = $state();
 	let panel: HTMLElement | undefined = $state();
 
 	let viewYear = $state(0);
 	let viewMonth = $state(0);
-	let activeIso = $state(today);
+	// Not derived from `today` (initialized separately, same value) to avoid
+	// capturing the $state reference locally — this initial value is only a
+	// placeholder anyway, replaced by openPanel() before it's ever shown.
+	let activeIso = $state(todayIso());
 	let slideDirection = $state(1);
 
 	const grid = $derived(monthGrid(viewYear, viewMonth, value || null, today));
@@ -60,6 +69,7 @@
 
 	function openPanel() {
 		if (disabled || !trigger) return;
+		today = todayIso();
 		const base = baseYearMonth();
 		viewYear = base.year;
 		viewMonth = base.month;
@@ -85,7 +95,11 @@
 		// Keep the roving-focus day in the displayed month, same as goToday/pickDay do,
 		// so a subsequent arrow-key press moves relative to what's on screen instead of
 		// snapping back toward a stale activeIso left over from before the month change.
-		activeIso = isoOf(next.year, next.month, 1);
+		// Preserve the day-of-month (clamped to the new month's length) rather than
+		// resetting to day 1, so the focus ring doesn't visibly jump on every click.
+		const [, , currentDay] = activeIso.split('-').map(Number);
+		const daysInNewMonth = new Date(next.year, next.month + 1, 0).getDate();
+		activeIso = isoOf(next.year, next.month, Math.min(currentDay, daysInNewMonth));
 	}
 
 	function goToday() {
@@ -148,30 +162,47 @@
 			}
 			case 'Escape':
 				event.preventDefault();
+				event.stopPropagation();
 				closePanel();
 				trigger?.focus();
 				break;
 		}
 	}
 
+	function onTriggerFocusOut(event: FocusEvent) {
+		if (!popover.open) return;
+		const next = event.relatedTarget as Node | null;
+		if (next && (root?.contains(next) || panel?.contains(next))) return;
+		closePanel();
+	}
+
 	function onWindowMousedown(event: MouseEvent) {
 		if (popover.open && isOutside(event, root, panel)) closePanel();
 	}
+
+	function onWindowScrollOrResize() {
+		if (popover.open) closePanel();
+	}
 </script>
 
-<svelte:window onmousedown={onWindowMousedown} />
+<svelte:window
+	onmousedown={onWindowMousedown}
+	onscrollcapture={onWindowScrollOrResize}
+	onresize={onWindowScrollOrResize}
+/>
 
 <div class="relative {className}" bind:this={root}>
-	<div
+	<button
 		bind:this={trigger}
-		role="button"
-		tabindex={disabled ? -1 : 0}
+		type="button"
+		{disabled}
 		aria-haspopup="dialog"
 		aria-expanded={popover.open}
 		aria-label={ariaLabel}
 		{id}
-		aria-disabled={disabled}
-		class="{field.input} flex w-full items-center justify-between gap-2 text-left {disabled
+		class="{dashed
+			? field.dashed
+			: field.input} flex w-full items-center justify-between gap-2 text-left {disabled
 			? 'cursor-not-allowed opacity-60'
 			: 'cursor-pointer'}"
 		onclick={() => {
@@ -179,27 +210,27 @@
 			popover.open ? closePanel() : openPanel();
 		}}
 		onkeydown={onTriggerKeydown}
+		onfocusout={onTriggerFocusOut}
 	>
 		<span class="truncate {value ? '' : 'text-muted'}">
 			{value ? formatDate(value) : placeholder}
 		</span>
-		<span class="flex shrink-0 items-center gap-1">
-			{#if value}
-				<button
-					type="button"
-					aria-label="Clear date"
-					class="rounded-control p-0.5 text-muted transition-colors hover:text-content"
-					onclick={(event) => {
-						event.stopPropagation();
-						clearValue();
-					}}
-				>
-					<Icon name="close" size={12} weight={2.2} />
-				</button>
-			{/if}
-			<Icon name="calendar" size={14} weight={1.8} class="text-muted" />
-		</span>
-	</div>
+		<Icon name="calendar" size={14} weight={1.8} class="shrink-0 text-muted" />
+	</button>
+	{#if value}
+		<button
+			type="button"
+			{disabled}
+			aria-label="Clear date"
+			class="absolute top-1/2 right-8 -translate-y-1/2 rounded-control p-0.5 text-muted transition-colors hover:text-content disabled:pointer-events-none disabled:opacity-60"
+			onclick={(event) => {
+				event.stopPropagation();
+				clearValue();
+			}}
+		>
+			<Icon name="close" size={12} weight={2.2} />
+		</button>
+	{/if}
 </div>
 
 {#if popover.open}
@@ -215,6 +246,7 @@
 		<div class="mb-2 flex items-center justify-between">
 			<button
 				type="button"
+				tabindex="-1"
 				class="rounded-control p-1 text-muted transition-colors hover:text-content"
 				aria-label="Previous month"
 				onclick={() => changeMonth(-1)}
@@ -224,6 +256,7 @@
 			<span class="text-sm font-semibold">{heading}</span>
 			<button
 				type="button"
+				tabindex="-1"
 				class="rounded-control p-1 text-muted transition-colors hover:text-content"
 				aria-label="Next month"
 				onclick={() => changeMonth(1)}
@@ -247,6 +280,7 @@
 				{#each grid as day (day.iso)}
 					<button
 						type="button"
+						tabindex="-1"
 						class="mx-auto flex size-7.5 items-center justify-center rounded-full text-xs transition-colors
 							{day.inCurrentMonth ? 'text-content' : 'text-muted/50'}
 							{day.iso === activeIso ? 'ring-2 ring-accent' : ''}
@@ -261,12 +295,18 @@
 		{/key}
 
 		<div class="mt-2 flex items-center justify-between border-t border-subtle pt-2">
-			<button type="button" class="text-xs font-semibold text-accent" onclick={goToday}>
+			<button
+				type="button"
+				tabindex="-1"
+				class="text-xs font-semibold text-accent"
+				onclick={goToday}
+			>
 				Today
 			</button>
 			{#if value}
 				<button
 					type="button"
+					tabindex="-1"
 					class="text-xs font-semibold text-muted transition-colors hover:text-content"
 					onclick={() => {
 						clearValue();
