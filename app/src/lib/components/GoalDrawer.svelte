@@ -28,7 +28,17 @@
 	let submitting = $state(false);
 	let error = $state<unknown>(null);
 	let titleMissing = $state(false);
+	let urlInvalid = $state(false);
 	let shake = $state(false);
+
+	function isValidUrl(value: string): boolean {
+		try {
+			const parsed = new URL(value);
+			return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+		} catch {
+			return false;
+		}
+	}
 
 	let form = $state({
 		title: '',
@@ -45,6 +55,7 @@
 		if (!open) return;
 		error = null;
 		titleMissing = false;
+		urlInvalid = false;
 		form = {
 			title: goal?.title ?? '',
 			categoryId: goal?.categoryId ? String(goal.categoryId) : '',
@@ -59,6 +70,13 @@
 	async function submit() {
 		if (!form.title.trim()) {
 			titleMissing = true;
+			shake = true;
+			return;
+		}
+
+		const repoUrl = form.repoUrl.trim();
+		if (repoUrl && !isValidUrl(repoUrl)) {
+			urlInvalid = true;
 			shake = true;
 			return;
 		}
@@ -168,10 +186,18 @@
 		<input
 			id="goal-repo"
 			type="text"
-			class={field.input}
+			class="{field.input} {urlInvalid ? 'border-warn' : ''} {shake ? 'mp-shake' : ''}"
 			bind:value={form.repoUrl}
+			oninput={() => (urlInvalid = false)}
+			onanimationend={() => (shake = false)}
 			placeholder="https://github.com/you/project"
+			aria-invalid={urlInvalid}
 		/>
+		{#if urlInvalid}
+			<p class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+				<Icon name="warning" size={13} weight={2} /> Enter a valid URL
+			</p>
+		{/if}
 	</div>
 
 	<div>
