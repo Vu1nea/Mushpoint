@@ -198,7 +198,14 @@
 				</div>
 			</div>
 
-			<h1 class="mt-3.5 mb-2 font-display text-2xl leading-tight font-bold">{goal.title}</h1>
+			<h1 class="mt-3.5 mb-2 flex items-center gap-2 font-display text-2xl leading-tight font-bold">
+				{#if goal.fromIdea}
+					<span title="Promoted from an idea" class="shrink-0 text-muted">
+						<Icon name="idea" size={18} />
+					</span>
+				{/if}
+				{goal.title}
+			</h1>
 
 			<div class="mb-4 flex gap-2.5 text-xs text-muted">
 				<span>{TIMEFRAME_LABELS[goal.timeframe]}</span>

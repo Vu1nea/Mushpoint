@@ -127,7 +127,14 @@
 								color={group.color}
 							/>
 							<div class="min-w-0 flex-1">
-								<p class="truncate text-base font-semibold">{goal.title}</p>
+								<p class="flex min-w-0 items-center gap-1.5 text-base font-semibold">
+									{#if goal.fromIdea}
+										<span title="Promoted from an idea" class="shrink-0 text-muted">
+											<Icon name="idea" size={13} />
+										</span>
+									{/if}
+									<span class="truncate">{goal.title}</span>
+								</p>
 								<p class="mt-1 text-xs text-muted">
 									{goal.subgoalCount}
 									{goal.subgoalCount === 1 ? 'subgoal' : 'subgoals'} · {goal.taskCount} direct
