@@ -131,6 +131,11 @@
 					{goal.category?.name ?? 'Uncategorized'}
 				</span>
 				<div class="flex shrink-0 gap-1">
+					{#if goal.repoUrl}
+						<a href={goal.repoUrl} target="_blank" rel="noopener noreferrer" class={button.icon}>
+							<Icon name="github" size={14} label="Open repository" />
+						</a>
+					{/if}
 					<button type="button" class={button.icon} onclick={() => (editing = true)}>
 						<Icon name="edit" size={14} label="Edit goal" />
 					</button>
@@ -187,9 +192,7 @@
 				{#if goal.motivationText}
 					<p class="text-md leading-relaxed italic">“{goal.motivationText}”</p>
 				{:else}
-					<p class="text-sm text-muted">
-						No motivation yet — edit the goal to say why it matters.
-					</p>
+					<p class="text-sm text-muted">No motivation yet — edit the goal to say why it matters.</p>
 				{/if}
 
 				{#if goal.description}
