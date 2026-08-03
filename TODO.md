@@ -4,25 +4,19 @@
 - Plan api
 - Implement and test api
 - Make logs (e.g What to do when there's error etc.)
-- Done today incorrect streak ui
+- incorrect streak ui
+- url validator for github url
 
-## Open after Phase 3 (streaks)
+## Fixing the Goal Card
 
-Found by the final review of Phase 3. Neither is a data-integrity problem, but both
-leave two screens disagreeing about the same habit. See
-`docs/superpowers/specs/2026-07-31-streaks-design.md` for the rules they collide with.
+### Replace the three independent buttons with one segmented control:
+- Single rounded track with a subtle inset background; the three options are equal-width segments inside it.
+- A sliding pill sits behind the selected segment and animates between positions with a spring (Motion layoutId), instead of three separately-filled buttons.
+- Press feedback: segment scales down slightly on tap, springs back.
+- Label feedback: selected label goes to semibold and full-contrast foreground; unselected labels are muted and lift to full contrast on hover.
+- State color travels with the selection — active uses the violet accent, completed a green tone with a check icon that fades and scales in next to the label, archived a muted gray.
+- Card-level echo: when archived, the whole card dims slightly and desaturates, so the status is legible without reading the control.
+- Save feedback: the change applies optimistically the instant it is clicked, with a small inline "Saved" tick that fades out after ~1.5s; on failure it reverts and shows an error toast.
+- Keyboard: arrow keys move between segments, Enter/Space commits — standard radiogroup semantics with role="radiogroup" / role="radio".
+- Respects prefers-reduced-motion: the pill snaps instead of sliding, scale/press effects are dropped.
 
-- **Goal detail still treats habits as one-off tasks.** `TaskRow.svelte` (used for a
-  goal's direct tasks and its subgoal tasks) ticks a habit by writing `status = 'done'`,
-  which logs no completion, moves no streak, and moves no progress. The same habit then
-  reads Done on `/goals/<id>` and "Do today" on `/tasks`. Fixing it means carrying
-  `completedToday` on the tasks inside `GoalDetail`, the way `TaskSummary` already does
-  for the board.
-- **The board's derived column ignores whether today is an expected occurrence.** A
-  Weekly habit shows "Do today" on all seven days, and completing it on a non-expected
-  day writes a log row the heatmap greys out and the streak ignores. Needs an
-  `expectedToday` flag from the backend, plus a decision about what a habit that isn't
-  due today should look like on a kanban board.
-- **Minor:** goal pages count habits in the "N direct tasks" copy while excluding them
-  from the progress average, so a habit-only goal reads "0% · averaged across 0 subgoals
-  and 1 direct tasks".

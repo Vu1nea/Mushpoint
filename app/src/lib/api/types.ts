@@ -135,14 +135,14 @@ export interface GoalSummary extends Goal {
 
 export interface SubgoalDetail extends Subgoal {
 	progress: number;
-	tasks: Task[];
+	tasks: TaskSummary[];
 }
 
 export interface GoalDetail extends Goal {
 	progress: number;
 	category: Category | null;
 	subgoals: SubgoalDetail[];
-	directTasks: Task[];
+	directTasks: TaskSummary[];
 }
 
 export interface Settings {
@@ -165,7 +165,10 @@ export interface StreakCard {
 	cells: DayCell[];
 }
 
-/** A task as the board lists it: the record plus today's completion state. */
+/** A task as the board lists it: the record plus today's completion state.
+ * `expectedToday` is always `true` for a non-recurring task — it has no
+ * cadence to be "not expected" against. */
 export interface TaskSummary extends Task {
 	completedToday: boolean;
+	expectedToday: boolean;
 }

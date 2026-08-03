@@ -8,8 +8,15 @@ export interface Streak {
 
 const WEEKEND = new Set([0, 6]); // Sunday, Saturday
 
-/** Every day in `from..=to` that the cadence expects an occurrence on.
+/** Whether the cadence expects an occurrence on this particular day.
  * `anchorWeekday` only matters for `weekly`; the other cadences ignore it. */
+export function isExpectedOn(rec: Recurrence, anchorWeekday: number, day: string): boolean {
+	if (rec === 'daily') return true;
+	if (rec === 'weekdays') return !WEEKEND.has(weekdayOf(day));
+	return weekdayOf(day) === anchorWeekday;
+}
+
+/** Every day in `from..=to` that the cadence expects an occurrence on. */
 export function expectedDays(
 	rec: Recurrence,
 	anchorWeekday: number,
@@ -20,13 +27,7 @@ export function expectedDays(
 	let day = from;
 
 	while (compareDates(day, to) <= 0) {
-		const expected =
-			rec === 'daily'
-				? true
-				: rec === 'weekdays'
-					? !WEEKEND.has(weekdayOf(day))
-					: weekdayOf(day) === anchorWeekday;
-		if (expected) days.push(day);
+		if (isExpectedOn(rec, anchorWeekday, day)) days.push(day);
 		day = addDays(day, 1);
 	}
 

@@ -41,6 +41,12 @@
 	const subgoalTaskCount = $derived(
 		data.goal?.subgoals.reduce((total, subgoal) => total + subgoal.tasks.length, 0) ?? 0
 	);
+	/** Habits among the direct tasks don't count toward the progress average, so
+	 * they're left out of this count too — otherwise the copy claims more tasks
+	 * were averaged than actually were. */
+	const progressDirectTaskCount = $derived(
+		data.goal?.directTasks.filter((task) => task.recurrence === null).length ?? 0
+	);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -173,8 +179,8 @@
 				color={accent}
 			/>
 			<p class="mt-2 mb-3 text-xs text-muted">
-				{percent(goal.progress)} complete · averaged across {goal.subgoals.length} subgoals and {goal
-					.directTasks.length} direct tasks
+				{percent(goal.progress)} complete · averaged across {goal.subgoals.length} subgoals and {progressDirectTaskCount}
+				direct tasks
 			</p>
 
 			<div class="mb-5 flex gap-1.5">

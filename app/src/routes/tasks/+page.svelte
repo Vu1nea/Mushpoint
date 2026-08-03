@@ -46,13 +46,16 @@
 
 	/**
 	 * A habit has no lasting status: its column is today's completion state, so the
-	 * board empties itself at midnight without any scheduled job.
+	 * board empties itself at midnight without any scheduled job. A habit with no
+	 * occurrence expected today (e.g. a Weekly habit on an off day) needs nothing
+	 * from the user, so it sits in Done rather than nagging in To do.
 	 *
 	 * Named `taskColumn` rather than `column` because the board markup below already
 	 * uses `column` as the loop variable for each board column.
 	 */
 	function taskColumn(task: TaskSummary): TaskStatus {
 		if (!task.recurrence) return task.status;
+		if (!task.expectedToday) return 'done';
 		return task.completedToday ? 'done' : 'todo';
 	}
 
@@ -106,14 +109,25 @@
 
 	/**
 	 * The pill is the same control either way: a habit toggles today's completion,
-	 * an ordinary task walks to the next column.
+	 * an ordinary task walks to the next column. A habit with nothing expected
+	 * today is inert — completing it would log a row the streak ignores and the
+	 * heatmap greys out, so the pill says so instead of offering the action.
 	 */
 	function pill(task: TaskSummary) {
 		if (task.recurrence) {
+			if (!task.expectedToday) {
+				return {
+					label: 'Not due today',
+					title: 'No occurrence expected today',
+					act: () => {},
+					disabled: true
+				};
+			}
 			return {
 				label: task.completedToday ? 'Done today' : 'Do today',
 				title: task.completedToday ? 'Undo today' : 'Mark done for today',
-				act: () => toggleToday(task, !task.completedToday)
+				act: () => toggleToday(task, !task.completedToday),
+				disabled: false
 			};
 		}
 
@@ -121,7 +135,8 @@
 		return {
 			label: TASK_STATUS_LABELS[task.status],
 			title: `Move to ${TASK_STATUS_LABELS[next]}`,
-			act: () => advance(task)
+			act: () => advance(task),
+			disabled: false
 		};
 	}
 
@@ -228,7 +243,7 @@
 							class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-semibold transition-colors disabled:opacity-50 {STATUS_PILL_CLASSES[
 								taskColumn(task)
 							]}"
-							disabled={busy}
+							disabled={busy || action.disabled}
 							title={action.title}
 							onclick={action.act}
 						>

@@ -1,7 +1,9 @@
 import type { SqlDriver } from '../driver';
 import { AppError } from '../error';
 import type { Task, TaskInput, TaskStatus, TaskSummary, TaskUpdate } from '../../api/types';
-import { now, optionalText, requiredText, today } from './helpers';
+import { localDateOf, now, optionalText, requiredText, today } from './helpers';
+import { isExpectedOn } from '../logic/streak';
+import { weekdayOf } from '../logic/dates';
 
 const COLUMNS =
 	'id, title, status, due_date, goal_id, subgoal_id, recurrence, created_at, updated_at';
@@ -39,17 +41,32 @@ export function isRecurring(task: Task): boolean {
 	return task.recurrence !== null;
 }
 
+/** A habit's anchor weekday is the weekday it was created on — no extra column,
+ * no extra form field. Non-recurring tasks have no cadence to be "not expected"
+ * on, so they're always expected. */
+function withCompletion(
+	row: TaskRow & { completed_today: number },
+	todayDate: string
+): TaskSummary {
+	const mapped = map(row);
+	const expectedToday = mapped.recurrence
+		? isExpectedOn(mapped.recurrence, weekdayOf(localDateOf(mapped.createdAt)), todayDate)
+		: true;
+	return { ...mapped, completedToday: Boolean(row.completed_today), expectedToday };
+}
+
 /** The board's list. One join rather than a completion query per row. */
 export async function list(driver: SqlDriver): Promise<TaskSummary[]> {
+	const todayDate = today();
 	const rows = await driver.select<TaskRow & { completed_today: number }>(
 		`SELECT ${SUMMARY_COLUMNS}, c.id IS NOT NULL AS completed_today
          FROM tasks t
          LEFT JOIN task_completions c
              ON c.task_id = t.id AND c.completed_on = ?1
          ORDER BY (t.due_date IS NULL), t.due_date, t.id`,
-		[today()]
+		[todayDate]
 	);
-	return rows.map((row) => ({ ...map(row), completedToday: Boolean(row.completed_today) }));
+	return rows.map((row) => withCompletion(row, todayDate));
 }
 
 /** Every habit, for the streak cards. */
@@ -60,22 +77,34 @@ export async function listRecurring(driver: SqlDriver): Promise<Task[]> {
 	return rows.map(map);
 }
 
-export async function listForSubgoal(driver: SqlDriver, subgoalId: number): Promise<Task[]> {
-	const rows = await driver.select<TaskRow>(
-		`SELECT ${COLUMNS} FROM tasks WHERE subgoal_id = ?1 ${ORDER}`,
-		[subgoalId]
+export async function listForSubgoal(driver: SqlDriver, subgoalId: number): Promise<TaskSummary[]> {
+	const todayDate = today();
+	const rows = await driver.select<TaskRow & { completed_today: number }>(
+		`SELECT ${SUMMARY_COLUMNS}, c.id IS NOT NULL AS completed_today
+         FROM tasks t
+         LEFT JOIN task_completions c
+             ON c.task_id = t.id AND c.completed_on = ?1
+         WHERE t.subgoal_id = ?2
+         ORDER BY (t.due_date IS NULL), t.due_date, t.id`,
+		[todayDate, subgoalId]
 	);
-	return rows.map(map);
+	return rows.map((row) => withCompletion(row, todayDate));
 }
 
 /** Tasks hanging straight off the goal — the ones that count as its own direct
  * children for progress. Tasks under a subgoal are counted by that subgoal. */
-export async function listDirectForGoal(driver: SqlDriver, goalId: number): Promise<Task[]> {
-	const rows = await driver.select<TaskRow>(
-		`SELECT ${COLUMNS} FROM tasks WHERE goal_id = ?1 AND subgoal_id IS NULL ${ORDER}`,
-		[goalId]
+export async function listDirectForGoal(driver: SqlDriver, goalId: number): Promise<TaskSummary[]> {
+	const todayDate = today();
+	const rows = await driver.select<TaskRow & { completed_today: number }>(
+		`SELECT ${SUMMARY_COLUMNS}, c.id IS NOT NULL AS completed_today
+         FROM tasks t
+         LEFT JOIN task_completions c
+             ON c.task_id = t.id AND c.completed_on = ?1
+         WHERE t.goal_id = ?2 AND t.subgoal_id IS NULL
+         ORDER BY (t.due_date IS NULL), t.due_date, t.id`,
+		[todayDate, goalId]
 	);
-	return rows.map(map);
+	return rows.map((row) => withCompletion(row, todayDate));
 }
 
 export async function get(driver: SqlDriver, id: number): Promise<Task> {
@@ -108,7 +137,16 @@ export async function update(driver: SqlDriver, id: number, input: TaskUpdate): 
          SET title = ?1, status = ?2, due_date = ?3, goal_id = ?4, subgoal_id = ?5,
              recurrence = ?6, updated_at = ?7
          WHERE id = ?8`,
-		[title, input.status, optionalText(input.dueDate), goalId, subgoalId, input.recurrence, now(), id]
+		[
+			title,
+			input.status,
+			optionalText(input.dueDate),
+			goalId,
+			subgoalId,
+			input.recurrence,
+			now(),
+			id
+		]
 	);
 
 	if (result.rowsAffected === 0) throw AppError.notFound('task', id);
@@ -116,11 +154,10 @@ export async function update(driver: SqlDriver, id: number, input: TaskUpdate): 
 }
 
 export async function setStatus(driver: SqlDriver, id: number, status: TaskStatus): Promise<Task> {
-	const result = await driver.execute('UPDATE tasks SET status = ?1, updated_at = ?2 WHERE id = ?3', [
-		status,
-		now(),
-		id
-	]);
+	const result = await driver.execute(
+		'UPDATE tasks SET status = ?1, updated_at = ?2 WHERE id = ?3',
+		[status, now(), id]
+	);
 	if (result.rowsAffected === 0) throw AppError.notFound('task', id);
 	return get(driver, id);
 }

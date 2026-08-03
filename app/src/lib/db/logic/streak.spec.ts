@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expectedDays, stateOf, summarize } from './streak';
+import { expectedDays, isExpectedOn, stateOf, summarize } from './streak';
 
 describe('expectedDays', () => {
 	it('daily expects every day in the range', () => {
@@ -19,6 +19,24 @@ describe('expectedDays', () => {
 		// Tuesday = 2.
 		const days = expectedDays('weekly', 2, '2026-07-27', '2026-08-11');
 		expect(days).toEqual(['2026-07-28', '2026-08-04', '2026-08-11']);
+	});
+});
+
+describe('isExpectedOn', () => {
+	it('daily expects every day', () => {
+		expect(isExpectedOn('daily', 1, '2026-08-01')).toBe(true);
+		expect(isExpectedOn('daily', 1, '2026-08-02')).toBe(true);
+	});
+
+	it('weekdays excludes the weekend', () => {
+		expect(isExpectedOn('weekdays', 1, '2026-07-31')).toBe(true); // Friday
+		expect(isExpectedOn('weekdays', 1, '2026-08-01')).toBe(false); // Saturday
+		expect(isExpectedOn('weekdays', 1, '2026-08-02')).toBe(false); // Sunday
+	});
+
+	it('weekly only matches its anchor weekday', () => {
+		expect(isExpectedOn('weekly', 2, '2026-07-28')).toBe(true); // Tuesday
+		expect(isExpectedOn('weekly', 2, '2026-07-29')).toBe(false); // Wednesday
 	});
 });
 

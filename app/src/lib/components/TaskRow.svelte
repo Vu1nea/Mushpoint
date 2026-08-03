@@ -1,12 +1,18 @@
 <script lang="ts">
-	import { deleteTask, RECURRENCE_LABELS, setTaskStatus, type Task } from '$lib/api';
+	import {
+		deleteTask,
+		RECURRENCE_LABELS,
+		setTaskCompletion,
+		setTaskStatus,
+		type TaskSummary
+	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
 	import Checkbox from './Checkbox.svelte';
 	import Icon from './Icon.svelte';
 	import { button } from './ui';
 
 	interface Props {
-		task: Task;
+		task: TaskSummary;
 		/** Called after a successful change so the page can reload its data. */
 		onMutated: () => Promise<void> | void;
 		onError: (error: unknown) => void;
@@ -27,16 +33,19 @@
 		}
 	}
 
-	const done = $derived(task.status === 'done');
+	/** A habit has no lasting status — ticking it logs today's completion
+	 * instead of writing `status = 'done'`, so it stays in sync with the
+	 * board and the streak/heatmap. */
+	const done = $derived(task.recurrence ? task.completedToday : task.status === 'done');
+
+	function toggle(checked: boolean) {
+		if (task.recurrence) return run(() => setTaskCompletion(task.id, checked));
+		return run(() => setTaskStatus(task.id, checked ? 'done' : 'todo'));
+	}
 </script>
 
 <li class="group flex items-center gap-2.5 py-1 text-md">
-	<Checkbox
-		checked={done}
-		label="Mark {task.title} done"
-		disabled={busy}
-		onchange={(checked) => run(() => setTaskStatus(task.id, checked ? 'done' : 'todo'))}
-	/>
+	<Checkbox checked={done} label="Mark {task.title} done" disabled={busy} onchange={toggle} />
 
 	<span class="min-w-0 flex-1 truncate {done ? 'text-muted line-through' : ''}">
 		{task.title}
@@ -61,9 +70,7 @@
 
 	{#if task.dueDate}
 		<span
-			class="shrink-0 text-2xs {dueTone(task.dueDate) === 'overdue'
-				? 'text-warn'
-				: 'text-muted'}"
+			class="shrink-0 text-2xs {dueTone(task.dueDate) === 'overdue' ? 'text-warn' : 'text-muted'}"
 		>
 			{dueLabel(task.dueDate)}
 		</span>

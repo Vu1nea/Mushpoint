@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SqlDriver } from '../driver';
 import { createTestDriver } from '../testDriver';
 import * as task from './task';
+import { today } from './helpers';
 import type { TaskInput } from '../../api/types';
 
 let driver: SqlDriver;
@@ -89,5 +90,75 @@ describe('task', () => {
 
 		await task.remove(driver, created.id);
 		await expect(task.get(driver, created.id)).rejects.toMatchObject({ kind: 'not_found' });
+	});
+
+	describe('completedToday and expectedToday', () => {
+		afterEach(() => {
+			vi.useRealTimers();
+		});
+
+		async function complete(taskId: number, on: string) {
+			await driver.execute(
+				'INSERT INTO task_completions (task_id, completed_on, created_at) VALUES (?1, ?2, ?3)',
+				[taskId, on, new Date().toISOString()]
+			);
+		}
+
+		it('a non-recurring task is always expected and starts uncompleted', async () => {
+			const created = await task.create(driver, taskInput('Buy a notebook'));
+			const [row] = await task.list(driver);
+
+			expect(row.id).toBe(created.id);
+			expect(row.expectedToday).toBe(true);
+			expect(row.completedToday).toBe(false);
+		});
+
+		it('the board list picks up a completion logged for today', async () => {
+			const created = await task.create(driver, { ...taskInput('Stretch'), recurrence: 'daily' });
+			await complete(created.id, today());
+
+			const [row] = await task.list(driver);
+			expect(row.completedToday).toBe(true);
+		});
+
+		it('a weekly habit is expected only on its anchor weekday', async () => {
+			vi.setSystemTime(new Date('2026-07-28T12:00:00Z')); // Tuesday
+			const created = await task.create(driver, {
+				...taskInput('Review the week'),
+				recurrence: 'weekly'
+			});
+			expect((await task.list(driver))[0].expectedToday).toBe(true);
+
+			vi.setSystemTime(new Date('2026-07-29T12:00:00Z')); // Wednesday
+			expect((await task.get(driver, created.id)).id).toBe(created.id);
+			expect((await task.list(driver))[0].expectedToday).toBe(false);
+		});
+
+		it('direct goal tasks report completedToday', async () => {
+			const goalId = await seedGoal();
+			const created = await task.create(driver, {
+				...taskInput('Stretch'),
+				goalId,
+				recurrence: 'daily'
+			});
+			await complete(created.id, today());
+
+			const [row] = await task.listDirectForGoal(driver, goalId);
+			expect(row.completedToday).toBe(true);
+		});
+
+		it('subgoal tasks report completedToday', async () => {
+			const goalId = await seedGoal();
+			const subgoalId = await seedSubgoal(goalId);
+			const created = await task.create(driver, {
+				...taskInput('Stretch'),
+				subgoalId,
+				recurrence: 'daily'
+			});
+			await complete(created.id, today());
+
+			const [row] = await task.listForSubgoal(driver, subgoalId);
+			expect(row.completedToday).toBe(true);
+		});
 	});
 });
