@@ -45,5 +45,5 @@ export function portal(node: HTMLElement) {
 
 export function isOutside(event: MouseEvent, ...nodes: Array<HTMLElement | undefined>): boolean {
 	const target = event.target as Node;
-	return nodes.every((node) => node && !node.contains(target));
+	return nodes.every((node) => !node || !node.contains(target));
 }
