@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { openUrl as openExternal } from '@tauri-apps/plugin-opener';
+	import { browser } from '$app/environment';
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
 		createSubgoal,
@@ -9,15 +10,18 @@
 		GOAL_STATUSES,
 		setGoalStatus,
 		TIMEFRAME_LABELS,
-		type GoalStatus
+		type GoalStatus,
+		type TaskSummary
 	} from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
 	import SubgoalCard from '$lib/components/SubgoalCard.svelte';
+	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
 	import TaskRow from '$lib/components/TaskRow.svelte';
 	import { button, field, sectionHeading, segment } from '$lib/components/ui';
 	import { dueLabel, dueTone, percent } from '$lib/format';
@@ -31,12 +35,18 @@
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
 	let deleteOrphanedTasks = $state(false);
+	let view = $state<'list' | 'kanban'>('list');
+	let editingTask = $state<TaskSummary | null>(null);
+	let drawerOpen = $state(false);
 
 	let newSubgoalTitle = $state('');
 	let newSubgoalDue = $state('');
 	let newTaskTitle = $state('');
 
 	const accent = $derived(categoryColor(data.goal?.category?.colorToken));
+	const boardTasks = $derived(
+		data.goal ? [...data.goal.directTasks, ...data.goal.subgoals.flatMap((s) => s.tasks)] : []
+	);
 	/** Tasks that would otherwise silently become standalone once their subgoal is gone. */
 	const subgoalTaskCount = $derived(
 		data.goal?.subgoals.reduce((total, subgoal) => total + subgoal.tasks.length, 0) ?? 0
@@ -105,6 +115,26 @@
 			busy = false;
 			confirmingDelete = false;
 		}
+	}
+
+	// Per-goal display preference only — not domain data, so it never touches
+	// the backend. Re-reads on every goal id change, since this page is reused
+	// across client-side navigation between goals.
+	$effect(() => {
+		const id = data.goal?.id;
+		if (!browser || id === undefined) return;
+		const stored = localStorage.getItem(`mp-goal-view-${id}`);
+		view = stored === 'kanban' ? 'kanban' : 'list';
+	});
+
+	function setView(next: 'list' | 'kanban') {
+		view = next;
+		if (browser && data.goal) localStorage.setItem(`mp-goal-view-${data.goal.id}`, next);
+	}
+
+	function editTask(task: TaskSummary) {
+		editingTask = task;
+		drawerOpen = true;
 	}
 </script>
 
@@ -217,64 +247,94 @@
 		</div>
 
 		<div>
-			<section class="mb-8">
-				<h2 class="{sectionHeading} mb-3.5">Subgoals</h2>
+			<div class="mb-3.5 flex gap-1.5">
+				<button
+					type="button"
+					class={segment(view === 'list')}
+					aria-pressed={view === 'list'}
+					onclick={() => setView('list')}
+				>
+					List
+				</button>
+				<button
+					type="button"
+					class={segment(view === 'kanban')}
+					aria-pressed={view === 'kanban'}
+					onclick={() => setView('kanban')}
+				>
+					Kanban
+				</button>
+			</div>
 
-				<div class="mb-4 flex flex-col gap-2.5">
-					{#each goal.subgoals as subgoal, index (subgoal.id)}
-						<div class="mp-enter" style="--mp-delay:{stagger(index)}">
-							<SubgoalCard
-								{subgoal}
-								onMutated={invalidateAll}
-								onError={(error) => (actionError = error)}
-							/>
-						</div>
-					{/each}
-				</div>
+			{#if view === 'list'}
+				<section class="mb-8">
+					<h2 class="{sectionHeading} mb-3.5">Subgoals</h2>
 
-				<form class="flex gap-2" onsubmit={addSubgoal}>
-					<input
-						class="{field.dashed} min-w-0 flex-1"
-						bind:value={newSubgoalTitle}
-						placeholder="+ Add subgoal…"
-						aria-label="New subgoal"
-					/>
-					<input
-						type="date"
-						class="{field.dashed} w-37.5 shrink-0"
-						bind:value={newSubgoalDue}
-						aria-label="New subgoal due date"
-					/>
-				</form>
-			</section>
-
-			<section>
-				<h2 class="{sectionHeading} mb-1.5">Direct tasks</h2>
-				<p class="mb-3.5 text-sm text-muted">
-					Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
-				</p>
-
-				{#if goal.directTasks.length > 0}
-					<ul class="mb-3 flex flex-col rounded-card border border-subtle bg-surface px-4 py-2.5">
-						{#each goal.directTasks as task (task.id)}
-							<TaskRow
-								{task}
-								onMutated={invalidateAll}
-								onError={(error) => (actionError = error)}
-							/>
+					<div class="mb-4 flex flex-col gap-2.5">
+						{#each goal.subgoals as subgoal, index (subgoal.id)}
+							<div class="mp-enter" style="--mp-delay:{stagger(index)}">
+								<SubgoalCard
+									{subgoal}
+									onMutated={invalidateAll}
+									onError={(error) => (actionError = error)}
+								/>
+							</div>
 						{/each}
-					</ul>
-				{/if}
+					</div>
 
-				<form onsubmit={addDirectTask}>
-					<input
-						class="{field.dashed} w-full"
-						bind:value={newTaskTitle}
-						placeholder="+ Add a task…"
-						aria-label="New direct task"
-					/>
-				</form>
-			</section>
+					<form class="flex gap-2" onsubmit={addSubgoal}>
+						<input
+							class="{field.dashed} min-w-0 flex-1"
+							bind:value={newSubgoalTitle}
+							placeholder="+ Add subgoal…"
+							aria-label="New subgoal"
+						/>
+						<input
+							type="date"
+							class="{field.dashed} w-37.5 shrink-0"
+							bind:value={newSubgoalDue}
+							aria-label="New subgoal due date"
+						/>
+					</form>
+				</section>
+
+				<section>
+					<h2 class="{sectionHeading} mb-1.5">Direct tasks</h2>
+					<p class="mb-3.5 text-sm text-muted">
+						Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
+					</p>
+
+					{#if goal.directTasks.length > 0}
+						<ul class="mb-3 flex flex-col rounded-card border border-subtle bg-surface px-4 py-2.5">
+							{#each goal.directTasks as task (task.id)}
+								<TaskRow
+									{task}
+									onMutated={invalidateAll}
+									onError={(error) => (actionError = error)}
+								/>
+							{/each}
+						</ul>
+					{/if}
+
+					<form onsubmit={addDirectTask}>
+						<input
+							class="{field.dashed} w-full"
+							bind:value={newTaskTitle}
+							placeholder="+ Add a task…"
+							aria-label="New direct task"
+						/>
+					</form>
+				</section>
+			{:else}
+				<KanbanBoard
+					goalId={goal.id}
+					tasks={boardTasks}
+					subgoals={goal.subgoals}
+					onMutated={invalidateAll}
+					onError={(error) => (actionError = error)}
+					onEditTask={editTask}
+				/>
+			{/if}
 		</div>
 	</div>
 
@@ -283,6 +343,15 @@
 		categories={data.categories}
 		{goal}
 		onClose={() => (editing = false)}
+		onSaved={invalidateAll}
+	/>
+
+	<TaskDrawer
+		open={drawerOpen}
+		goals={data.goals}
+		subgoals={data.subgoals}
+		task={editingTask}
+		onClose={() => (drawerOpen = false)}
 		onSaved={invalidateAll}
 	/>
 
