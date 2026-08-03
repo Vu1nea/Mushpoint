@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { open } from '@tauri-apps/plugin-shell';
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
 		createSubgoal,
@@ -132,9 +133,10 @@
 				</span>
 				<div class="flex shrink-0 gap-1">
 					{#if goal.repoUrl}
-						<a href={goal.repoUrl} target="_blank" rel="noopener noreferrer" class={button.icon}>
+						{@const repoUrl = goal.repoUrl}
+						<button type="button" class={button.icon} onclick={() => open(repoUrl)}>
 							<Icon name="github" size={14} label="Open repository" />
-						</a>
+						</button>
 					{/if}
 					<button type="button" class={button.icon} onclick={() => (editing = true)}>
 						<Icon name="edit" size={14} label="Edit goal" />
