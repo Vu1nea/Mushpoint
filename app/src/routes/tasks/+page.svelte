@@ -47,7 +47,6 @@
 	}
 </script>
 
-
 <svelte:head><title>Tasks · Mushpoint</title></svelte:head>
 
 <header class="mb-6 flex items-start justify-between gap-4">

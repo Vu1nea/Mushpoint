@@ -393,7 +393,7 @@
 
 	<ConfirmDialog
 		open={deletingTask !== null}
-		title={`Delete "${deletingTask?.title ?? ''}"?`}
+		title="Delete “{deletingTask?.title ?? ''}”?"
 		body="The task is removed from the board. This cannot be undone."
 		{busy}
 		onConfirm={removeTask}

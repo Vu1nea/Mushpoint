@@ -4,8 +4,8 @@ import { TASK_STATUSES, type TaskStatus, type TaskSummary } from './api';
  * A habit (a task with `recurrence` set) has no lasting `status` — see the rule
  * stated in `app/src/lib/components/TaskRow.svelte:36-38`. Its displayed column is
  * derived from today's completion state instead, so it empties itself at midnight
- * without any scheduled job. Ported from `taskColumn()` in
- * `app/src/routes/tasks/+page.svelte`; keep the two in sync.
+ * without any scheduled job. Used directly by `KanbanBoard.svelte` for both the
+ * goal-detail and Task Manager boards — no separate copy to keep in sync.
  */
 export function taskColumn(task: TaskSummary): TaskStatus {
 	if (!task.recurrence) return task.status;

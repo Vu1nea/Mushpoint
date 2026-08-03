@@ -49,6 +49,7 @@
 	/** Set for a moment after a card changes column, to play the move pulse. */
 	let justMovedId = $state<number | null>(null);
 	let moveTimer: ReturnType<typeof setTimeout>;
+	$effect(() => () => clearTimeout(moveTimer));
 	let newTaskTitles = $state<Record<TaskStatus, string>>({
 		todo: '',
 		in_progress: '',
@@ -93,14 +94,13 @@
 	 * habit pill), so the move-pulse fires uniformly no matter which triggered it.
 	 */
 	function moveTask(task: TaskSummary, status: TaskStatus) {
+		if (task.recurrence && status === 'in_progress') return; // a habit has no in-progress state
+
 		justMovedId = task.id;
 		clearTimeout(moveTimer);
 		moveTimer = setTimeout(() => (justMovedId = null), 500);
 
-		if (task.recurrence) {
-			if (status === 'in_progress') return; // a habit has no in-progress state
-			return run(() => setTaskCompletion(task.id, status === 'done'));
-		}
+		if (task.recurrence) return run(() => setTaskCompletion(task.id, status === 'done'));
 		return run(() => setTaskStatus(task.id, status));
 	}
 
@@ -137,7 +137,7 @@
 		if (busy) return;
 		const id = Number(event.dataTransfer?.getData('text/plain'));
 		const task = tasks.find((t) => t.id === id);
-		if (task) moveTask(task, status);
+		if (task && !columns[status].includes(task)) moveTask(task, status);
 	}
 
 	async function quickAdd(event: SubmitEvent, status: TaskStatus) {
@@ -190,7 +190,9 @@
 					<div class="flex items-start gap-2">
 						<button
 							type="button"
-							class="block min-w-0 flex-1 text-left text-sm font-semibold"
+							class="block min-w-0 flex-1 text-left text-sm font-semibold {status === 'done'
+								? 'text-muted line-through'
+								: ''}"
 							onclick={() => onEditTask(task)}
 						>
 							{task.title}
@@ -215,11 +217,22 @@
 
 					<div class="mt-2 flex flex-wrap items-center gap-2">
 						{#if parent}
-							<span
-								class="max-w-32 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent"
-							>
-								{parent}
-							</span>
+							{#if parentChipMode === 'goal-and-subgoal' && task.goalId != null}
+								<a
+									href="/goals/{task.goalId}"
+									title={parent}
+									class="max-w-45 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent transition-colors hover:bg-accent/25"
+								>
+									{parent}
+								</a>
+							{:else}
+								<span
+									title={parent}
+									class="max-w-32 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent"
+								>
+									{parent}
+								</span>
+							{/if}
 						{/if}
 						{#if task.recurrence}
 							<span
