@@ -2,6 +2,7 @@ import { getDriver } from '../db/connection';
 import { AppError } from '../db/error';
 import * as categoryRepo from '../db/repo/category';
 import * as goalRepo from '../db/repo/goal';
+import * as ideaRepo from '../db/repo/idea';
 import * as subgoalRepo from '../db/repo/subgoal';
 import * as taskRepo from '../db/repo/task';
 import * as streakRepo from '../db/repo/streak';
@@ -13,10 +14,13 @@ import type {
 	GoalInput,
 	GoalStatus,
 	GoalSummary,
+	Idea,
+	IdeaInput,
 	StreakCard,
 	Subgoal,
 	SubgoalInput,
 	SubgoalUpdate,
+	Tag,
 	Task,
 	TaskInput,
 	TaskStatus,
@@ -73,3 +77,15 @@ export const setTaskCompletion = async (
 	done: boolean,
 	date: string | null = null
 ): Promise<StreakCard> => streakRepo.setCompletion(await getDriver(), id, date, done, streakRepo.DEFAULT_CELL_DAYS);
+
+export const listIdeas = async (opts?: { tag?: string; includePromoted?: boolean }): Promise<Idea[]> =>
+	ideaRepo.list(await getDriver(), opts);
+export const getIdea = async (id: number): Promise<Idea> => ideaRepo.get(await getDriver(), id);
+export const createIdea = async (input: IdeaInput): Promise<Idea> =>
+	ideaRepo.create(await getDriver(), input);
+export const updateIdea = async (id: number, input: IdeaInput): Promise<Idea> =>
+	ideaRepo.update(await getDriver(), id, input);
+export const deleteIdea = async (id: number): Promise<void> => ideaRepo.remove(await getDriver(), id);
+export const promoteIdea = async (id: number, goalId: number): Promise<Idea> =>
+	ideaRepo.promote(await getDriver(), id, goalId);
+export const listIdeaTags = async (): Promise<Tag[]> => ideaRepo.listTags(await getDriver());
