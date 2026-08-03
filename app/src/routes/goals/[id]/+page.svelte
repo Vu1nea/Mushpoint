@@ -7,17 +7,14 @@
 		createTask,
 		deleteGoal,
 		deleteTask,
-		GOAL_STATUS_LABELS,
-		GOAL_STATUSES,
-		setGoalStatus,
 		TIMEFRAME_LABELS,
-		type GoalStatus,
 		type TaskSummary
 	} from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
+	import GoalStatusSegment from '$lib/components/GoalStatusSegment.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
@@ -101,11 +98,6 @@
 		);
 	}
 
-	async function changeStatus(status: GoalStatus) {
-		if (!data.goal || data.goal.status === status) return;
-		await run(() => setGoalStatus(data.goal!.id, status));
-	}
-
 	async function removeGoal() {
 		if (!data.goal) return;
 		busy = true;
@@ -168,7 +160,12 @@
 	{/if}
 
 	<div class="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
-		<div class="rounded-card border border-subtle bg-surface p-4.5 lg:sticky lg:top-0">
+		<div
+			class="rounded-card border border-subtle bg-surface p-4.5 transition-[opacity,filter] duration-[var(--mp-duration-slow)] lg:sticky lg:top-0 {goal.status ===
+			'archived'
+				? 'opacity-75 grayscale-[0.4]'
+				: ''}"
+		>
 			<div class="flex items-center justify-between gap-2">
 				<span
 					class="rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider uppercase"
@@ -222,18 +219,15 @@
 				direct tasks
 			</p>
 
-			<div class="mb-5 flex gap-1.5">
-				{#each GOAL_STATUSES as status (status)}
-					<button
-						type="button"
-						class={segment(goal.status === status)}
-						aria-pressed={goal.status === status}
-						disabled={busy}
-						onclick={() => changeStatus(status)}
-					>
-						{GOAL_STATUS_LABELS[status]}
-					</button>
-				{/each}
+			<div class="mb-5">
+				<GoalStatusSegment
+					goalId={goal.id}
+					title={goal.title}
+					status={goal.status}
+					progress={goal.progress}
+					onMutated={invalidateAll}
+					onError={(error) => (actionError = error)}
+				/>
 			</div>
 
 			<div class="border-t border-subtle pt-4">
