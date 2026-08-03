@@ -9,29 +9,46 @@
 		setTaskStatus,
 		TASK_STATUS_LABELS,
 		TASK_STATUSES,
+		type GoalSummary,
 		type SubgoalDetail,
 		type TaskStatus,
 		type TaskSummary
 	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { groupByStatus } from '$lib/kanban';
-	import { motion } from '$lib/motion';
+	import { motion, stagger } from '$lib/motion';
 	import Icon from './Icon.svelte';
 	import { button, field, sectionHeading } from './ui';
 
 	interface Props {
-		goalId: number;
+		goalId?: number | null;
 		tasks: TaskSummary[];
 		subgoals: SubgoalDetail[];
+		goals?: GoalSummary[];
+		parentChipMode: 'subgoal-only' | 'goal-and-subgoal';
 		onMutated: () => Promise<void> | void;
 		onError: (error: unknown) => void;
 		onEditTask: (task: TaskSummary) => void;
+		onDeleteTask: (task: TaskSummary) => void;
 	}
 
-	let { goalId, tasks, subgoals, onMutated, onError, onEditTask }: Props = $props();
+	let {
+		goalId = null,
+		tasks,
+		subgoals,
+		goals = [],
+		parentChipMode,
+		onMutated,
+		onError,
+		onEditTask,
+		onDeleteTask
+	}: Props = $props();
 
 	let busy = $state(false);
 	let dragOverStatus = $state<TaskStatus | null>(null);
+	/** Set for a moment after a card changes column, to play the move pulse. */
+	let justMovedId = $state<number | null>(null);
+	let moveTimer: ReturnType<typeof setTimeout>;
 	let newTaskTitles = $state<Record<TaskStatus, string>>({
 		todo: '',
 		in_progress: '',
@@ -39,7 +56,22 @@
 	});
 
 	const subgoalNames = $derived(new Map(subgoals.map((s) => [s.id, s.title])));
+	const goalTitles = $derived(new Map(goals.map((g) => [g.id, g.title])));
 	const columns = $derived(groupByStatus(tasks));
+
+	/**
+	 * `'subgoal-only'` (goal-detail page, already scoped to one goal): the
+	 * subgoal name alone, omitted for direct tasks. `'goal-and-subgoal'` (Task
+	 * Manager, no goal in scope): "Goal / Subgoal", "Goal", or nothing.
+	 */
+	function parentLabel(task: TaskSummary): string | null {
+		const subgoalName = task.subgoalId ? (subgoalNames.get(task.subgoalId) ?? null) : null;
+		if (parentChipMode === 'subgoal-only') return subgoalName;
+
+		const goalTitle = task.goalId ? (goalTitles.get(task.goalId) ?? null) : null;
+		if (goalTitle && subgoalName) return `${goalTitle} / ${subgoalName}`;
+		return subgoalName ?? goalTitle;
+	}
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -57,8 +89,14 @@
 	 * A habit (recurrence set) has no lasting `status` — see `taskColumn()` in
 	 * `$lib/kanban` and the rule at `TaskRow.svelte:36-38`. Ticking it logs today's
 	 * completion instead of writing a status, so the streak/heatmap stay in sync.
+	 * This is the single funnel point for every column change (drag, stepper,
+	 * habit pill), so the move-pulse fires uniformly no matter which triggered it.
 	 */
 	function moveTask(task: TaskSummary, status: TaskStatus) {
+		justMovedId = task.id;
+		clearTimeout(moveTimer);
+		moveTimer = setTimeout(() => (justMovedId = null), 500);
+
 		if (task.recurrence) {
 			if (status === 'in_progress') return; // a habit has no in-progress state
 			return run(() => setTaskCompletion(task.id, status === 'done'));
@@ -137,29 +175,50 @@
 				<span class="tabular-nums">{columns[status].length}</span>
 			</h2>
 
-			{#each columns[status] as task (task.id)}
-				{@const subgoalName = task.subgoalId ? subgoalNames.get(task.subgoalId) : null}
+			{#each columns[status] as task, index (task.id)}
+				{@const parent = parentLabel(task)}
 				{@const inert = busy || Boolean(task.recurrence && !task.expectedToday)}
 				<div
-					class="group rounded-card border border-subtle bg-background p-3.5"
+					class="group rounded-card border p-3.5 transition-shadow {justMovedId === task.id
+						? 'mp-pulse border-accent bg-background ring-3 ring-accent/30'
+						: 'mp-enter border-subtle bg-background'}"
+					style="--mp-delay:{stagger(index, 30)}"
 					draggable={!inert}
 					ondragstart={(event) => dragStart(event, task)}
 					animate:flip={{ duration: motion(200) }}
 				>
-					<button
-						type="button"
-						class="block w-full text-left text-sm font-semibold"
-						onclick={() => onEditTask(task)}
-					>
-						{task.title}
-					</button>
+					<div class="flex items-start gap-2">
+						<button
+							type="button"
+							class="block min-w-0 flex-1 text-left text-sm font-semibold"
+							onclick={() => onEditTask(task)}
+						>
+							{task.title}
+						</button>
+
+						<div
+							class="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+						>
+							<button type="button" class={button.bare} onclick={() => onEditTask(task)}>
+								<Icon name="edit" size={13} label="Edit {task.title}" />
+							</button>
+							<button
+								type="button"
+								class={button.bare}
+								disabled={busy}
+								onclick={() => onDeleteTask(task)}
+							>
+								<Icon name="trash" size={13} label="Delete {task.title}" />
+							</button>
+						</div>
+					</div>
 
 					<div class="mt-2 flex flex-wrap items-center gap-2">
-						{#if subgoalName}
+						{#if parent}
 							<span
 								class="max-w-32 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent"
 							>
-								{subgoalName}
+								{parent}
 							</span>
 						{/if}
 						{#if task.recurrence}
@@ -181,33 +240,60 @@
 						{/if}
 					</div>
 
-					<div class="mt-2 flex justify-end gap-1">
-						{#if status !== 'todo'}
+					{#if task.recurrence}
+						{@const label = !task.expectedToday
+							? 'Not due today'
+							: task.completedToday
+								? 'Done today'
+								: 'Do today'}
+						{@const title = !task.expectedToday
+							? 'No occurrence expected today'
+							: task.completedToday
+								? 'Undo today'
+								: 'Mark done for today'}
+						<div class="mt-2 flex justify-end">
 							<button
 								type="button"
-								class={button.bare}
+								class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-semibold transition-colors disabled:opacity-50 {task.expectedToday &&
+								task.completedToday
+									? 'bg-accent-secondary/20 text-accent-secondary hover:bg-accent-secondary/30'
+									: 'bg-surface-raised text-muted hover:text-content'}"
 								disabled={inert}
-								onclick={() => step(task, -1)}
+								{title}
+								onclick={() => moveTask(task, task.completedToday ? 'todo' : 'done')}
 							>
-								<Icon
-									name="chevron-right"
-									size={13}
-									class="rotate-180"
-									label="Move {task.title} left"
-								/>
+								{label}
 							</button>
-						{/if}
-						{#if status !== 'done'}
-							<button
-								type="button"
-								class={button.bare}
-								disabled={inert}
-								onclick={() => step(task, 1)}
-							>
-								<Icon name="chevron-right" size={13} label="Move {task.title} right" />
-							</button>
-						{/if}
-					</div>
+						</div>
+					{:else}
+						<div class="mt-2 flex justify-end gap-1">
+							{#if status !== 'todo'}
+								<button
+									type="button"
+									class={button.bare}
+									disabled={inert}
+									onclick={() => step(task, -1)}
+								>
+									<Icon
+										name="chevron-right"
+										size={13}
+										class="rotate-180"
+										label="Move {task.title} left"
+									/>
+								</button>
+							{/if}
+							{#if status !== 'done'}
+								<button
+									type="button"
+									class={button.bare}
+									disabled={inert}
+									onclick={() => step(task, 1)}
+								>
+									<Icon name="chevron-right" size={13} label="Move {task.title} right" />
+								</button>
+							{/if}
+						</div>
+					{/if}
 				</div>
 			{/each}
 

@@ -6,6 +6,7 @@
 		createSubgoal,
 		createTask,
 		deleteGoal,
+		deleteTask,
 		GOAL_STATUS_LABELS,
 		GOAL_STATUSES,
 		setGoalStatus,
@@ -37,6 +38,7 @@
 	let deleteOrphanedTasks = $state(false);
 	let view = $state<'list' | 'kanban'>('list');
 	let editingTask = $state<TaskSummary | null>(null);
+	let deletingTask = $state<TaskSummary | null>(null);
 	let drawerOpen = $state(false);
 
 	let newSubgoalTitle = $state('');
@@ -115,6 +117,13 @@
 			busy = false;
 			confirmingDelete = false;
 		}
+	}
+
+	async function removeTask() {
+		const task = deletingTask;
+		if (!task) return;
+		deletingTask = null;
+		await run(() => deleteTask(task.id));
 	}
 
 	// Per-goal display preference only — not domain data, so it never touches
@@ -330,9 +339,11 @@
 					goalId={goal.id}
 					tasks={boardTasks}
 					subgoals={goal.subgoals}
+					parentChipMode="subgoal-only"
 					onMutated={invalidateAll}
 					onError={(error) => (actionError = error)}
 					onEditTask={editTask}
+					onDeleteTask={(task) => (deletingTask = task)}
 				/>
 			{/if}
 		</div>
@@ -379,4 +390,13 @@
 			/>
 		{/if}
 	</ConfirmDialog>
+
+	<ConfirmDialog
+		open={deletingTask !== null}
+		title={`Delete "${deletingTask?.title ?? ''}"?`}
+		body="The task is removed from the board. This cannot be undone."
+		{busy}
+		onConfirm={removeTask}
+		onCancel={() => (deletingTask = null)}
+	/>
 {/if}
