@@ -36,7 +36,8 @@
 		timeframe: 'short' as Timeframe,
 		motivationText: '',
 		description: '',
-		dueDate: ''
+		dueDate: '',
+		repoUrl: ''
 	});
 
 	// Each opening starts from the record being edited, or from a blank goal.
@@ -50,7 +51,8 @@
 			timeframe: goal?.timeframe ?? 'short',
 			motivationText: goal?.motivationText ?? '',
 			description: goal?.description ?? '',
-			dueDate: goal?.dueDate ?? ''
+			dueDate: goal?.dueDate ?? '',
+			repoUrl: goal?.repoUrl ?? ''
 		};
 	});
 
@@ -70,7 +72,8 @@
 			timeframe: form.timeframe,
 			dueDate: form.dueDate || null,
 			motivationText: form.motivationText.trim() || null,
-			motivationImagePath: goal?.motivationImagePath ?? null
+			motivationImagePath: goal?.motivationImagePath ?? null,
+			repoUrl: form.repoUrl.trim() || null
 		};
 
 		try {
@@ -158,6 +161,17 @@
 			bind:value={form.description}
 			placeholder="What finishing looks like…"
 		></textarea>
+	</div>
+
+	<div>
+		<label class={field.label} for="goal-repo">Repository URL (optional)</label>
+		<input
+			id="goal-repo"
+			type="text"
+			class={field.input}
+			bind:value={form.repoUrl}
+			placeholder="https://github.com/you/project"
+		/>
 	</div>
 
 	<div>

@@ -1,4 +1,4 @@
-/** Mirrors app/src-tauri/migrations/0001_initial.sql + 0002_streaks.sql exactly.
+/** Mirrors app/src-tauri/migrations/0001_initial.sql + 0002_streaks.sql + 0003_repo_url.sql exactly.
  * Used only to build the in-memory schema for vitest; the real app applies
  * these same statements through the Rust plugin-sql migration registration in
  * src-tauri/src/lib.rs. Keep the two in sync when adding a migration. */
@@ -22,6 +22,7 @@ CREATE TABLE goals (
     due_date              TEXT,
     motivation_text       TEXT,
     motivation_image_path TEXT,
+    repo_url              TEXT,
     created_at            TEXT    NOT NULL,
     updated_at            TEXT    NOT NULL
 );

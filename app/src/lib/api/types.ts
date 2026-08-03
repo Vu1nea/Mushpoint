@@ -58,6 +58,7 @@ export interface Goal {
 	dueDate: string | null;
 	motivationText: string | null;
 	motivationImagePath: string | null;
+	repoUrl: string | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -70,6 +71,7 @@ export interface GoalInput {
 	dueDate: string | null;
 	motivationText: string | null;
 	motivationImagePath: string | null;
+	repoUrl: string | null;
 }
 
 export interface Subgoal {

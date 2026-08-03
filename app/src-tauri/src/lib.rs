@@ -24,6 +24,12 @@ fn migrations() -> Vec<Migration> {
             sql: include_str!("../migrations/0002_streaks.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "goal_repo_url",
+            sql: include_str!("../migrations/0003_repo_url.sql"),
+            kind: MigrationKind::Up,
+        },
     ]
 }
 
@@ -35,6 +41,7 @@ pub fn run() {
                 .add_migrations(SQL_CONNECTION, migrations())
                 .build(),
         )
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
