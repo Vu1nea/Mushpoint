@@ -35,7 +35,7 @@
 	<DashboardGoalsPanel
 		goals={data.goals}
 		categories={data.categories}
-		class="mp-enter lg:col-span-7 lg:row-span-2 lg:col-start-1 lg:row-start-1"
+		class="mp-enter lg:col-span-7 lg:col-start-1 lg:row-start-1"
 	/>
 	<DashboardVisionPreview
 		items={data.visionItems}
@@ -45,17 +45,18 @@
 		tasks={data.tasks}
 		onMutated={invalidateAll}
 		{onError}
-		class="mp-enter lg:col-span-5 lg:col-start-8 lg:row-start-2"
+		class="mp-enter lg:col-span-4 lg:col-start-1 lg:row-start-2"
 	/>
 	<DashboardStreaks
 		streaks={data.streaks}
-		class="mp-enter lg:col-span-6 lg:col-start-1 lg:row-start-3"
+		class="mp-enter lg:col-span-4 lg:col-start-5 lg:row-start-2"
 	/>
 	<DashboardUpcoming
 		goals={data.goals}
 		subgoals={data.subgoals}
 		tasks={data.tasks}
-		class="mp-enter lg:col-span-6 lg:col-start-7 lg:row-start-3"
+		class="mp-enter lg:col-span-4 lg:col-start-9 lg:row-start-2"
 	/>
-	<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter lg:col-span-12 lg:row-start-4" />
 </div>
+
+<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter mt-4" />

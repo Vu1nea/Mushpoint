@@ -58,7 +58,7 @@
 
 <form
 	onsubmit={submit}
-	class="flex flex-col items-stretch gap-3 rounded-card border border-subtle bg-surface p-3.5 sm:flex-row sm:items-center {className}"
+	class="flex flex-col items-stretch gap-2 rounded-card border border-subtle bg-surface p-2.5 sm:flex-row sm:items-center {className}"
 >
 	<div class="flex w-full shrink-0 gap-1.5 sm:w-auto" role="group" aria-label="Quick-add type">
 		{#each KINDS as option (option.value)}
