@@ -107,7 +107,12 @@ export const updateVisionItem = async (id: number, input: VisionItemInput): Prom
 	const existing = await visionItemRepo.get(driver, id);
 	const saved = await visionItemRepo.update(driver, id, input);
 	if (existing.imagePath && existing.imagePath !== input.imagePath) {
-		await deleteImage(existing.imagePath);
+		try {
+			await deleteImage(existing.imagePath);
+		} catch {
+			// Best-effort: the DB row is already correct; a failed cleanup here
+			// just leaves an orphaned file, which is harmless.
+		}
 	}
 	return saved;
 };

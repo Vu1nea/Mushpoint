@@ -41,14 +41,13 @@
 		dragId = null;
 		if (busy || !sourceId || sourceId === target.id) return;
 
-		const source = items.find((i) => i.id === sourceId);
-		if (!source) return;
+		const from = items.findIndex((i) => i.id === sourceId);
+		const to = items.findIndex((i) => i.id === target.id);
+		if (from < 0 || to < 0) return;
 
-		const withoutSource = items.filter((i) => i.id !== sourceId);
-		const targetIndex = withoutSource.findIndex((i) => i.id === target.id);
-		withoutSource.splice(targetIndex, 0, source);
-
-		onReorder(withoutSource.map((i) => i.id));
+		const reordered = [...items];
+		reordered.splice(to, 0, ...reordered.splice(from, 1));
+		onReorder(reordered.map((i) => i.id));
 	}
 </script>
 
@@ -66,7 +65,7 @@
 	<div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
 		<button
 			type="button"
-			class="mb-4 flex h-32 w-full items-center justify-center rounded-card border border-dashed border-subtle text-muted transition-colors hover:border-accent/60 hover:text-content"
+			class="mb-4 flex h-32 w-full break-inside-avoid items-center justify-center rounded-card border border-dashed border-subtle text-muted transition-colors hover:border-accent/60 hover:text-content"
 			onclick={onAddNew}
 		>
 			<Icon name="plus" size={20} weight={2} label="Add to Vision Board" />
@@ -77,12 +76,13 @@
 				class="group mb-4 break-inside-avoid rounded-card border p-3 transition-colors {dragOverId ===
 				item.id
 					? 'border-accent bg-accent/5'
-					: 'border-subtle bg-surface'}"
+					: 'mp-enter border-subtle bg-surface'}"
 				style="--mp-delay:{stagger(index, 30)}"
 				draggable={!busy}
 				ondragstart={(event) => dragStart(event, item)}
 				ondragover={(event) => dragOver(event, item)}
 				ondragleave={() => dragLeave(item)}
+				ondragend={() => (dragId = null)}
 				ondrop={(event) => drop(event, item)}
 			>
 				{#if item.imagePath}
