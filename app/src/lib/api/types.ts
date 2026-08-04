@@ -118,6 +118,20 @@ export interface IdeaInput {
 	tagNames: string[];
 }
 
+export interface VisionItem {
+	id: number;
+	imagePath: string | null;
+	quoteText: string | null;
+	position: number;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface VisionItemInput {
+	imagePath: string | null;
+	quoteText: string | null;
+}
+
 export interface Task {
 	id: number;
 	title: string;
