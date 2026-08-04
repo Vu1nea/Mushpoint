@@ -110,12 +110,13 @@
 		<label class={field.label} for="vision-quote">Quote (optional)</label>
 		<textarea
 			id="vision-quote"
-			class="{field.input} resize-y {shake ? 'mp-shake' : ''}"
+			class="{field.input} resize-y {contentMissing ? 'border-warn' : ''} {shake ? 'mp-shake' : ''}"
 			rows="3"
 			bind:value={form.quoteText}
 			oninput={() => (contentMissing = false)}
 			onanimationend={() => (shake = false)}
 			placeholder="A line worth seeing every day…"
+			aria-invalid={contentMissing}
 		></textarea>
 	</div>
 
