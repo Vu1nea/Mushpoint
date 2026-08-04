@@ -16,7 +16,7 @@
 	const today = $derived(todaysTasks(tasks));
 </script>
 
-<section class="flex flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
+<section class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
 	<h2 class="{sectionHeading} mb-3">Today's tasks</h2>
 
 	{#if today.length === 0}

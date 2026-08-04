@@ -28,7 +28,7 @@
 	});
 </script>
 
-<section class="flex flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
+<section class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
 	<div class="mb-4 flex items-center justify-between gap-2">
 		<h2 class={sectionHeading}>Active goals</h2>
 		<a href="/goals" class="text-xs font-semibold text-muted transition-colors hover:text-content">

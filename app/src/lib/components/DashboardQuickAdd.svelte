@@ -58,9 +58,9 @@
 
 <form
 	onsubmit={submit}
-	class="flex items-center gap-3 rounded-card border border-subtle bg-surface p-3.5 {className}"
+	class="flex flex-col items-stretch gap-3 rounded-card border border-subtle bg-surface p-3.5 sm:flex-row sm:items-center {className}"
 >
-	<div class="flex w-44 shrink-0 gap-1.5" role="group" aria-label="Quick-add type">
+	<div class="flex w-full shrink-0 gap-1.5 sm:w-auto" role="group" aria-label="Quick-add type">
 		{#each KINDS as option (option.value)}
 			<button
 				type="button"
@@ -80,6 +80,7 @@
 		type="text"
 		bind:value={title}
 		placeholder="Quick-add a {kind}…"
+		aria-label="Quick-add title"
 		disabled={submitting}
 		class={field.input}
 	/>

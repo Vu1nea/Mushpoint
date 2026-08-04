@@ -31,7 +31,7 @@
 	<div class="mb-6"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
 {/if}
 
-<div class="grid grid-cols-1 gap-4 lg:auto-rows-[minmax(160px,auto)] lg:grid-cols-12">
+<div class="grid grid-cols-1 gap-4 lg:auto-rows-[minmax(160px,320px)] lg:grid-cols-12">
 	<DashboardGoalsPanel
 		goals={data.goals}
 		categories={data.categories}

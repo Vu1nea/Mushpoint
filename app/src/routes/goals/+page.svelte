@@ -6,7 +6,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import ProgressRing from '$lib/components/ProgressRing.svelte';
 	import Select from '$lib/components/Select.svelte';
-	import { button, chip, lift, sectionHeading } from '$lib/components/ui';
+	import { button, chip, DUE_CLASSES, lift, sectionHeading } from '$lib/components/ui';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
@@ -19,13 +19,6 @@
 		{ value: 'archived', label: 'Archived' },
 		{ value: 'all', label: 'All' }
 	];
-
-	const DUE_CLASSES = {
-		none: 'text-muted',
-		later: 'text-muted',
-		soon: 'font-semibold text-accent-tertiary',
-		overdue: 'font-bold text-warn'
-	};
 
 	/** Status feedback on the card itself — the "All" filter mixes every status together. */
 	const STATUS_CLASSES: Record<GoalStatus, string> = {

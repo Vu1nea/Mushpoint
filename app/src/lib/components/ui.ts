@@ -7,8 +7,18 @@
  * the reference design — when the two disagree, the mockup wins.
  */
 
+import type { DueTone } from '$lib/format';
+
 const focusRing =
 	'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
+
+/** Due-date color by urgency — shared by every goal/subgoal/task list that shows a due label. */
+export const DUE_CLASSES: Record<DueTone, string> = {
+	none: 'text-muted',
+	later: 'text-muted',
+	soon: 'font-semibold text-accent-tertiary',
+	overdue: 'font-bold text-warn'
+};
 
 export const button = {
 	/** The one loud action per screen: "New Goal", "New Task", drawer submit. */

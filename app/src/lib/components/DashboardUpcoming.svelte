@@ -2,7 +2,7 @@
 	import type { GoalSummary, Subgoal, TaskSummary } from '$lib/api';
 	import { buildUpcomingFeed } from '$lib/dashboard';
 	import { dueLabel, dueTone } from '$lib/format';
-	import { sectionHeading } from './ui';
+	import { DUE_CLASSES, sectionHeading } from './ui';
 
 	interface Props {
 		goals: GoalSummary[];
@@ -13,19 +13,12 @@
 
 	let { goals, subgoals, tasks, class: className = '' }: Props = $props();
 
-	const DUE_CLASSES = {
-		none: 'text-muted',
-		later: 'text-muted',
-		soon: 'font-semibold text-accent-tertiary',
-		overdue: 'font-bold text-warn'
-	};
-
 	const KIND_LABELS = { goal: 'Goal', subgoal: 'Subgoal', task: 'Task' };
 
 	const upcoming = $derived(buildUpcomingFeed(goals, subgoals, tasks).slice(0, 8));
 </script>
 
-<section class="flex flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
+<section class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
 	<h2 class="{sectionHeading} mb-3">Upcoming</h2>
 
 	{#if upcoming.length === 0}

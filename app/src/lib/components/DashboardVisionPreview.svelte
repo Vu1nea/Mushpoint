@@ -32,7 +32,7 @@
 			<span class={button.ghost}>Open board</span>
 		</div>
 	{:else}
-		<div class="grid flex-1 grid-cols-2 grid-rows-2 gap-1.5 overflow-hidden rounded-control">
+		<div class="grid aspect-[16/10] min-h-0 grid-cols-2 grid-rows-2 gap-1.5 overflow-hidden rounded-control">
 			{#each preview as item (item.id)}
 				<VisionImage path={item.imagePath} alt="" class="h-full w-full object-cover" />
 			{/each}
