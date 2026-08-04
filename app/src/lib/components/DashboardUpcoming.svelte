@@ -31,7 +31,7 @@
 						{KIND_LABELS[item.kind]}
 					</span>
 					{#if item.href}
-						<a href={item.href} class="min-w-0 flex-1 truncate hover:text-accent">
+						<a href={item.href} class="min-w-0 flex-1 truncate">
 							{item.title}
 							{#if item.parentLabel}
 								<span class="text-muted">· {item.parentLabel}</span>

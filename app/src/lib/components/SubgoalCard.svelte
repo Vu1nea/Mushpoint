@@ -15,9 +15,10 @@
 		subgoal: SubgoalDetail;
 		onMutated: () => Promise<void> | void;
 		onError: (error: unknown) => void;
+		delay?: string;
 	}
 
-	let { subgoal, onMutated, onError }: Props = $props();
+	let { subgoal, onMutated, onError, delay = '0ms' }: Props = $props();
 
 	let expanded = $state(false);
 	let busy = $state(false);
@@ -81,6 +82,7 @@
 						showValue={false}
 						height={6}
 						color="var(--mp-accent-secondary)"
+						{delay}
 					/>
 				</div>
 			</div>

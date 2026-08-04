@@ -5,7 +5,7 @@
 	import { categoryColor } from '$lib/theme/category';
 	import Icon from './Icon.svelte';
 	import ProgressBar from './ProgressBar.svelte';
-	import { sectionHeading, lift } from './ui';
+	import { sectionHeading } from './ui';
 
 	interface Props {
 		goals: GoalSummary[];
@@ -51,7 +51,7 @@
 						<li class="mp-enter" style="--mp-delay:{stagger(index)}">
 							<a
 								href="/goals/{goal.id}"
-								class="flex flex-col gap-1 rounded-control px-1 py-1 {lift}"
+								class="flex flex-col gap-1 rounded-control px-1 py-1 transition-transform duration-150 hover:-translate-y-px"
 							>
 								<span class="flex items-center justify-between gap-2">
 									<span class="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-semibold">
@@ -62,7 +62,13 @@
 									</span>
 									<span class="shrink-0 text-xs text-muted tabular-nums">{percent(goal.progress)}</span>
 								</span>
-								<ProgressBar value={goal.progress} height={5} color={group.color} showValue={false} />
+								<ProgressBar
+									value={goal.progress}
+									height={5}
+									color={group.color}
+									showValue={false}
+									delay={stagger(index)}
+								/>
 							</a>
 						</li>
 					{/each}

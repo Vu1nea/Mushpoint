@@ -291,6 +291,7 @@
 									{subgoal}
 									onMutated={invalidateAll}
 									onError={(error) => (actionError = error)}
+									delay={stagger(index)}
 								/>
 							</div>
 						{/each}
