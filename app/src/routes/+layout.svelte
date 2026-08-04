@@ -12,14 +12,15 @@
 	let { children } = $props();
 
 	/**
-	 * Sidebar entries for the screens that exist. The design also lists Dashboard,
-	 * Project Manager and Vision Board; each is added here as its phase ships,
-	 * rather than shipping a link that goes nowhere.
+	 * Sidebar entries for the screens that exist. Dashboard (phase 7) is added
+	 * here once it ships. There is no separate Project Manager screen — see
+	 * the Architectural Pivot note in `docs/plans/goal_tracker_plan.md`.
 	 */
 	const NAV: { href: string; label: string; icon: IconName }[] = [
 		{ href: '/goals', label: 'Goal Tracker', icon: 'goal' },
 		{ href: '/tasks', label: 'Task Manager', icon: 'task' },
 		{ href: '/ideas', label: 'Idea Vault', icon: 'idea' },
+		{ href: '/vision-board', label: 'Vision Board', icon: 'vision' },
 		{ href: '/settings', label: 'Settings', icon: 'settings' }
 	];
 
