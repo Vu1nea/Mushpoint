@@ -279,7 +279,10 @@
 
 			{#if view === 'list'}
 				<section class="mb-8">
-					<h2 class="{sectionHeading} mb-3.5">Subgoals</h2>
+					<h2 class="{sectionHeading} mb-1.5">Subgoals</h2>
+					<p class="mb-3.5 text-sm text-muted">
+						Milestones toward the goal — each one can hold its own tasks and due date.
+					</p>
 
 					<div class="mb-4 flex flex-col gap-2.5">
 						{#each goal.subgoals as subgoal, index (subgoal.id)}
@@ -295,7 +298,7 @@
 
 					<form class="flex gap-2" onsubmit={addSubgoal}>
 						<input
-							class="{field.dashed} min-w-0 flex-1"
+							class="{field.dashed} min-w-0 max-w-100 flex-1"
 							bind:value={newSubgoalTitle}
 							placeholder="+ Add subgoal…"
 							aria-label="New subgoal"

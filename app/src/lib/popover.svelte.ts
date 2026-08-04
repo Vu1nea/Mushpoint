@@ -31,6 +31,17 @@ export class Popover {
 		this.left = rect.left;
 		this.width = rect.width;
 	}
+
+	/**
+	 * Nudge the panel back on-screen once its real width is known (after it
+	 * mounts) — anchors near the right edge would otherwise run the panel off
+	 * the viewport, since #place only knows the anchor's position, not the
+	 * panel's own size.
+	 */
+	clampHorizontal(panelWidth: number, margin = 8) {
+		const maxLeft = window.innerWidth - panelWidth - margin;
+		this.left = Math.max(margin, Math.min(this.left, maxLeft));
+	}
 }
 
 /** Reparents the node to <body> on mount, removes it on destroy. */

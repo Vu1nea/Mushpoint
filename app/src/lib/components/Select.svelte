@@ -57,6 +57,13 @@
 		document.getElementById(`${listboxId}-${option.value}`)?.scrollIntoView({ block: 'nearest' });
 	});
 
+	// Pull the panel back on-screen once it's mounted — a trigger near the
+	// right edge can otherwise position it partly off the viewport.
+	$effect(() => {
+		if (!popover.open || !panel) return;
+		popover.clampHorizontal(panel.getBoundingClientRect().width);
+	});
+
 	function openPanel() {
 		if (disabled || !trigger) return;
 		const index = flat.findIndex((option) => option.value === value);

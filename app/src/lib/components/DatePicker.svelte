@@ -81,6 +81,14 @@
 		popover.hide();
 	}
 
+	// Pull the panel back on-screen once it's mounted — a trigger near the
+	// right edge can otherwise position the fixed-width calendar partly off
+	// the viewport.
+	$effect(() => {
+		if (!popover.open || !panel) return;
+		popover.clampHorizontal(panel.getBoundingClientRect().width);
+	});
+
 	function pickDay(day: CalendarDay) {
 		value = day.iso;
 		closePanel();
