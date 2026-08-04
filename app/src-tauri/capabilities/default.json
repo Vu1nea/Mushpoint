@@ -8,6 +8,23 @@
 		"sql:default",
 		"sql:allow-execute",
 		"opener:allow-open-url",
-		"opener:allow-default-urls"
+		"opener:allow-default-urls",
+		"dialog:allow-open",
+		{
+			"identifier": "fs:allow-mkdir",
+			"allow": [{ "path": "$APPDATA/images" }]
+		},
+		{
+			"identifier": "fs:allow-copy-file",
+			"allow": [{ "path": "$APPDATA/images/**" }]
+		},
+		{
+			"identifier": "fs:allow-exists",
+			"allow": [{ "path": "$APPDATA/images/**" }]
+		},
+		{
+			"identifier": "fs:allow-remove",
+			"allow": [{ "path": "$APPDATA/images/**" }]
+		}
 	]
 }
