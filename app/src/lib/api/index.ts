@@ -1,11 +1,13 @@
 import { getDriver } from '../db/connection';
 import { AppError } from '../db/error';
+import { deleteImage } from '../images';
 import * as categoryRepo from '../db/repo/category';
 import * as goalRepo from '../db/repo/goal';
 import * as ideaRepo from '../db/repo/idea';
 import * as subgoalRepo from '../db/repo/subgoal';
 import * as taskRepo from '../db/repo/task';
 import * as streakRepo from '../db/repo/streak';
+import * as visionItemRepo from '../db/repo/visionItem';
 import type {
 	Category,
 	CategoryInput,
@@ -25,7 +27,9 @@ import type {
 	TaskInput,
 	TaskStatus,
 	TaskSummary,
-	TaskUpdate
+	TaskUpdate,
+	VisionItem,
+	VisionItemInput
 } from './types';
 
 export * from './types';
@@ -89,3 +93,32 @@ export const deleteIdea = async (id: number): Promise<void> => ideaRepo.remove(a
 export const promoteIdea = async (id: number, goalId: number): Promise<Idea> =>
 	ideaRepo.promote(await getDriver(), id, goalId);
 export const listIdeaTags = async (): Promise<Tag[]> => ideaRepo.listTags(await getDriver());
+
+export const listVisionItems = async (): Promise<VisionItem[]> =>
+	visionItemRepo.list(await getDriver());
+export const createVisionItem = async (input: VisionItemInput): Promise<VisionItem> =>
+	visionItemRepo.create(await getDriver(), input);
+/** Updates the DB row first, then best-effort deletes the old image file if
+ * it was replaced or removed — in that order so a failed file delete never
+ * leaves a live record pointing at nothing, at the cost of occasionally
+ * leaking a now-unreferenced file on disk. */
+export const updateVisionItem = async (id: number, input: VisionItemInput): Promise<VisionItem> => {
+	const driver = await getDriver();
+	const existing = await visionItemRepo.get(driver, id);
+	const saved = await visionItemRepo.update(driver, id, input);
+	if (existing.imagePath && existing.imagePath !== input.imagePath) {
+		await deleteImage(existing.imagePath);
+	}
+	return saved;
+};
+/** Deletes the backing image file before the row, so a failed file delete
+ * leaves the record intact (and thus retryable) rather than orphaning a
+ * file with no row left to reference it. */
+export const deleteVisionItem = async (id: number): Promise<void> => {
+	const driver = await getDriver();
+	const item = await visionItemRepo.get(driver, id);
+	if (item.imagePath) await deleteImage(item.imagePath);
+	await visionItemRepo.remove(driver, id);
+};
+export const reorderVisionItems = async (orderedIds: number[]): Promise<void> =>
+	visionItemRepo.reorder(await getDriver(), orderedIds);
