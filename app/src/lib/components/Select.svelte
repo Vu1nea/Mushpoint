@@ -112,15 +112,23 @@
 		if (popover.open && isOutside(event, root, panel)) closePanel();
 	}
 
-	function onWindowScrollOrResize() {
+	function onWindowScroll(event: Event) {
+		if (!popover.open) return;
+		// Ignore the listbox's own scroll (e.g. scrollIntoView on open/arrow-nav) —
+		// only an outside scroll should close the panel.
+		if (panel?.contains(event.target as Node)) return;
+		closePanel();
+	}
+
+	function onWindowResize() {
 		if (popover.open) closePanel();
 	}
 </script>
 
 <svelte:window
 	onmousedown={onWindowMousedown}
-	onscrollcapture={onWindowScrollOrResize}
-	onresize={onWindowScrollOrResize}
+	onscrollcapture={onWindowScroll}
+	onresize={onWindowResize}
 />
 
 <div class="relative {className}" bind:this={root}>
@@ -186,6 +194,7 @@
 		class="fixed z-50 max-h-70 overflow-y-auto rounded-control border border-subtle bg-surface-raised py-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.3)]"
 		style="top: {popover.top}px; left: {popover.left}px; width: {popover.width}px;"
 		transition:scale={{ start: 0.92, duration: motion(160), easing: backOut }}
+		onmousedown={(event) => event.preventDefault()}
 	>
 		{#each options as item, index (isGroup(item) ? `group-${index}` : item.value)}
 			{#if isGroup(item)}
