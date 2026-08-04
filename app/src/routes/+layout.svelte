@@ -12,11 +12,12 @@
 	let { children } = $props();
 
 	/**
-	 * Sidebar entries for the screens that exist. Dashboard (phase 7) is added
-	 * here once it ships. There is no separate Project Manager screen — see
-	 * the Architectural Pivot note in `docs/plans/goal_tracker_plan.md`.
+	 * Sidebar entries for the screens that exist. There is no separate Project
+	 * Manager screen — see the Architectural Pivot note in
+	 * `docs/plans/goal_tracker_plan.md`.
 	 */
 	const NAV: { href: string; label: string; icon: IconName }[] = [
+		{ href: '/', label: 'Dashboard', icon: 'dashboard' },
 		{ href: '/goals', label: 'Goal Tracker', icon: 'goal' },
 		{ href: '/tasks', label: 'Task Manager', icon: 'task' },
 		{ href: '/ideas', label: 'Idea Vault', icon: 'idea' },
@@ -40,7 +41,7 @@
 		localStorage.setItem(SIDEBAR_KEY, String(sidebarOpen));
 	}
 
-	const isCurrent = (href: string) => page.url.pathname.startsWith(href);
+	const isCurrent = (href: string) => (href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href));
 
 	const otherTheme = $derived(theme.current === 'nocturne' ? 'coquette' : 'nocturne');
 

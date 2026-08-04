@@ -1,4 +1,17 @@
-import { redirect } from '@sveltejs/kit';
+import { listCategories, listGoals, listStreaks, listSubgoals, listTasks, listVisionItems } from '$lib/api';
 
-// The Dashboard lands in a later phase; Goals is the app's home until then.
-export const load = () => redirect(307, '/goals');
+export const load = async () => {
+	try {
+		const [categories, goals, subgoals, tasks, streaks, visionItems] = await Promise.all([
+			listCategories(),
+			listGoals('active'),
+			listSubgoals(),
+			listTasks(),
+			listStreaks(),
+			listVisionItems()
+		]);
+		return { categories, goals, subgoals, tasks, streaks, visionItems, error: null };
+	} catch (error) {
+		return { categories: [], goals: [], subgoals: [], tasks: [], streaks: [], visionItems: [], error };
+	}
+};
