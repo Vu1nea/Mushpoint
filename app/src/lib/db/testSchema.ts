@@ -1,4 +1,4 @@
-/** Mirrors app/src-tauri/migrations/0001_initial.sql + 0002_streaks.sql + 0003_repo_url.sql + 0004_ideas.sql exactly.
+/** Mirrors app/src-tauri/migrations/0001_initial.sql + 0002_streaks.sql + 0003_repo_url.sql + 0004_ideas.sql + 0005_vision_items.sql exactly.
  * Used only to build the in-memory schema for vitest; the real app applies
  * these same statements through the Rust plugin-sql migration registration in
  * src-tauri/src/lib.rs. Keep the two in sync when adding a migration. */
@@ -108,4 +108,15 @@ CREATE TABLE idea_tag_links (
     PRIMARY KEY (idea_id, tag_id)
 );
 CREATE INDEX idx_idea_tag_links_tag ON idea_tag_links(tag_id);
+
+CREATE TABLE vision_items (
+    id           INTEGER PRIMARY KEY,
+    image_path   TEXT,
+    quote_text   TEXT,
+    position     INTEGER NOT NULL,
+    created_at   TEXT    NOT NULL,
+    updated_at   TEXT    NOT NULL,
+    CHECK (image_path IS NOT NULL OR quote_text IS NOT NULL)
+);
+CREATE INDEX idx_vision_items_position ON vision_items(position);
 `;
