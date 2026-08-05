@@ -58,7 +58,7 @@
 		<div
 			class="h-full w-full rounded-full"
 			style="background:{color}; transform: translateX({(shown - 1) *
-				100}%); transition: transform 0.9s var(--mp-ease-bounce) {delay};"
+				100}%); transition: transform 0.9s var(--mp-ease-out) {delay};"
 		></div>
 	</div>
 	{#if showValue}
