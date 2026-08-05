@@ -71,6 +71,7 @@ pub fn run() {
             // plugin's own migration run.
             let db_path = app.path().app_config_dir()?.join(DATABASE_FILE);
             tauri::async_runtime::block_on(db_baseline::baseline_if_needed(&db_path))?;
+            tauri::async_runtime::block_on(db_baseline::repair_line_ending_checksums(&db_path))?;
 
             Ok(())
         })

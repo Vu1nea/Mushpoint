@@ -109,6 +109,72 @@ CREATE TABLE IF NOT EXISTS _sqlx_migrations (
     Ok(())
 }
 
+/// Repairs `_sqlx_migrations` rows whose stored checksum only disagrees with
+/// the current migration file because of a line-ending flip (CRLF <-> LF) —
+/// e.g. `core.autocrlf` re-checking out a migration file with different byte
+/// endings than when it was first applied. sqlx checksums raw file bytes, so
+/// that flip alone makes it report "migration N was previously applied but
+/// has been modified" even though the SQL never changed.
+///
+/// For each shipped migration, if the stored checksum doesn't match the
+/// current file bytes but does match a line-ending-normalized variant of it,
+/// the stored checksum is updated to the current bytes. A genuinely edited
+/// migration won't match either normalized variant and is left alone, so
+/// sqlx's real tamper check still fires for that case.
+pub async fn repair_line_ending_checksums(path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    if !path.exists() {
+        return Ok(());
+    }
+
+    let mut conn = SqliteConnectOptions::new().filename(path).connect().await?;
+    if !table_exists(&mut conn, "_sqlx_migrations").await? {
+        conn.close().await?;
+        return Ok(());
+    }
+
+    let migrations: [(i64, &str); 5] = [
+        (1, include_str!("../migrations/0001_initial.sql")),
+        (2, include_str!("../migrations/0002_streaks.sql")),
+        (3, include_str!("../migrations/0003_repo_url.sql")),
+        (4, include_str!("../migrations/0004_ideas.sql")),
+        (5, include_str!("../migrations/0005_vision_items.sql")),
+    ];
+
+    for (version, sql) in migrations {
+        let stored: Option<(Vec<u8>,)> =
+            sqlx::query_as("SELECT checksum FROM _sqlx_migrations WHERE version = ?1")
+                .bind(version)
+                .fetch_optional(&mut conn)
+                .await?;
+        let Some((stored,)) = stored else { continue };
+
+        let current = Sha384::digest(sql.as_bytes()).to_vec();
+        if stored == current {
+            continue;
+        }
+
+        let as_lf = sql.replace("\r\n", "\n");
+        let as_crlf = as_lf.replace('\n', "\r\n");
+        let matches_lf = stored == Sha384::digest(as_lf.as_bytes()).to_vec();
+        let matches_crlf = stored == Sha384::digest(as_crlf.as_bytes()).to_vec();
+
+        if matches_lf || matches_crlf {
+            sqlx::query("UPDATE _sqlx_migrations SET checksum = ?1 WHERE version = ?2")
+                .bind(&current)
+                .bind(version)
+                .execute(&mut conn)
+                .await?;
+            log::info!(
+                "repaired line-ending-only checksum drift for migration {version}"
+            );
+        }
+        // else: genuinely different content — leave it for sqlx's real check to catch.
+    }
+
+    conn.close().await?;
+    Ok(())
+}
+
 async fn table_exists(
     conn: &mut SqliteConnection,
     name: &str,
@@ -450,6 +516,158 @@ mod tests {
             assert_eq!(categories.0, 5, "data must survive the real migrator run");
 
             pool.close().await;
+        });
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// Reproduces the actual bug: a migration applied while its file had one
+    /// line-ending style, then re-checked-out with the other (e.g.
+    /// `core.autocrlf` flipping CRLF <-> LF). sqlx checksums raw bytes, so
+    /// this alone makes it report the migration as "modified" even though
+    /// the SQL is byte-identical apart from line endings.
+    #[test]
+    fn repairs_a_checksum_that_only_differs_by_line_endings() {
+        let dir = std::env::temp_dir().join(format!(
+            "mushtrack-repair-lineendings-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("drifted.sqlite3");
+        let _ = std::fs::remove_file(&path);
+
+        let current_sql = include_str!("../migrations/0001_initial.sql");
+        let flipped_sql = if current_sql.contains("\r\n") {
+            current_sql.replace("\r\n", "\n")
+        } else {
+            current_sql.replace('\n', "\r\n")
+        };
+
+        tauri::async_runtime::block_on(async {
+            let mut conn = SqliteConnectOptions::new()
+                .filename(&path)
+                .create_if_missing(true)
+                .connect()
+                .await
+                .unwrap();
+            sqlx::query(current_sql).execute(&mut conn).await.unwrap();
+            sqlx::query(
+                r#"
+CREATE TABLE _sqlx_migrations (
+    version BIGINT PRIMARY KEY,
+    description TEXT NOT NULL,
+    installed_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    success BOOLEAN NOT NULL,
+    checksum BLOB NOT NULL,
+    execution_time BIGINT NOT NULL
+);
+"#,
+            )
+            .execute(&mut conn)
+            .await
+            .unwrap();
+            // Recorded against the *other* line-ending style — simulates the
+            // migration having been applied before a checkout flipped it.
+            let drifted_checksum = Sha384::digest(flipped_sql.as_bytes()).to_vec();
+            sqlx::query(
+                "INSERT INTO _sqlx_migrations (version, description, success, checksum, execution_time) \
+                 VALUES (1, 'initial', 1, ?1, 0)",
+            )
+            .bind(drifted_checksum)
+            .execute(&mut conn)
+            .await
+            .unwrap();
+            conn.close().await.unwrap();
+
+            repair_line_ending_checksums(&path).await.unwrap();
+
+            let mut conn = SqliteConnectOptions::new()
+                .filename(&path)
+                .connect()
+                .await
+                .unwrap();
+            let (checksum,): (Vec<u8>,) =
+                sqlx::query_as("SELECT checksum FROM _sqlx_migrations WHERE version = 1")
+                    .fetch_one(&mut conn)
+                    .await
+                    .unwrap();
+            assert_eq!(
+                checksum,
+                Sha384::digest(current_sql.as_bytes()).to_vec(),
+                "checksum must be repaired to match the current on-disk file bytes"
+            );
+            conn.close().await.unwrap();
+        });
+
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    /// A checksum mismatch caused by an actual content edit (not just line
+    /// endings) must NOT be silently repaired — that's exactly the case
+    /// sqlx's tamper check exists to catch.
+    #[test]
+    fn leaves_a_genuinely_modified_migration_checksum_alone() {
+        let dir = std::env::temp_dir().join(format!(
+            "mushtrack-repair-genuine-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("tampered.sqlite3");
+        let _ = std::fs::remove_file(&path);
+
+        let current_sql = include_str!("../migrations/0001_initial.sql");
+        let unrelated_checksum = Sha384::digest(b"CREATE TABLE not_the_real_migration (id INTEGER);").to_vec();
+
+        tauri::async_runtime::block_on(async {
+            let mut conn = SqliteConnectOptions::new()
+                .filename(&path)
+                .create_if_missing(true)
+                .connect()
+                .await
+                .unwrap();
+            sqlx::query(current_sql).execute(&mut conn).await.unwrap();
+            sqlx::query(
+                r#"
+CREATE TABLE _sqlx_migrations (
+    version BIGINT PRIMARY KEY,
+    description TEXT NOT NULL,
+    installed_on TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    success BOOLEAN NOT NULL,
+    checksum BLOB NOT NULL,
+    execution_time BIGINT NOT NULL
+);
+"#,
+            )
+            .execute(&mut conn)
+            .await
+            .unwrap();
+            sqlx::query(
+                "INSERT INTO _sqlx_migrations (version, description, success, checksum, execution_time) \
+                 VALUES (1, 'initial', 1, ?1, 0)",
+            )
+            .bind(&unrelated_checksum)
+            .execute(&mut conn)
+            .await
+            .unwrap();
+            conn.close().await.unwrap();
+
+            repair_line_ending_checksums(&path).await.unwrap();
+
+            let mut conn = SqliteConnectOptions::new()
+                .filename(&path)
+                .connect()
+                .await
+                .unwrap();
+            let (checksum,): (Vec<u8>,) =
+                sqlx::query_as("SELECT checksum FROM _sqlx_migrations WHERE version = 1")
+                    .fetch_one(&mut conn)
+                    .await
+                    .unwrap();
+            assert_eq!(
+                checksum, unrelated_checksum,
+                "a genuinely mismatched checksum must be left for sqlx's real check to catch"
+            );
+            conn.close().await.unwrap();
         });
 
         std::fs::remove_dir_all(&dir).ok();
