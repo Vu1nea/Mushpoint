@@ -14,6 +14,16 @@
 	const preview = $derived(
 		items.filter((item): item is VisionItem & { imagePath: string } => item.imagePath !== null).slice(0, 4)
 	);
+
+	/** Grid dims by item count so a partial preview (1-3 images) fills the
+	 * available cells instead of leaving empty tracks. */
+	const gridClass = $derived(
+		preview.length >= 3
+			? 'grid-cols-2 grid-rows-2'
+			: preview.length === 2
+				? 'grid-cols-2 grid-rows-1'
+				: 'grid-cols-1 grid-rows-1'
+	);
 </script>
 
 <a
@@ -32,9 +42,9 @@
 			<span class={button.ghost}>Open board</span>
 		</div>
 	{:else}
-		<div class="grid aspect-[16/10] min-h-0 grid-cols-2 grid-rows-2 gap-1.5 overflow-hidden rounded-control">
+		<div class="grid aspect-[16/10] min-h-0 gap-1.5 overflow-hidden rounded-control {gridClass}">
 			{#each preview as item (item.id)}
-				<VisionImage path={item.imagePath} alt="" class="h-full w-full object-cover" />
+				<VisionImage path={item.imagePath} alt="" class="h-full min-h-0 w-full min-w-0 object-cover" />
 			{/each}
 		</div>
 	{/if}

@@ -27,6 +27,19 @@
 		}
 		return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
 	});
+
+	// One shared, shuffled delay order across all groups — a per-group index
+	// would restart at 0 for every category, so the first goal in each group
+	// would animate simultaneously instead of the whole panel rising as a
+	// single staggered sequence.
+	const delayByGoalId = $derived.by(() => {
+		const order = grouped.flatMap(([, group]) => group.goals.map((goal) => goal.id));
+		for (let i = order.length - 1; i > 0; i--) {
+			const j = Math.floor(Math.random() * (i + 1));
+			[order[i], order[j]] = [order[j], order[i]];
+		}
+		return new Map(order.map((id, position) => [id, stagger(position)]));
+	});
 </script>
 
 <section class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-3.5 {className}">
@@ -47,8 +60,9 @@
 					<p class="text-xs font-semibold text-muted">{categoryName}</p>
 				</div>
 				<ul class="flex flex-col gap-1.5">
-					{#each group.goals as goal, index (goal.id)}
-						<li class="mp-enter" style="--mp-delay:{stagger(index)}">
+					{#each group.goals as goal (goal.id)}
+						{@const delay = delayByGoalId.get(goal.id)}
+						<li class="mp-enter" style="--mp-delay:{delay}">
 							<a
 								href="/goals/{goal.id}"
 								class="flex flex-col gap-1 rounded-control px-1 py-1 transition-transform duration-150 hover:-translate-y-px"
@@ -67,7 +81,7 @@
 									height={5}
 									color={group.color}
 									showValue={false}
-									delay={stagger(index)}
+									{delay}
 								/>
 							</a>
 						</li>
