@@ -128,7 +128,8 @@
 			</div>
 			{#if sidebarOpen}
 				<span class="flex items-center gap-1.5 text-2xs text-muted/60">
-					Made by Vu1nea
+					Made by
+					<a target="_blank" class="no-underline" href="https://github.com/Vu1nea" rel='external'>Vu1nea</a>
 					<svg
 						viewBox="0 0 24 24"
 						class="size-4 shrink-0 text-accent"
