@@ -2,8 +2,13 @@
 	"name": "mushpoint-design",
 	"version": "0.0.1",
 	"private": true,
+	"license": "UNLICENSED",
 	"type": "module",
 	"description": "Shared design tokens, utilities, and Svelte UI primitives extracted from Mushpoint.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Vu1nea/mushpoint-design.git"
+	},
 	"peerDependencies": {
 		"svelte": "^5.0.0"
 	},
