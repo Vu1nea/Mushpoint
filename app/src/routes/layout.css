@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @import 'mushpoint-design/css/theme.css';
 
-/* mushpoint-design lives at node_modules/mushpoint-design via workspace symlink;
-   Tailwind's auto content detection skips node_modules, so it must be listed explicitly. */
-@source '../../../packages/design/**/*.{svelte,ts}';
+/* Tailwind's auto content detection skips node_modules, so mushpoint-design's
+   own class-generating source must be listed explicitly. */
+@source '../../node_modules/mushpoint-design/**/*.{svelte,ts}';
