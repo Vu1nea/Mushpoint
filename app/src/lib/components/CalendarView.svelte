@@ -144,10 +144,9 @@
 		{@const shown = dayTasks.slice(0, CHIPS_SHOWN)}
 		{@const extra = dayTasks.length - shown.length}
 		<div
-			class="flex min-h-24 flex-col gap-1 bg-surface p-1.5 transition-colors {dragOverIso ===
-			cell.iso
+			class="flex min-h-24 flex-col gap-1 p-1.5 transition-colors {dragOverIso === cell.iso
 				? 'bg-accent/5'
-				: ''}"
+				: 'bg-surface'}"
 			ondragover={(event) => dragOver(event, cell.iso)}
 			ondragleave={() => dragLeave(cell.iso)}
 			ondrop={(event) => drop(event, cell.iso)}
