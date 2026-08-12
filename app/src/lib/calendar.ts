@@ -1,6 +1,6 @@
 import type { TaskSummary } from './api';
 import { localDateOf } from './db/repo/helpers';
-import { weekdayOf } from './db/logic/dates';
+import { compareDates, weekdayOf } from './db/logic/dates';
 import { isExpectedOn } from './db/logic/streak';
 
 /**
@@ -19,9 +19,12 @@ export function tasksByDay(tasks: TaskSummary[], days: string[]): Map<string, Ta
 		if (task.dueDate) onDays.add(task.dueDate);
 
 		if (task.recurrence) {
-			const anchorWeekday = weekdayOf(localDateOf(task.createdAt));
+			const created = localDateOf(task.createdAt);
+			const anchorWeekday = weekdayOf(created);
 			for (const day of days) {
-				if (isExpectedOn(task.recurrence, anchorWeekday, day)) onDays.add(day);
+				if (compareDates(day, created) >= 0 && isExpectedOn(task.recurrence, anchorWeekday, day)) {
+					onDays.add(day);
+				}
 			}
 		}
 

@@ -78,6 +78,17 @@ describe('tasksByDay', () => {
 		expect(result.get(SAT)).toEqual([]);
 	});
 
+	it('does not expand a daily habit onto days before it was created', () => {
+		const habit = task({ id: 8, recurrence: 'daily', dueDate: null, createdAt: WED + 'T12:00:00Z' });
+		const result = tasksByDay([habit], DAYS);
+
+		expect(result.get(MON)).toEqual([]);
+		expect(result.get(TUE)).toEqual([]);
+		expect(result.get(WED)).toEqual([habit]);
+		expect(result.get(SAT)).toEqual([habit]);
+		expect(result.get(NEXT_MON)).toEqual([habit]);
+	});
+
 	it('dedups a habit that also carries a dueDate landing on an expected day', () => {
 		const habit = task({ id: 5, recurrence: 'daily', dueDate: MON });
 		const result = tasksByDay([habit], DAYS);
