@@ -1,5 +1,0 @@
-{
-	"name": "mushpoint-monorepo",
-	"private": true,
-	"workspaces": ["app"]
-}
