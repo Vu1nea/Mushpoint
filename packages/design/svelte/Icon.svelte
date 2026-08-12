@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { iconMarkup, type IconName } from '$lib/icons';
+	import { iconMarkup, type IconName } from '../icons';
 	import Tooltip from './Tooltip.svelte';
 
 	interface Props {
@@ -14,7 +14,7 @@
 
 	let { name, size = 20, label, weight = 1.8, class: className = '' }: Props = $props();
 
-	// Icon geometry is app-owned static markup from $lib/icons, never user input.
+	// Icon geometry is package-owned static markup, never user input.
 	const markup = $derived(iconMarkup(name));
 </script>
 

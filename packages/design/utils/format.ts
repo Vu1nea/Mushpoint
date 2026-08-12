@@ -1,0 +1,49 @@
+/** Presentation helpers. Pure, so `now` is always passed in rather than read. */
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Progress arrives as a 0–1 ratio; screens show whole percents. */
+export function percent(ratio: number): string {
+	return `${Math.round(ratio * 100)}%`;
+}
+
+/** Midnight-anchored copy of a date, so comparisons are by calendar day. */
+function startOfDay(date: Date): Date {
+	return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+export function parseDate(value: string | null | undefined): Date | null {
+	if (!value) return null;
+	// `YYYY-MM-DD` parses as UTC midnight, which lands on the previous day in
+	// western timezones — split it out and build a local date instead.
+	const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+	const parsed = dateOnly
+		? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+		: new Date(value);
+
+	return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/** Whole days from `now` to `due`: negative when the due date has passed. */
+export function daysUntil(due: string | null, now: Date = new Date()): number | null {
+	const date = parseDate(due);
+	if (!date) return null;
+	return Math.round((startOfDay(date).getTime() - startOfDay(now).getTime()) / DAY_MS);
+}
+
+export function isOverdue(due: string | null, now: Date = new Date()): boolean {
+	const days = daysUntil(due, now);
+	return days !== null && days < 0;
+}
+
+export function formatDate(value: string | null, now: Date = new Date()): string {
+	const date = parseDate(value);
+	if (!date) return '';
+
+	const sameYear = date.getFullYear() === now.getFullYear();
+	return date.toLocaleDateString(undefined, {
+		month: 'short',
+		day: 'numeric',
+		...(sameYear ? {} : { year: 'numeric' })
+	});
+}

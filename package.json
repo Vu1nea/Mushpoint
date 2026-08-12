@@ -1,0 +1,5 @@
+{
+	"name": "mushpoint-monorepo",
+	"private": true,
+	"workspaces": ["app", "packages/design"]
+}

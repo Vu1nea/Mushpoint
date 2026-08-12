@@ -3,20 +3,21 @@
  * from these (bg-surface, text-muted, border-subtle, …) — no hardcoded colors,
  * so adding a theme means adding one block here and nothing else.
  *
- * The active theme is set as `data-theme` on <html> by src/lib/theme/theme.svelte.ts.
+ * The active theme is set as `data-theme` on <html> by the consuming app's own
+ * theme store (see the `THEMES`/`data-theme` pattern documented for this package).
  */
 
 /*
- * Fonts ship with the app rather than loading from Google — this is an offline,
- * local-first desktop app, so a network font would simply never arrive. Both
- * files are the latin subset of the variable font, so one file covers every weight.
+ * Fonts ship with the package rather than loading from Google, so offline/local-
+ * first consumers never depend on network access. Both files are the latin subset
+ * of the variable font, so one file covers every weight.
  */
 @font-face {
 	font-family: 'Bricolage Grotesque';
 	font-style: normal;
 	font-weight: 400 800;
 	font-display: swap;
-	src: url('../assets/fonts/bricolage-grotesque-latin.woff2') format('woff2');
+	src: url('./fonts/bricolage-grotesque-latin.woff2') format('woff2');
 }
 
 @font-face {
@@ -24,7 +25,7 @@
 	font-style: normal;
 	font-weight: 400 700;
 	font-display: swap;
-	src: url('../assets/fonts/hanken-grotesk-latin.woff2') format('woff2');
+	src: url('./fonts/hanken-grotesk-latin.woff2') format('woff2');
 }
 
 /* Nocturne — dark, the default. */
@@ -114,8 +115,8 @@
 }
 
 /*
- * Motion tokens. Every transition in the app pulls from these so timing stays
- * consistent, and so reduced-motion can flatten all of them in one place.
+ * Motion tokens. Every transition pulls from these so timing stays consistent,
+ * and so reduced-motion can flatten all of them in one place.
  */
 :root {
 	--mp-duration-fast: 120ms;

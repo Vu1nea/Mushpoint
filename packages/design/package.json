@@ -1,0 +1,15 @@
+{
+	"name": "mushpoint-design",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"description": "Shared design tokens, utilities, and Svelte UI primitives extracted from Mushpoint.",
+	"peerDependencies": {
+		"svelte": "^5.0.0"
+	},
+	"devDependencies": {
+		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"svelte": "^5.55.2",
+		"typescript": "^6.0.2"
+	}
+}

@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"checkJs": true,
+		"noEmit": true
+	},
+	"include": ["utils/**/*.ts", "icons/**/*.ts", "svelte/**/*.ts", "svelte/**/*.svelte"]
+}
