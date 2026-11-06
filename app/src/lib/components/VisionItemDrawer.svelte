@@ -2,7 +2,7 @@
 <script lang="ts">
 	import { createVisionItem, updateVisionItem, type VisionItem } from '$lib/api';
 	import { pickAndCopyImage } from '$lib/images';
-	import Drawer from './Drawer.svelte';
+	import FormModal from './FormModal.svelte';
 	import Icon from './Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
 	import { button, field } from './ui';
@@ -75,7 +75,7 @@
 	}
 </script>
 
-<Drawer
+<FormModal
 	{open}
 	title={item ? 'Edit Vision Item' : 'New Vision Item'}
 	submitLabel={item ? 'Save' : 'Create'}
@@ -125,4 +125,4 @@
 			<Icon name="warning" size={13} weight={2} /> Add an image, a quote, or both
 		</p>
 	{/if}
-</Drawer>
+</FormModal>

@@ -8,7 +8,7 @@
 		type Goal,
 		type Timeframe
 	} from '$lib/api';
-	import Drawer from './Drawer.svelte';
+	import FormModal from './FormModal.svelte';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
 	import DatePicker from './DatePicker.svelte';
@@ -112,7 +112,7 @@
 	}
 </script>
 
-<Drawer
+<FormModal
 	{open}
 	title={goal ? 'Edit Goal' : 'New Goal'}
 	submitLabel={goal ? 'Save' : 'Create'}
@@ -212,4 +212,4 @@
 		<label class={field.label} for="goal-due">Due date (optional)</label>
 		<DatePicker id="goal-due" bind:value={form.dueDate} />
 	</div>
-</Drawer>
+</FormModal>

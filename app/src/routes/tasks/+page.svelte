@@ -1,21 +1,25 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { invalidateAll } from '$app/navigation';
 	import { deleteTask, setTaskCompletion, type TaskSummary } from '$lib/api';
+	import CalendarView from '$lib/components/CalendarView.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
 	import StreakCard from '$lib/components/StreakCard.svelte';
 	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
-	import { button, sectionHeading } from '$lib/components/ui';
+	import { button, sectionHeading, segment } from '$lib/components/ui';
 
 	let { data } = $props();
 
 	let drawerOpen = $state(false);
 	let editingTask = $state<TaskSummary | null>(null);
+	let newTaskDue = $state<string | null>(null);
 	let deletingTask = $state<TaskSummary | null>(null);
 	let busy = $state(false);
 	let actionError = $state<unknown>(null);
+	let view = $state<'board' | 'calendar'>('board');
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -45,6 +49,25 @@
 		editingTask = task;
 		drawerOpen = true;
 	}
+
+	function newTask(dueDate: string | null = null) {
+		editingTask = null;
+		newTaskDue = dueDate;
+		drawerOpen = true;
+	}
+
+	// A UI display preference only — not domain data, so it never touches the
+	// backend. Same reasoning as the goal-detail List/Kanban toggle.
+	$effect(() => {
+		if (!browser) return;
+		const stored = localStorage.getItem('mp-tasks-view');
+		view = stored === 'calendar' ? 'calendar' : 'board';
+	});
+
+	function setView(next: 'board' | 'calendar') {
+		view = next;
+		if (browser) localStorage.setItem('mp-tasks-view', next);
+	}
 </script>
 
 <svelte:head><title>Tasks · Mushpoint</title></svelte:head>
@@ -54,17 +77,30 @@
 		<h1 class="mb-1 font-display text-3xl font-bold">Tasks</h1>
 		<p class="text-sm text-muted">Everything on your plate</p>
 	</div>
-	<button
-		type="button"
-		class={button.primary}
-		onclick={() => {
-			editingTask = null;
-			drawerOpen = true;
-		}}
-	>
-		<Icon name="plus" size={15} weight={2.4} />
-		New Task
-	</button>
+	<div class="flex items-center gap-2">
+		<div class="flex gap-1.5">
+			<button
+				type="button"
+				class={segment(view === 'board')}
+				aria-pressed={view === 'board'}
+				onclick={() => setView('board')}
+			>
+				Board
+			</button>
+			<button
+				type="button"
+				class={segment(view === 'calendar')}
+				aria-pressed={view === 'calendar'}
+				onclick={() => setView('calendar')}
+			>
+				Calendar
+			</button>
+		</div>
+		<button type="button" class={button.primary} onclick={() => newTask()}>
+			<Icon name="plus" size={15} weight={2.4} />
+			New Task
+		</button>
+	</div>
 </header>
 
 {#if data.error}
@@ -85,22 +121,37 @@
 	</section>
 {/if}
 
-<KanbanBoard
-	tasks={data.tasks}
-	subgoals={data.subgoals}
-	goals={data.goals}
-	parentChipMode="goal-and-subgoal"
-	onMutated={invalidateAll}
-	onError={(error) => (actionError = error)}
-	onEditTask={edit}
-	onDeleteTask={(task) => (deletingTask = task)}
-/>
+{#if view === 'board'}
+	<KanbanBoard
+		tasks={data.tasks}
+		subgoals={data.subgoals}
+		goals={data.goals}
+		parentChipMode="goal-and-subgoal"
+		onMutated={invalidateAll}
+		onError={(error) => (actionError = error)}
+		onEditTask={edit}
+		onDeleteTask={(task) => (deletingTask = task)}
+	/>
+{:else}
+	<CalendarView
+		tasks={data.tasks}
+		subgoals={data.subgoals}
+		goals={data.goals}
+		parentChipMode="goal-and-subgoal"
+		onMutated={invalidateAll}
+		onError={(error) => (actionError = error)}
+		onEditTask={edit}
+		onDeleteTask={(task) => (deletingTask = task)}
+		onCreateTask={newTask}
+	/>
+{/if}
 
 <TaskDrawer
 	open={drawerOpen}
 	goals={data.goals}
 	subgoals={data.subgoals}
 	task={editingTask}
+	prefillDueDate={newTaskDue}
 	onClose={() => (drawerOpen = false)}
 	onSaved={invalidateAll}
 />

@@ -1,7 +1,7 @@
 <!-- app/src/lib/components/IdeaDrawer.svelte -->
 <script lang="ts">
 	import { createIdea, updateIdea, type Idea } from '$lib/api';
-	import Drawer from './Drawer.svelte';
+	import FormModal from './FormModal.svelte';
 	import Icon from './Icon.svelte';
 	import TagInput from './TagInput.svelte';
 	import { field } from './ui';
@@ -62,7 +62,7 @@
 	}
 </script>
 
-<Drawer
+<FormModal
 	{open}
 	title={idea ? 'Edit Idea' : 'New Idea'}
 	submitLabel={idea ? 'Save' : 'Create'}
@@ -104,4 +104,4 @@
 		<span class={field.label}>Tags</span>
 		<TagInput bind:tags={form.tags} ariaLabel="Idea tags" placeholder="Add tags…" />
 	</div>
-</Drawer>
+</FormModal>

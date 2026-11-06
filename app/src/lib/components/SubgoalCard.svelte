@@ -1,13 +1,21 @@
 <script lang="ts">
 	import { slide } from 'svelte/transition';
 
-	import { createTask, deleteSubgoal, setSubgoalComplete, type SubgoalDetail } from '$lib/api';
+	import {
+		createTask,
+		deleteSubgoal,
+		RECURRENCE_OPTIONS,
+		setSubgoalComplete,
+		type Recurrence,
+		type SubgoalDetail
+	} from '$lib/api';
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { motion } from '$lib/motion';
 	import Checkbox from './Checkbox.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
 	import ProgressBar from './ProgressBar.svelte';
+	import Select from './Select.svelte';
 	import TaskRow from './TaskRow.svelte';
 	import { button, field } from './ui';
 
@@ -15,14 +23,16 @@
 		subgoal: SubgoalDetail;
 		onMutated: () => Promise<void> | void;
 		onError: (error: unknown) => void;
+		onEdit: () => void;
 		delay?: string;
 	}
 
-	let { subgoal, onMutated, onError, delay = '0ms' }: Props = $props();
+	let { subgoal, onMutated, onError, onEdit, delay = '0ms' }: Props = $props();
 
 	let expanded = $state(false);
 	let busy = $state(false);
 	let newTaskTitle = $state('');
+	let newTaskRecurrence = $state('');
 	let confirmingDelete = $state(false);
 
 	async function run(action: () => Promise<unknown>) {
@@ -46,14 +56,16 @@
 		event.preventDefault();
 		const title = newTaskTitle.trim();
 		if (!title) return;
+		const recurrence = (newTaskRecurrence || null) as Recurrence | null;
 		newTaskTitle = '';
+		newTaskRecurrence = '';
 		await run(() =>
 			createTask({
 				title,
 				dueDate: null,
 				goalId: null,
 				subgoalId: subgoal.id,
-				recurrence: null
+				recurrence
 			})
 		);
 	}
@@ -100,6 +112,13 @@
 		<button
 			type="button"
 			class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+			onclick={onEdit}
+		>
+			<Icon name="edit" size={14} label="Edit {subgoal.title}" />
+		</button>
+		<button
+			type="button"
+			class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
 			disabled={busy}
 			onclick={() => (confirmingDelete = true)}
 		>
@@ -141,12 +160,18 @@
 				/>
 			{/if}
 
-			<form class="mt-1" onsubmit={addTask}>
+			<form class="mt-1 flex gap-2" onsubmit={addTask}>
 				<input
-					class="{field.input} py-2 text-sm"
+					class="{field.input} min-w-0 flex-1 py-2 text-sm"
 					bind:value={newTaskTitle}
 					placeholder="Add a task…"
 					aria-label="New task for {subgoal.title}"
+				/>
+				<Select
+					class="w-37.5 shrink-0"
+					ariaLabel="New task for {subgoal.title} repeats"
+					bind:value={newTaskRecurrence}
+					options={RECURRENCE_OPTIONS}
 				/>
 			</form>
 		</div>

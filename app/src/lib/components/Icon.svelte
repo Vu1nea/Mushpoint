@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { iconMarkup, type IconName } from '$lib/icons';
-	import { theme } from '$lib/theme/theme.svelte';
 	import Tooltip from './Tooltip.svelte';
 
 	interface Props {
@@ -16,7 +15,7 @@
 	let { name, size = 20, label, weight = 1.8, class: className = '' }: Props = $props();
 
 	// Icon geometry is app-owned static markup from $lib/icons, never user input.
-	const markup = $derived(iconMarkup(name, theme.current));
+	const markup = $derived(iconMarkup(name));
 </script>
 
 {#snippet svg()}

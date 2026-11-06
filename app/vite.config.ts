@@ -4,6 +4,11 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
+	// mushpoint-design ships uncompiled .svelte/.ts source (a git dependency,
+	// not a registry build), so it must go through svelte-vite-plugin like any
+	// app source file rather than being esbuild-prebundled as an opaque dep.
+	optimizeDeps: { exclude: ['mushpoint-design'] },
+	ssr: { noExternal: ['mushpoint-design'] },
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

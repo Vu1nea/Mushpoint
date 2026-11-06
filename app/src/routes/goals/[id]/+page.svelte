@@ -7,25 +7,33 @@
 		createTask,
 		deleteGoal,
 		deleteTask,
+		RECURRENCE_OPTIONS,
 		TIMEFRAME_LABELS,
+		type Recurrence,
+		type Subgoal,
 		type TaskSummary
 	} from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Checkbox from '$lib/components/Checkbox.svelte';
 	import DatePicker from '$lib/components/DatePicker.svelte';
+	import GanttChart from '$lib/components/GanttChart.svelte';
 	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
 	import GoalStatusSegment from '$lib/components/GoalStatusSegment.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
 	import ProgressBar from '$lib/components/ProgressBar.svelte';
+	import Select from '$lib/components/Select.svelte';
 	import SubgoalCard from '$lib/components/SubgoalCard.svelte';
+	import SubgoalDrawer from '$lib/components/SubgoalDrawer.svelte';
 	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
 	import TaskRow from '$lib/components/TaskRow.svelte';
 	import { button, field, sectionHeading, segment } from '$lib/components/ui';
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
+
+	type GoalView = 'list' | 'kanban' | 'timeline';
 
 	let { data } = $props();
 
@@ -34,7 +42,8 @@
 	let editing = $state(false);
 	let confirmingDelete = $state(false);
 	let deleteOrphanedTasks = $state(false);
-	let view = $state<'list' | 'kanban'>('list');
+	let view = $state<GoalView>('list');
+	let editingSubgoal = $state<Subgoal | null>(null);
 	let editingTask = $state<TaskSummary | null>(null);
 	let deletingTask = $state<TaskSummary | null>(null);
 	let drawerOpen = $state(false);
@@ -42,6 +51,7 @@
 	let newSubgoalTitle = $state('');
 	let newSubgoalDue = $state('');
 	let newTaskTitle = $state('');
+	let newTaskRecurrence = $state('');
 
 	const accent = $derived(categoryColor(data.goal?.category?.colorToken));
 	const boardTasks = $derived(
@@ -87,14 +97,16 @@
 		const title = newTaskTitle.trim();
 		if (!data.goal || !title) return;
 
+		const recurrence = (newTaskRecurrence || null) as Recurrence | null;
 		newTaskTitle = '';
+		newTaskRecurrence = '';
 		await run(() =>
 			createTask({
 				title,
 				dueDate: null,
 				goalId: data.goal!.id,
 				subgoalId: null,
-				recurrence: null
+				recurrence
 			})
 		);
 	}
@@ -126,10 +138,10 @@
 		const id = data.goal?.id;
 		if (!browser || id === undefined) return;
 		const stored = localStorage.getItem(`mp-goal-view-${id}`);
-		view = stored === 'kanban' ? 'kanban' : 'list';
+		view = stored === 'kanban' || stored === 'timeline' ? stored : 'list';
 	});
 
-	function setView(next: 'list' | 'kanban') {
+	function setView(next: GoalView) {
 		view = next;
 		if (browser && data.goal) localStorage.setItem(`mp-goal-view-${data.goal.id}`, next);
 	}
@@ -275,6 +287,14 @@
 				>
 					Kanban
 				</button>
+				<button
+					type="button"
+					class={segment(view === 'timeline')}
+					aria-pressed={view === 'timeline'}
+					onclick={() => setView('timeline')}
+				>
+					Timeline
+				</button>
 			</div>
 
 			{#if view === 'list'}
@@ -291,6 +311,7 @@
 									{subgoal}
 									onMutated={invalidateAll}
 									onError={(error) => (actionError = error)}
+									onEdit={() => (editingSubgoal = subgoal)}
 									delay={stagger(index)}
 								/>
 							</div>
@@ -331,15 +352,23 @@
 						</ul>
 					{/if}
 
-					<form onsubmit={addDirectTask}>
+					<form class="flex gap-2" onsubmit={addDirectTask}>
 						<input
-							class="{field.dashed} w-full"
+							class="{field.dashed} min-w-0 flex-1"
 							bind:value={newTaskTitle}
 							placeholder="+ Add a task…"
 							aria-label="New direct task"
 						/>
+						<Select
+							class="w-37.5 shrink-0"
+							ariaLabel="New direct task repeats"
+							bind:value={newTaskRecurrence}
+							options={RECURRENCE_OPTIONS}
+						/>
 					</form>
 				</section>
+			{:else if view === 'timeline'}
+				<GanttChart {goal} />
 			{:else}
 				<KanbanBoard
 					goalId={goal.id}
@@ -360,6 +389,12 @@
 		categories={data.categories}
 		{goal}
 		onClose={() => (editing = false)}
+		onSaved={invalidateAll}
+	/>
+
+	<SubgoalDrawer
+		subgoal={editingSubgoal}
+		onClose={() => (editingSubgoal = null)}
 		onSaved={invalidateAll}
 	/>
 

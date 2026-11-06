@@ -17,6 +17,15 @@ export const RECURRENCE_LABELS: Record<Recurrence, string> = {
 	weekly: 'Weekly'
 };
 
+/** Choices for a "Repeats" control; the empty value means a one-off task. */
+export const RECURRENCE_OPTIONS = [
+	{ value: '', label: "Doesn't repeat" },
+	...RECURRENCES.map((recurrence) => ({
+		value: recurrence as string,
+		label: RECURRENCE_LABELS[recurrence]
+	}))
+];
+
 export const TIMEFRAME_LABELS: Record<Timeframe, string> = {
 	short: 'Short term',
 	mid: 'Mid term',
