@@ -11,6 +11,27 @@ Most of the application logic — repositories, progress calculation, streak
 calculation — lives in TypeScript under `app/src/lib/db/`. Rust is
 responsible for the webview shell and schema migrations.
 
+## Installing on macOS
+
+Grab the latest `.dmg` from the [Releases page](https://github.com/Vu1nea/Mushpoint/releases):
+
+- **Apple Silicon** (M1/M2/M3/M4): `Mushpoint_<version>_aarch64.dmg`
+- **Intel**: `Mushpoint_<version>_x64.dmg`
+
+Not sure which chip you have? Apple menu → About This Mac.
+
+Open the `.dmg` and drag `Mushpoint.app` into `Applications`. The build
+isn't code-signed yet, so on first launch macOS will say *"Mushpoint" is
+damaged and can't be opened* — that's Gatekeeper blocking an unsigned app,
+not an actual corrupt download. Click **Cancel**, then run this once in
+Terminal:
+
+```sh
+xattr -cr /Applications/Mushpoint.app
+```
+
+After that, open the app normally (double-click, or right-click → Open).
+
 ## Repo layout
 
 ```
