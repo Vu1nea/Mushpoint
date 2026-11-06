@@ -15,6 +15,7 @@
 
 	let drawerOpen = $state(false);
 	let editingTask = $state<TaskSummary | null>(null);
+	let newTaskDue = $state<string | null>(null);
 	let deletingTask = $state<TaskSummary | null>(null);
 	let busy = $state(false);
 	let actionError = $state<unknown>(null);
@@ -46,6 +47,12 @@
 
 	function edit(task: TaskSummary) {
 		editingTask = task;
+		drawerOpen = true;
+	}
+
+	function newTask(dueDate: string | null = null) {
+		editingTask = null;
+		newTaskDue = dueDate;
 		drawerOpen = true;
 	}
 
@@ -89,14 +96,7 @@
 				Calendar
 			</button>
 		</div>
-		<button
-			type="button"
-			class={button.primary}
-			onclick={() => {
-				editingTask = null;
-				drawerOpen = true;
-			}}
-		>
+		<button type="button" class={button.primary} onclick={() => newTask()}>
 			<Icon name="plus" size={15} weight={2.4} />
 			New Task
 		</button>
@@ -142,6 +142,7 @@
 		onError={(error) => (actionError = error)}
 		onEditTask={edit}
 		onDeleteTask={(task) => (deletingTask = task)}
+		onCreateTask={newTask}
 	/>
 {/if}
 
@@ -150,6 +151,7 @@
 	goals={data.goals}
 	subgoals={data.subgoals}
 	task={editingTask}
+	prefillDueDate={newTaskDue}
 	onClose={() => (drawerOpen = false)}
 	onSaved={invalidateAll}
 />

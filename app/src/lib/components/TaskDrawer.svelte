@@ -1,15 +1,14 @@
 <script lang="ts">
 	import {
 		createTask,
-		RECURRENCE_LABELS,
-		RECURRENCES,
+		RECURRENCE_OPTIONS,
 		updateTask,
 		type GoalSummary,
 		type Recurrence,
 		type Subgoal,
 		type Task
 	} from '$lib/api';
-	import Drawer from './Drawer.svelte';
+	import FormModal from './FormModal.svelte';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
 	import DatePicker from './DatePicker.svelte';
@@ -22,11 +21,21 @@
 		subgoals: Subgoal[];
 		/** Null creates a task; a task edits it in place. */
 		task?: Task | null;
+		/** Seeds a new task's due date, e.g. from a clicked calendar day. Ignored when editing. */
+		prefillDueDate?: string | null;
 		onClose: () => void;
 		onSaved: () => Promise<void> | void;
 	}
 
-	let { open, goals, subgoals, task = null, onClose, onSaved }: Props = $props();
+	let {
+		open,
+		goals,
+		subgoals,
+		task = null,
+		prefillDueDate = null,
+		onClose,
+		onSaved
+	}: Props = $props();
 
 	let submitting = $state(false);
 	let error = $state<unknown>(null);
@@ -52,7 +61,7 @@
 		form = {
 			title: task?.title ?? '',
 			parent: parentKey(task),
-			dueDate: task?.dueDate ?? '',
+			dueDate: task ? (task.dueDate ?? '') : (prefillDueDate ?? ''),
 			recurrence: task?.recurrence ?? ''
 		};
 	});
@@ -125,7 +134,7 @@
 	}
 </script>
 
-<Drawer
+<FormModal
 	{open}
 	title={task ? 'Edit Task' : 'New Task'}
 	submitLabel={task ? 'Save' : 'Create'}
@@ -167,16 +176,10 @@
 		<Select
 			id="task-recurrence"
 			bind:value={form.recurrence}
-			options={[
-				{ value: '', label: "Doesn't repeat" },
-				...RECURRENCES.map((recurrence) => ({
-					value: recurrence,
-					label: RECURRENCE_LABELS[recurrence]
-				}))
-			]}
+			options={RECURRENCE_OPTIONS}
 		/>
 		{#if anchorNote}
 			<p class="mt-1.5 text-xs text-muted">{anchorNote}</p>
 		{/if}
 	</div>
-</Drawer>
+</FormModal>
