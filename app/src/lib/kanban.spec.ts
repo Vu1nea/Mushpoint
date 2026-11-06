@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { TaskSummary } from './api';
-import { groupByStatus, taskColumn } from './kanban';
+import { filterTasks, groupByStatus, NO_FILTER, pageOf, recentFirst, taskColumn } from './kanban';
 
 function task(overrides: Partial<TaskSummary> & Pick<TaskSummary, 'id' | 'status'>): TaskSummary {
 	return {
@@ -85,6 +85,87 @@ describe('groupByStatus', () => {
 
 		expect(grouped.done.map((t) => t.id)).toEqual([7]);
 		expect(grouped.todo).toEqual([]);
+	});
+});
+
+describe('filterTasks', () => {
+	const now = new Date(2026, 7, 10, 12);
+	const ids = (tasks: TaskSummary[]) => tasks.map((t) => t.id);
+
+	it('keeps every task when no filter is set', () => {
+		const tasks = [task({ id: 1, status: 'todo' }), task({ id: 2, status: 'done' })];
+
+		expect(ids(filterTasks(tasks, NO_FILTER, now))).toEqual([1, 2]);
+	});
+
+	it('matches the title case-insensitively, ignoring surrounding spaces', () => {
+		const tasks = [
+			task({ id: 1, status: 'todo', title: 'Buy Milk' }),
+			task({ id: 2, status: 'todo', title: 'Call bank' })
+		];
+
+		expect(ids(filterTasks(tasks, { ...NO_FILTER, query: '  milk ' }, now))).toEqual([1]);
+	});
+
+	it('keeps only tasks under the chosen goal', () => {
+		const tasks = [
+			task({ id: 1, status: 'todo', goalId: 7 }),
+			task({ id: 2, status: 'todo', goalId: 8 }),
+			task({ id: 3, status: 'todo' })
+		];
+
+		expect(ids(filterTasks(tasks, { ...NO_FILTER, goalId: 7 }, now))).toEqual([1]);
+	});
+
+	it('keeps only tasks with the chosen due tone', () => {
+		const tasks = [
+			task({ id: 1, status: 'todo', dueDate: '2026-08-01' }),
+			task({ id: 2, status: 'todo', dueDate: '2026-08-11' }),
+			task({ id: 3, status: 'todo' })
+		];
+
+		expect(ids(filterTasks(tasks, { ...NO_FILTER, due: 'overdue' }, now))).toEqual([1]);
+		expect(ids(filterTasks(tasks, { ...NO_FILTER, due: 'none' }, now))).toEqual([3]);
+	});
+
+	it('requires every set filter to match', () => {
+		const tasks = [
+			task({ id: 1, status: 'todo', title: 'Milk', goalId: 7 }),
+			task({ id: 2, status: 'todo', title: 'Milk', goalId: 8 })
+		];
+
+		expect(ids(filterTasks(tasks, { ...NO_FILTER, query: 'milk', goalId: 8 }, now))).toEqual([2]);
+	});
+});
+
+describe('pageOf', () => {
+	const items = [1, 2, 3, 4, 5, 6, 7];
+
+	it('returns the requested slice with the page count', () => {
+		expect(pageOf(items, 1, 3)).toEqual({ items: [4, 5, 6], page: 1, pageCount: 3 });
+	});
+
+	it('returns a short final page', () => {
+		expect(pageOf(items, 2, 3).items).toEqual([7]);
+	});
+
+	it('clamps a page past the end to the last page', () => {
+		expect(pageOf(items, 9, 3)).toEqual({ items: [7], page: 2, pageCount: 3 });
+	});
+
+	it('gives an empty list one empty page', () => {
+		expect(pageOf([], 4, 3)).toEqual({ items: [], page: 0, pageCount: 1 });
+	});
+});
+
+describe('recentFirst', () => {
+	it('orders by updatedAt, newest first, without touching the input', () => {
+		const older = task({ id: 1, status: 'done', updatedAt: '2026-08-01T00:00:00Z' });
+		const newer = task({ id: 2, status: 'done', updatedAt: '2026-08-05T00:00:00Z' });
+		const input = [older, newer];
+
+		expect(recentFirst(input).map((t) => t.id)).toEqual([2, 1]);
+		expect(input.map((t) => t.id)).toEqual([1, 2]);
 	});
 });
 

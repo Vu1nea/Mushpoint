@@ -15,9 +15,18 @@
 		type TaskSummary
 	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
-	import { groupByStatus } from '$lib/kanban';
+	import {
+		filterTasks,
+		groupByStatus,
+		NO_FILTER,
+		PAGE_SIZE,
+		pageOf,
+		recentFirst,
+		type DueFilter
+	} from '$lib/kanban';
 	import { motion, stagger } from '$lib/motion';
 	import Icon from './Icon.svelte';
+	import Select from './Select.svelte';
 	import { button, field, sectionHeading } from './ui';
 
 	interface Props {
@@ -58,7 +67,47 @@
 
 	const subgoalNames = $derived(new Map(subgoals.map((s) => [s.id, s.title])));
 	const goalTitles = $derived(new Map(goals.map((g) => [g.id, g.title])));
-	const columns = $derived(groupByStatus(tasks));
+
+	const FIRST_PAGES: Record<TaskStatus, number> = { todo: 0, in_progress: 0, done: 0 };
+	const DUE_OPTIONS = [
+		{ value: 'all', label: 'Any due date' },
+		{ value: 'overdue', label: 'Overdue' },
+		{ value: 'soon', label: 'Due soon' },
+		{ value: 'later', label: 'Due later' },
+		{ value: 'none', label: 'No due date' }
+	];
+
+	let query = $state(NO_FILTER.query);
+	let due = $state<DueFilter>(NO_FILTER.due);
+	let goalFilter = $state('');
+	let pages = $state({ ...FIRST_PAGES });
+
+	const filtering = $derived(query.trim() !== '' || due !== 'all' || goalFilter !== '');
+	const goalOptions = $derived([
+		{ value: '', label: 'All goals' },
+		...goals.map((goal) => ({ value: String(goal.id), label: goal.title }))
+	]);
+	const columns = $derived(
+		groupByStatus(
+			filterTasks(tasks, { query, due, goalId: goalFilter ? Number(goalFilter) : null })
+		)
+	);
+	const paged = $derived({
+		todo: pageOf(columns.todo, pages.todo, PAGE_SIZE),
+		in_progress: pageOf(columns.in_progress, pages.in_progress, PAGE_SIZE),
+		done: pageOf(recentFirst(columns.done), pages.done, PAGE_SIZE)
+	});
+
+	function resetPages() {
+		pages = { ...FIRST_PAGES };
+	}
+
+	function clearFilters() {
+		query = NO_FILTER.query;
+		due = NO_FILTER.due;
+		goalFilter = '';
+		resetPages();
+	}
 
 	/**
 	 * `'subgoal-only'` (goal-detail page, already scoped to one goal): the
@@ -159,6 +208,34 @@
 	}
 </script>
 
+<div class="mb-3.5 flex flex-wrap items-center gap-2">
+	<input
+		class="{field.input} max-w-60 flex-1"
+		type="search"
+		bind:value={query}
+		oninput={resetPages}
+		placeholder="Search tasks…"
+		aria-label="Search tasks"
+	/>
+	<Select
+		class="w-40"
+		ariaLabel="Filter by due date"
+		bind:value={() => due, (value) => ((due = value as DueFilter), resetPages())}
+		options={DUE_OPTIONS}
+	/>
+	{#if goals.length > 0}
+		<Select
+			class="w-48"
+			ariaLabel="Filter by goal"
+			bind:value={() => goalFilter, (value) => ((goalFilter = value), resetPages())}
+			options={goalOptions}
+		/>
+	{/if}
+	{#if filtering}
+		<button type="button" class={button.bare} onclick={clearFilters}>Clear</button>
+	{/if}
+</div>
+
 <div class="grid gap-4 md:grid-cols-3">
 	{#each TASK_STATUSES as status (status)}
 		<section
@@ -175,7 +252,7 @@
 				<span class="tabular-nums">{columns[status].length}</span>
 			</h2>
 
-			{#each columns[status] as task, index (task.id)}
+			{#each paged[status].items as task, index (task.id)}
 				{@const parent = parentLabel(task)}
 				{@const inert = busy || Boolean(task.recurrence && !task.expectedToday)}
 				<div
@@ -311,7 +388,40 @@
 			{/each}
 
 			{#if columns[status].length === 0}
-				<p class="px-2 py-6 text-center text-xs text-muted/70">No tasks</p>
+				<p class="px-2 py-6 text-center text-xs text-muted/70">
+					{filtering ? 'No matching tasks' : 'No tasks'}
+				</p>
+			{/if}
+
+			{#if paged[status].pageCount > 1}
+				<div class="flex items-center justify-center gap-2 text-2xs text-muted">
+					<button
+						type="button"
+						class={button.bare}
+						disabled={paged[status].page === 0}
+						onclick={() => (pages[status] = paged[status].page - 1)}
+					>
+						<Icon
+							name="chevron-right"
+							size={13}
+							class="rotate-180"
+							label="Previous page of {TASK_STATUS_LABELS[status]}"
+						/>
+					</button>
+					<span class="tabular-nums">{paged[status].page + 1} / {paged[status].pageCount}</span>
+					<button
+						type="button"
+						class={button.bare}
+						disabled={paged[status].page === paged[status].pageCount - 1}
+						onclick={() => (pages[status] = paged[status].page + 1)}
+					>
+						<Icon
+							name="chevron-right"
+							size={13}
+							label="Next page of {TASK_STATUS_LABELS[status]}"
+						/>
+					</button>
+				</div>
 			{/if}
 
 			<form class="mt-auto" onsubmit={(event) => quickAdd(event, status)}>
