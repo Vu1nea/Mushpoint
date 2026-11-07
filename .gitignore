@@ -59,3 +59,9 @@ TODO.md
 
 # local git worktrees
 .worktrees/
+
+# server
+server/node_modules
+server/dist
+server/.env
+!server/package-lock.json

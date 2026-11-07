@@ -1,0 +1,40 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "dev": "tsx watch --env-file=.env src/main.ts",
+    "build": "rm -rf dist && esbuild src/main.ts src/db/migrateCli.ts --bundle --platform=node --format=esm --packages=external --target=node24 --sourcemap --outdir=dist && cp -r src/db/migrations dist/db/migrations",
+    "start": "node dist/main.js",
+    "migrate": "tsx --env-file=.env src/db/migrateCli.ts",
+    "test": "vitest run",
+    "check": "tsc --noEmit",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down -v"
+  },
+  "type": "module",
+  "private": "true",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "jose": "^6.2.15",
+    "multer": "^2.5.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "esbuild": "^0.28.2",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
