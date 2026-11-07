@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { migrate } from '../src/db/migrate';
 
 export default async function setup(): Promise<void> {
   const client = new pg.Client({ connectionString: process.env.MIGRATE_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:54329/postgres' });
@@ -13,4 +14,8 @@ export default async function setup(): Promise<void> {
     }
   }
   await client.end();
+  await migrate(
+    process.env.MIGRATE_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:54329/postgres',
+    process.env.MUSHPOINT_APP_PASSWORD ?? 'mushpoint_app'
+  );
 }
