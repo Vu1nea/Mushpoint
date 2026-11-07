@@ -1,4 +1,4 @@
-export type ErrorKind = 'not_found' | 'validation' | 'database' | 'internal' | 'unavailable';
+export type ErrorKind = 'not_found' | 'validation' | 'unauthenticated' | 'database' | 'internal' | 'unavailable';
 
 /** Every failure the UI can observe. Thrown directly by repo code — there is
  * no process boundary left to serialize across. */
@@ -22,6 +22,10 @@ export class AppError extends Error {
 
 	static validation(message: string): AppError {
 		return new AppError('validation', message);
+	}
+
+	static unauthenticated(message: string): AppError {
+		return new AppError('unauthenticated', message);
 	}
 
 	static from(raw: unknown): AppError {
