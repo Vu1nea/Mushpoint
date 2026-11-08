@@ -12,6 +12,7 @@ import { settingsRouter } from './routes/settings';
 import { streaksRouter } from './routes/streaks';
 import { subgoalsRouter } from './routes/subgoals';
 import { tasksRouter } from './routes/tasks';
+import { visionImagesRouter } from './routes/visionImages';
 import { visionItemsRouter } from './routes/visionItems';
 
 export interface Deps {
@@ -20,7 +21,7 @@ export interface Deps {
   images: ImageStore;
 }
 
-export function createApp({ pool, verify }: Deps): Express {
+export function createApp({ pool, verify, images }: Deps): Express {
   const app = express();
   app.disable('x-powered-by');
 
@@ -44,7 +45,8 @@ export function createApp({ pool, verify }: Deps): Express {
   api.use('/', streaksRouter(handle));
   api.use('/ideas', ideasRouter(handle));
   api.get('/idea-tags', handle((db) => idea.listTags(db)));
-  api.use('/vision-items', visionItemsRouter(handle));
+  api.use('/vision-items', visionItemsRouter(handle, images));
+  api.use('/vision-images', visionImagesRouter(images));
   api.use('/settings', settingsRouter(handle));
 
   api.use((_req, _res, next) => next(new AppError('not_found', 'no such route')));

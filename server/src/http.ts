@@ -17,8 +17,14 @@ export interface Ctx {
 
 export type Handle = <T>(
   fn: (driver: SqlDriver, ctx: Ctx) => Promise<T>,
-  /** afterCommit runs after COMMIT; its failure is logged, never sent to the client. */
-  opts?: { status?: number; afterCommit?: (result: T) => Promise<void> }
+  opts?: {
+    status?: number;
+    /** Runs after COMMIT; its failure is logged, never sent to the client. */
+    afterCommit?: (result: T) => Promise<void>;
+    /** Runs after COMMIT (and afterCommit) to shape the response body; the
+     * connection is already released, so slow work here holds no transaction. */
+    present?: (result: T) => Promise<unknown>;
+  }
 ) => RequestHandler;
 
 /** Verifies the bearer token and stores the user id; Express 5 forwards the rejection. */
@@ -31,7 +37,7 @@ export function authenticate(verify: Verifier): RequestHandler {
 
 /** Wraps a route body in one user-scoped transaction. */
 export function makeHandle(pool: Pool): Handle {
-  return (fn, { status = 200, afterCommit } = {}) =>
+  return (fn, { status = 200, afterCommit, present } = {}) =>
     async (req, res) => {
       const userId: string = res.locals.userId;
       const ctx: Ctx = {
@@ -59,7 +65,7 @@ export function makeHandle(pool: Pool): Handle {
         await afterCommit(result).catch((err) => console.error('afterCommit failed', err));
       }
       if (status === 204) res.status(204).end();
-      else res.status(status).json(result);
+      else res.status(status).json(present ? await present(result) : result);
     };
 }
 

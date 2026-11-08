@@ -26,14 +26,15 @@ const taskBody = { title: 'T', dueDate: null, goalId: null, subgoalId: null, rec
 const pool = createPool(process.env.DATABASE_URL!);
 const A = randomUUID();
 const B = randomUUID();
+const store = createMemoryImageStore();
 let app: Express;
-let a: ReturnType<typeof clientFor>;
+let a:ReturnType<typeof clientFor>;
 let b: ReturnType<typeof clientFor>;
 let tokenA: string;
 
 beforeAll(async () => {
   const identity = await createTestIdentity();
-  app = createApp({ pool, verify: createVerifier(identity), images: createMemoryImageStore() });
+  app = createApp({ pool, verify: createVerifier(identity), images: store });
   tokenA = await identity.sign({ sub: A });
   a = clientFor(app, tokenA);
   b = clientFor(app, await identity.sign({ sub: B }));
@@ -207,6 +208,91 @@ describe('vision-items', () => {
 
   it('rejects a non-array orderedIds', async () => {
     await a.put('/api/vision-items/order').send({ orderedIds: 'nope' }).expect(400);
+  });
+});
+
+describe('vision images', () => {
+  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+  const upload = async () =>
+    (await a.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(200)).body;
+
+  it('uploads an image and returns a path and a signed url', async () => {
+    const body = await upload();
+    expect(body.imagePath).toMatch(new RegExp(`^${A}/[0-9a-f-]{36}\\.png$`));
+    expect(body.imageUrl).toEqual(expect.any(String));
+    expect(store.objects.has(body.imagePath)).toBe(true);
+  });
+
+  it('requires a token to upload', async () => {
+    await request(app).post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
+  });
+
+  it.each([
+    ['wrong declared type', Buffer.from(PNG), 'a.txt', 'text/plain'],
+    ['declared png but not an image', Buffer.from('hello world!'), 'a.png', 'image/png'],
+    ['svg', Buffer.from('<svg/>'), 'a.svg', 'image/svg+xml']
+  ])('rejects %s', async (_name, buf, filename, contentType) => {
+    const res = await a.post('/api/vision-images').attach('file', buf, { filename, contentType }).expect(400);
+    expect(res.body.kind).toBe('validation');
+  });
+
+  it('rejects an empty upload and a request with no file', async () => {
+    await a.post('/api/vision-images').attach('file', Buffer.alloc(0), { filename: 'a.png', contentType: 'image/png' }).expect(400);
+    await a.post('/api/vision-images').field('other', 'x').expect(400);
+    await a.post('/api/vision-images').send({}).expect(400);
+  });
+
+  it('rejects files over 5 MB', async () => {
+    const res = await a
+      .post('/api/vision-images')
+      .attach('file', Buffer.concat([Buffer.from(PNG), Buffer.alloc(5 * 1024 * 1024)]), { filename: 'big.png', contentType: 'image/png' })
+      .expect(400);
+    expect(res.body.kind).toBe('validation');
+  });
+
+  it("rejects another user's image path on a vision item", async () => {
+    await a.post('/api/vision-items').send({ imagePath: `${B}/${randomUUID()}.png`, quoteText: null }).expect(400);
+    await a.post('/api/vision-items').send({ imagePath: `${A}/../${B}/${randomUUID()}.png`, quoteText: null }).expect(400);
+    const item = (await a.post('/api/vision-items').send({ imagePath: null, quoteText: 'q' }).expect(200)).body;
+    await a.put(`/api/vision-items/${item.id}`).send({ imagePath: `${B}/${randomUUID()}.png`, quoteText: 'q' }).expect(400);
+  });
+
+  it("removes the old object when an item's image is replaced or the item is deleted", async () => {
+    const first = (await upload()).imagePath;
+    const second = (await upload()).imagePath;
+    const item = (await a.post('/api/vision-items').send({ imagePath: first, quoteText: null }).expect(200)).body;
+
+    const keep = (await a.put(`/api/vision-items/${item.id}`).send({ imagePath: first, quoteText: 'same image' }).expect(200)).body;
+    expect(keep.imagePath).toBe(first);
+    expect(store.objects.has(first)).toBe(true);
+
+    const replaced = (await a.put(`/api/vision-items/${item.id}`).send({ imagePath: second, quoteText: null }).expect(200)).body;
+    expect(replaced).not.toHaveProperty('oldPath');
+    expect(replaced.imagePath).toBe(second);
+    expect(store.objects.has(first)).toBe(false);
+
+    await b.delete(`/api/vision-items/${item.id}`).expect(404);
+    expect(store.objects.has(second)).toBe(true);
+    await a.delete(`/api/vision-items/${item.id}`).expect(204);
+    expect(store.objects.has(second)).toBe(false);
+  });
+
+  it('keeps the object when the row change fails', async () => {
+    const path = (await upload()).imagePath;
+    const item = (await a.post('/api/vision-items').send({ imagePath: path, quoteText: null }).expect(200)).body;
+    await a.put(`/api/vision-items/${item.id}`).send({ imagePath: null, quoteText: null }).expect(400);
+    expect(store.objects.has(path)).toBe(true);
+  });
+
+  it('returns imageUrl on created, updated and listed items', async () => {
+    const path = (await upload()).imagePath;
+    const created = (await a.post('/api/vision-items').send({ imagePath: path, quoteText: null }).expect(200)).body;
+    expect(created.imageUrl).toEqual(expect.any(String));
+    const quote = (await a.post('/api/vision-items').send({ imagePath: null, quoteText: 'q' }).expect(200)).body;
+    expect(quote.imageUrl).toBeNull();
+    const listed = (await a.get('/api/vision-items').expect(200)).body;
+    expect(listed.find((x: any) => x.id === created.id).imageUrl).toEqual(expect.any(String));
+    expect(listed.find((x: any) => x.id === quote.id).imageUrl).toBeNull();
   });
 });
 
