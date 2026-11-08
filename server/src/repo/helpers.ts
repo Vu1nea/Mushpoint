@@ -53,7 +53,8 @@ export function localDateOf(timestamp: string, tz: string): string {
 
 /** Validates an `X-Timezone` header value: a real IANA zone name. */
 export function parseTimezone(raw: string | undefined): string {
-  if (!raw || /[+\s]/.test(raw)) throw AppError.validation('X-Timezone header must be an IANA time zone');
+  // A leading sign is a raw offset ("+03:00"), not a zone; signed zones like Etc/GMT+5 are fine.
+  if (!raw || /^[+-]|\s/.test(raw)) throw AppError.validation('X-Timezone header must be an IANA time zone');
   try {
     new Intl.DateTimeFormat('en-US', { timeZone: raw });
   } catch {

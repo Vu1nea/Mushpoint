@@ -4,5 +4,9 @@ import pg from 'pg';
 pg.types.setTypeParser(20, (value) => Number(value));
 
 export function createPool(connectionString: string): pg.Pool {
-  return new pg.Pool({ connectionString, max: 10 });
+  const pool = new pg.Pool({ connectionString, max: 10, connectionTimeoutMillis: 10_000 });
+  // An idle client dropped by the server (restart, pooler timeout) emits 'error';
+  // without a listener Node would crash the process. The pool replaces the client.
+  pool.on('error', (err) => console.error('idle database client error', err));
+  return pool;
 }

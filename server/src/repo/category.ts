@@ -80,11 +80,11 @@ export async function remove(driver: SqlDriver, id: number): Promise<void> {
 }
 
 /** The UNIQUE(name) constraint is a user-facing rule, not an internal failure. */
-function duplicateNameAsValidation(err: unknown): AppError {
-	if (err instanceof AppError) return err;
-	const message = err instanceof Error ? err.message : String(err);
-	if (/unique/i.test(message)) {
+/** Only a unique violation gets the friendly message; anything else is rethrown
+ * unchanged so the error handler maps it by its SQLSTATE. */
+function duplicateNameAsValidation(err: unknown): unknown {
+	if ((err as { code?: unknown })?.code === '23505') {
 		return AppError.validation('a category with that name already exists');
 	}
-	return new AppError('database', message);
+	return err;
 }

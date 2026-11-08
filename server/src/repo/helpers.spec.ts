@@ -60,7 +60,11 @@ describe('timezones', () => {
     expect(() => localDateOf('nope', 'UTC')).toThrow(/unreadable timestamp/);
   });
 
-  it.each([undefined, '', 'Mars/Base', 'UTC+3'])('parseTimezone rejects %s', (raw) => {
+  it.each(['Etc/GMT+5', 'Etc/GMT-14'])('parseTimezone accepts the signed IANA zone %s', (raw) => {
+    expect(parseTimezone(raw)).toBe(raw);
+  });
+
+  it.each([undefined, '', 'Mars/Base', 'UTC+3', '+03:00', '-05:00', ' UTC'])('parseTimezone rejects %s', (raw) => {
     expect(() => parseTimezone(raw)).toThrow(expect.objectContaining({ kind: 'validation' }));
   });
 

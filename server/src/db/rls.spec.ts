@@ -92,4 +92,14 @@ describe('row-level security', () => {
     await owner.end();
     expect(rows).toEqual([]);
   });
+
+  it('grants every policy to the app role only (never public, anon or authenticated)', async () => {
+    const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
+    const { rows } = await owner.query(
+      `SELECT tablename, roles::text[] AS roles FROM pg_policies WHERE schemaname = 'public'`
+    );
+    await owner.end();
+    expect(rows.length).toBeGreaterThanOrEqual(10);
+    for (const row of rows) expect({ table: row.tablename, roles: row.roles }).toEqual({ table: row.tablename, roles: ['mushpoint_app'] });
+  });
 });

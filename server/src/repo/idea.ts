@@ -66,6 +66,9 @@ async function resolveTagId(driver: SqlDriver, name: string): Promise<number> {
 /** Replaces an idea's tag links wholesale rather than diffing — simpler, and
  * the tag list is short enough that this is never a performance concern. */
 async function setTags(driver: SqlDriver, ideaId: number, tagNames: string[]): Promise<void> {
+	if (!Array.isArray(tagNames) || !tagNames.every((t) => typeof t === 'string')) {
+		throw AppError.validation('tagNames must be a list of text');
+	}
 	await driver.execute('DELETE FROM idea_tag_links WHERE idea_id = ?1', [ideaId]);
 	for (const raw of tagNames) {
 		const name = raw.trim();

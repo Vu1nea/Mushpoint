@@ -314,7 +314,11 @@ describe('hostile input', () => {
     ['missing body fields', '/api/goals', {}],
     ['bad enum', '/api/goals', { ...goalBody, timeframe: 'bogus' }],
     ['non-numeric foreign key', '/api/tasks', { ...taskBody, goalId: 'abc' }],
-    ['array body', '/api/categories', [1, 2]]
+    ['array body', '/api/categories', [1, 2]],
+    ['missing tagNames', '/api/ideas', { title: 'x', note: null }],
+    ['non-text tag name', '/api/ideas', { title: 'x', note: null, tagNames: [1] }],
+    ['tagNames as a string', '/api/ideas', { title: 'x', note: null, tagNames: 'ab' }],
+    ['NUL byte in a category name', '/api/categories', { name: 'a\u0000b', colorToken: null }]
   ])('rejects %s with 400 and no SQL text', async (_name, path, body) => {
     const res = await a.post(path).send(body as object).expect(400);
     expect(res.body.kind).toBe('validation');
