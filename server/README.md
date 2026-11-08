@@ -45,7 +45,27 @@ Copy `.env.example` to `.env` first. The defaults point at the compose database.
   closed: every request answers 401.
 - Create a **private** bucket named `vision` (or set `IMAGE_BUCKET`). Images are
   stored at `<userId>/<uuid>.<png|jpg|webp|gif>` and served through signed URLs
-  that expire after one hour.
+  that expire after one hour. To create it with the service key:
+
+  ```sh
+  curl -X POST "$SUPABASE_URL/storage/v1/bucket" \
+    -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" -H "apikey: $SUPABASE_SERVICE_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"id":"vision","name":"vision","public":false,"file_size_limit":5242880,"allowed_mime_types":["image/png","image/jpeg","image/webp","image/gif"]}'
+  ```
+
+### Live smoke test results (2026-11-08)
+
+Checked against a real project: password sign-in, token verification through
+JWKS (ES256), the five default categories, goals, habits and streaks, settings,
+image upload, signed URLs serving the uploaded bytes, and object removal when a
+vision item is deleted. Supabase's Data API cannot read the tables. The Storage
+endpoints matched what Task 10 assumed.
+
+One behavior to know: after an object is deleted, a signed URL that was already
+fetched can keep serving the image from Supabase's CDN cache for a while. The
+object is gone from Storage; only the cached copy remains until the URL expires
+(at most one hour).
 
 ## Container
 
