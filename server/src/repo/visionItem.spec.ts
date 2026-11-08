@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { SqlDriver } from '../db/driver';
 import { createTestDb, TEST_TZ, type TestDb } from '../testSupport/db';
@@ -89,5 +90,20 @@ describe('visionItem', () => {
 		const ordered = await visionItem.list(driver);
 		expect(ordered.map((i) => i.id)).toEqual([third.id, first.id, second.id]);
 		expect(ordered.map((i) => i.position)).toEqual([0, 1, 2]);
+	});
+});
+
+describe('visionItem isolation', () => {
+	it("ignores another user's ids when reordering", async () => {
+		const me = t.userId;
+		const other = randomUUID();
+		const mine = await visionItem.create(driver, { imagePath: null, quoteText: 'mine' });
+		await t.useUser(other);
+		const theirs = await visionItem.create(driver, { imagePath: null, quoteText: 'theirs' });
+		await t.useUser(me);
+		await visionItem.reorder(driver, [theirs.id, mine.id]); // theirs.id matches no row visible to me
+		expect((await visionItem.get(driver, mine.id)).position).toBe(1);
+		await t.useUser(other);
+		expect((await visionItem.get(driver, theirs.id)).position).toBe(0);
 	});
 });

@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { randomUUID } from 'node:crypto';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { SqlDriver } from '../db/driver';
 import { createTestDb, TEST_TZ, type TestDb } from '../testSupport/db';
 import * as streak from './streak';
 import * as task from './task';
 import * as goal from './goal';
+import type { StreakCard } from '../types';
 
 let t: TestDb;
 let driver: SqlDriver;
@@ -14,6 +16,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+	vi.useRealTimers();
 	await t.release();
 });
 
@@ -167,5 +170,32 @@ describe('streak', () => {
 		});
 
 		expect((await goal.getDetail(driver, created.id, TEST_TZ)).progress).toBe(1);
+	});
+});
+
+describe('streak timezones', () => {
+	it("starts a habit's history on the user's local creation date", async () => {
+		vi.useFakeTimers({ toFake: ['Date'] });
+		vi.setSystemTime(new Date('2026-03-10T10:00:00Z')); // 03-11 in Kiritimati (UTC+14), 03-09 in Pago_Pago (UTC-11)
+		await habit('Stretch', 'daily');
+		vi.setSystemTime(new Date('2026-03-12T01:00:00Z')); // local today: 03-12 Kiritimati, 03-11 Pago_Pago
+		const expected = (card: StreakCard) => card.cells.filter((c) => c.state !== 'not_expected').length;
+		const kiritimati = (await streak.list(driver, 5, 'Pacific/Kiritimati'))[0];
+		const pago = (await streak.list(driver, 5, 'Pacific/Pago_Pago'))[0];
+		expect(kiritimati.cells.at(-1)!.date).toBe('2026-03-12');
+		expect(pago.cells.at(-1)!.date).toBe('2026-03-11');
+		expect(expected(kiritimati)).toBe(2);
+		expect(expected(pago)).toBe(3);
+	});
+});
+
+describe('streak isolation', () => {
+	it("does not list or complete another user's habit", async () => {
+		const id = await habit('Stretch', 'daily');
+		await t.useUser(randomUUID());
+		expect(await streak.list(driver, 5, TEST_TZ)).toEqual([]);
+		await expect(streak.setCompletion(driver, id, null, true, 5, TEST_TZ)).rejects.toMatchObject({
+			kind: 'not_found'
+		});
 	});
 });

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { SqlDriver } from '../db/driver';
 import { createTestDb, TEST_TZ, type TestDb } from '../testSupport/db';
@@ -126,5 +127,21 @@ describe('idea', () => {
 
 	it('rejects a blank title', async () => {
 		await expect(idea.create(driver, ideaInput('  '))).rejects.toMatchObject({ kind: 'validation' });
+	});
+});
+
+describe('idea isolation', () => {
+	it('lets two users own the same tag name', async () => {
+		await idea.create(driver, ideaInput('a', ['cs']));
+		await t.useUser(randomUUID());
+		const b = await idea.create(driver, ideaInput('b', ['CS']));
+		expect(b.tags.map((x) => x.name)).toEqual(['CS']);
+	});
+
+	it("refuses to promote an idea into another user's goal", async () => {
+		const mine = await goal.create(driver, goalInput('Mine'));
+		await t.useUser(randomUUID());
+		const other = await idea.create(driver, ideaInput('x'));
+		await expect(idea.promote(driver, other.id, mine.id)).rejects.toMatchObject({ kind: 'not_found' });
 	});
 });
