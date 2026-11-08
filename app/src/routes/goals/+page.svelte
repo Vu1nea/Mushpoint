@@ -6,7 +6,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import ProgressRing from '$lib/components/ProgressRing.svelte';
 	import Select from '$lib/components/Select.svelte';
-	import { button, chip, DUE_CLASSES, lift, sectionHeading } from '$lib/components/ui';
+	import { button, chip, DUE_CLASSES, sectionHeading } from '$lib/components/ui';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
@@ -115,7 +115,7 @@
 					<li class="mp-enter" style="--mp-delay:{stagger(index)}">
 						<a
 							href="/goals/{goal.id}"
-							class="flex items-center gap-4 rounded-card border border-subtle bg-surface px-4.5 py-4 {lift}"
+							class="flex items-center gap-4 rounded-card border border-subtle bg-surface px-4.5 py-4 transition-colors duration-150 hover:border-accent/60"
 						>
 							<ProgressRing
 								value={goal.progress}
