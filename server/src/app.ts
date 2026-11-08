@@ -2,8 +2,17 @@ import express, { Router, type Express } from 'express';
 import type { Pool } from 'pg';
 import type { Verifier } from './auth';
 import { AppError } from './error';
-import { authenticate, errorHandler } from './http';
+import { authenticate, errorHandler, makeHandle } from './http';
 import type { ImageStore } from './images';
+import * as idea from './repo/idea';
+import { categoriesRouter } from './routes/categories';
+import { goalsRouter } from './routes/goals';
+import { ideasRouter } from './routes/ideas';
+import { settingsRouter } from './routes/settings';
+import { streaksRouter } from './routes/streaks';
+import { subgoalsRouter } from './routes/subgoals';
+import { tasksRouter } from './routes/tasks';
+import { visionItemsRouter } from './routes/visionItems';
 
 export interface Deps {
   pool: Pool;
@@ -26,7 +35,18 @@ export function createApp({ pool, verify }: Deps): Express {
   });
   api.use(express.json({ limit: '1mb' }));
   api.use(authenticate(verify));
-  // Data routers are mounted here in Tasks 9-10.
+
+  const handle = makeHandle(pool);
+  api.use('/categories', categoriesRouter(handle));
+  api.use('/goals', goalsRouter(handle));
+  api.use('/subgoals', subgoalsRouter(handle));
+  api.use('/tasks', tasksRouter(handle));
+  api.use('/', streaksRouter(handle));
+  api.use('/ideas', ideasRouter(handle));
+  api.get('/idea-tags', handle((db) => idea.listTags(db)));
+  api.use('/vision-items', visionItemsRouter(handle));
+  api.use('/settings', settingsRouter(handle));
+
   api.use((_req, _res, next) => next(new AppError('not_found', 'no such route')));
 
   app.use('/api', api);
