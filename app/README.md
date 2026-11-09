@@ -37,10 +37,29 @@ browser that asked for it, so it must be opened in that same browser.
 
 ```sh
 npm run test:unit     # vitest — pure client logic and the API client (HTTP mocked)
-npm run test:e2e      # playwright
+npm run test:e2e      # playwright, needs the setup below
 npm run test          # unit tests, run once
 npm run check         # svelte-check
 ```
+
+### End-to-end tests
+
+`npm run test:e2e` drives the built app against the real API and Supabase project. It
+creates two throwaway users (`e2e-a-<runId>@example.com`, `e2e-b-<runId>@example.com`) and
+deletes them afterwards, even when a test fails.
+
+Prerequisites:
+
+1. `static/config.json` filled in, and `../server/.env` set up, both for the same
+   Supabase project (see [`../server/README.md`](../server/README.md)).
+2. The server's database up and migrated: `npm run db:up` then `npm run migrate` in
+   `../server`.
+3. `cp .env.e2e.example .env.e2e` and fill in `E2E_SUPABASE_URL`,
+   `E2E_SUPABASE_SERVICE_KEY` (service-role key) and `E2E_PASSWORD`. Same project as above.
+
+Then `npm run test:e2e`. Playwright starts the API (`npm --prefix ../server run dev`, or
+reuses one already on port 3000) and builds and previews the app on port 4173. Without
+`.env.e2e` the run stops at once and names the missing variables.
 
 ## Layout
 
