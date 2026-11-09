@@ -8,6 +8,7 @@ import * as idea from './repo/idea';
 import { categoriesRouter } from './routes/categories';
 import { goalsRouter } from './routes/goals';
 import { ideasRouter } from './routes/ideas';
+import { profileRouter } from './routes/profile';
 import { settingsRouter } from './routes/settings';
 import { streaksRouter } from './routes/streaks';
 import { subgoalsRouter } from './routes/subgoals';
@@ -48,6 +49,7 @@ export function createApp({ pool, verify, images }: Deps): Express {
   api.use('/vision-items', visionItemsRouter(handle, images));
   api.use('/vision-images', visionImagesRouter(images));
   api.use('/settings', settingsRouter(handle));
+  api.use('/profile', profileRouter(handle));
 
   api.use((_req, _res, next) => next(new AppError('not_found', 'no such route')));
 

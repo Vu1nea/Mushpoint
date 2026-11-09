@@ -218,3 +218,10 @@ export interface TaskSummary extends Task {
 	completedToday: boolean;
 	expectedToday: boolean;
 }
+
+/** A user's public identity; `username` is null until they pick one. */
+export interface Profile {
+	username: string | null;
+}
+
+export const USERNAME_PATTERN = /^[a-z0-9_.]{3,30}$/i;

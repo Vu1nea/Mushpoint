@@ -334,3 +334,16 @@ describe('hostile input', () => {
     await a.put(`/api/tasks/${task.id}/status`).send({ status: 'bogus' }).expect(400);
   });
 });
+
+describe('profile', () => {
+  it('reads and sets a unique username', async () => {
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: null });
+    expect((await a.put('/api/profile/username').send({ username: 'alpha_1' }).expect(200)).body).toEqual({ username: 'alpha_1' });
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: 'alpha_1' });
+    expect((await b.put('/api/profile/username').send({ username: 'ALPHA_1' }).expect(400)).body).toEqual({
+      kind: 'validation',
+      message: 'that username is taken'
+    });
+    await a.put('/api/profile/username').send({}).expect(400);
+  });
+});
