@@ -31,7 +31,7 @@ Copy `.env.example` to `.env` first. The defaults point at the compose database.
 |---|---|---|---|
 | `DATABASE_URL` | API | yes | Connection string for role `mushpoint_app` (`NOBYPASSRLS`). Never the owner or a Supabase service role. |
 | `SUPABASE_URL` | API | yes | Project URL, e.g. `https://abcd.supabase.co`. A trailing slash is ignored. |
-| `SUPABASE_SERVICE_KEY` | API | yes | Service key, used only to call Storage. |
+| `SUPABASE_SERVICE_KEY` | API | yes | Service key, used only to call Storage and the Auth admin API (account deletion). |
 | `PORT` | API | no (3000) | Listen port. |
 | `IMAGE_BUCKET` | API | no (`vision`) | Storage bucket for vision board images. |
 | `MIGRATE_DATABASE_URL` | migrate | yes | Owner connection string, used only by migrations. |
@@ -92,3 +92,18 @@ same image runs migrations with the command `node dist/db/migrateCli.js`.
 - Errors are always `{ "kind": ..., "message": ... }`: 400 `validation`,
   401 `unauthenticated`, 404 `not_found`, 500 `internal`/`database` (the message
   is always `internal error`), 503 `unavailable`.
+
+## Deleting an account
+
+`DELETE /api/account` answers 204 after it removes, in order: every image under
+`<userId>/` in the bucket, every row the user owns (recording a tombstone in
+`deleted_users`), and the Supabase login through the Auth admin API
+(`DELETE <SUPABASE_URL>/auth/v1/admin/users/<userId>` with the service key; an
+already-missing login counts as done). Each step is idempotent, so a request
+that fails partway (503 `unavailable` when Storage or Auth is down) can simply
+be retried with the same token.
+
+Access tokens stay valid until they expire, so every other route refuses a
+token whose user is in `deleted_users` with 401 `account deleted`. Without that
+check, the next request would quietly recreate the user's settings and default
+categories. `DELETE /api/account` itself skips the check so the retry works.

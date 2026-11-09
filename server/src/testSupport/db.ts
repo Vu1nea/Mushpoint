@@ -41,7 +41,7 @@ export async function createTestDb(userId: string = randomUUID()): Promise<TestD
 
 const TABLES = [
   'task_completions', 'idea_tag_links', 'tasks', 'ideas', 'idea_tags',
-  'subgoals', 'goals', 'categories', 'vision_items', 'settings', 'profiles'
+  'subgoals', 'goals', 'categories', 'vision_items', 'settings', 'profiles', 'deleted_users'
 ];
 
 /** For tests that commit: removes every row the given users own (owner connection bypasses RLS). */

@@ -84,9 +84,11 @@ describe('row-level security', () => {
 
   it('covers every table: all user tables have RLS enabled and forced', async () => {
     const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
+    // deleted_users is checked for any user id before a request is scoped, so it has no RLS.
     const { rows } = await owner.query(
       `SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-       WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname <> 'schema_migrations'
+       WHERE n.nspname = 'public' AND c.relkind = 'r'
+         AND c.relname NOT IN ('schema_migrations', 'deleted_users')
          AND NOT (c.relrowsecurity AND c.relforcerowsecurity)`
     );
     await owner.end();

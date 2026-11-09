@@ -6,6 +6,8 @@ export interface ImageStore {
   put(userId: string, bytes: Uint8Array, contentType: string): Promise<string>;
   /** No-op if the object is missing. */
   remove(path: string): Promise<void>;
+  /** Deletes every object under `<userId>/`; no-op when there are none. */
+  removeAllFor(userId: string): Promise<void>;
   /** Same order as `paths`; null where an object cannot be signed. */
   signedUrls(paths: string[], expiresInSeconds: number): Promise<(string | null)[]>;
 }
@@ -42,6 +44,8 @@ export function isOwnImagePath(userId: string, path: string): boolean {
     'i'
   ).test(path);
 }
+
+const LIST_PAGE = 1000;
 
 /** Supabase Storage REST client (same endpoints as `@supabase/storage-js`). */
 export function createSupabaseImageStore(opts: {
@@ -89,6 +93,25 @@ export function createSupabaseImageStore(opts: {
         body: JSON.stringify({ prefixes: [path] })
       });
     },
+    async removeAllFor(userId) {
+      const paths: string[] = [];
+      for (let offset = 0; ; offset += LIST_PAGE) {
+        const res = await call(`/object/list/${opts.bucket}`, {
+          method: 'POST',
+          headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix: userId, limit: LIST_PAGE, offset })
+        });
+        const page = (await res.json()) as { name: string }[];
+        paths.push(...page.map((o) => `${userId}/${o.name}`));
+        if (page.length < LIST_PAGE) break;
+      }
+      if (paths.length === 0) return;
+      await call(`/object/${opts.bucket}`, {
+        method: 'DELETE',
+        headers: { ...auth, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prefixes: paths })
+      });
+    },
     async signedUrls(paths, expiresInSeconds) {
       if (paths.length === 0) return [];
       const res = await call(`/object/sign/${opts.bucket}`, {
@@ -119,6 +142,11 @@ export function createMemoryImageStore(): ImageStore & { objects: Map<string, Ui
     },
     async remove(path) {
       objects.delete(path);
+    },
+    async removeAllFor(userId) {
+      for (const key of [...objects.keys()]) {
+        if (key.startsWith(`${userId}/`)) objects.delete(key);
+      }
     },
     async signedUrls(paths, expiresInSeconds) {
       return paths.map((p) =>

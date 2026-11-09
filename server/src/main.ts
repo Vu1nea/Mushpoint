@@ -1,6 +1,7 @@
 import { createRemoteJWKSet } from 'jose';
 import { createApp } from './app';
 import { createVerifier } from './auth';
+import { createSupabaseAuthAdmin } from './authAdmin';
 import { loadConfig } from './config';
 import { createPool } from './db/pool';
 import { createSupabaseImageStore } from './images';
@@ -18,7 +19,9 @@ const images = createSupabaseImageStore({
   bucket: config.imageBucket
 });
 
-const server = createApp({ pool, verify, images }).listen(config.port, () => {
+const authAdmin = createSupabaseAuthAdmin({ url: config.supabaseUrl, serviceKey: config.supabaseServiceKey });
+
+const server = createApp({ pool, verify, images, authAdmin }).listen(config.port, () => {
   console.log(`api listening on ${config.port}`);
 });
 

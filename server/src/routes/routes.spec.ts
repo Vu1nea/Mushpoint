@@ -5,6 +5,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../app';
 import { createVerifier } from '../auth';
+import { createMemoryAuthAdmin } from '../authAdmin';
 import { createPool } from '../db/pool';
 import { createMemoryImageStore } from '../images';
 import { createTestIdentity } from '../testSupport/auth';
@@ -26,22 +27,29 @@ const taskBody = { title: 'T', dueDate: null, goalId: null, subgoalId: null, rec
 const pool = createPool(process.env.DATABASE_URL!);
 const A = randomUUID();
 const B = randomUUID();
+const C = randomUUID();
+const D = randomUUID();
 const store = createMemoryImageStore();
+const authAdmin = createMemoryAuthAdmin();
 let app: Express;
 let a:ReturnType<typeof clientFor>;
 let b: ReturnType<typeof clientFor>;
 let tokenA: string;
+let c: ReturnType<typeof clientFor>;
+let d: ReturnType<typeof clientFor>;
 
 beforeAll(async () => {
   const identity = await createTestIdentity();
-  app = createApp({ pool, verify: createVerifier(identity), images: store });
+  app = createApp({ pool, verify: createVerifier(identity), images: store, authAdmin });
   tokenA = await identity.sign({ sub: A });
   a = clientFor(app, tokenA);
   b = clientFor(app, await identity.sign({ sub: B }));
+  c = clientFor(app, await identity.sign({ sub: C }));
+  d = clientFor(app, await identity.sign({ sub: D }));
 });
 
 afterAll(async () => {
-  await purgeUsers([A, B]);
+  await purgeUsers([A, B, C, D]);
   await pool.end();
 });
 
@@ -345,5 +353,48 @@ describe('profile', () => {
       message: 'that username is taken'
     });
     await a.put('/api/profile/username').send({}).expect(400);
+  });
+});
+
+describe('account deletion', () => {
+  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+  const TABLES = [
+    'idea_tag_links', 'idea_tags', 'ideas', 'task_completions', 'tasks', 'subgoals',
+    'goals', 'vision_items', 'categories', 'settings', 'profiles'
+  ];
+
+  it("removes every row, image and the login, then refuses the user's token", async () => {
+    // C is deleted; D is the bystander. Fresh users keep the shared A/B usable.
+    const username = `u_${randomUUID().slice(0, 8)}`;
+    await c.post('/api/goals').send(goalBody).expect(200);
+    await c.post('/api/tasks').send(taskBody).expect(200);
+    await c.post('/api/ideas').send({ title: 'I', note: null, tagNames: ['t'] }).expect(200);
+    const { imagePath } = (await c
+      .post('/api/vision-images')
+      .attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' })
+      .expect(200)).body;
+    await c.post('/api/vision-items').send({ imagePath, quoteText: null }).expect(200);
+    await c.put('/api/profile/username').send({ username }).expect(200);
+    const dGoal = (await d.post('/api/goals').send(goalBody).expect(200)).body;
+
+    await c.delete('/api/account').expect(204);
+
+    expect(authAdmin.deleted).toEqual([C]);
+    expect([...store.objects.keys()].filter((k) => k.startsWith(`${C}/`))).toEqual([]);
+    const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
+    try {
+      for (const table of TABLES) {
+        const { rows } = await owner.query(`SELECT 1 FROM ${table} WHERE user_id = $1`, [C]);
+        expect(rows, table).toHaveLength(0);
+      }
+    } finally {
+      await owner.end();
+    }
+    expect(ids((await d.get('/api/goals').expect(200)).body)).toContain(dGoal.id);
+
+    expect((await c.get('/api/goals').expect(401)).body).toEqual({ kind: 'unauthenticated', message: 'account deleted' });
+    await c.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
+    await c.delete('/api/account').expect(204);
+    expect((await d.put('/api/profile/username').send({ username }).expect(200)).body).toEqual({ username });
   });
 });

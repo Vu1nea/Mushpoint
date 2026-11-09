@@ -3,6 +3,7 @@ import request from 'supertest';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createApp } from './app';
 import { createVerifier } from './auth';
+import { createMemoryAuthAdmin } from './authAdmin';
 import { createPool } from './db/pool';
 import { errorHandler } from './http';
 import { createMemoryImageStore } from './images';
@@ -17,7 +18,7 @@ describe('app skeleton', () => {
   beforeAll(async () => {
     identity = await createTestIdentity();
     token = await identity.sign();
-    app = createApp({ pool, verify: createVerifier(identity), images: createMemoryImageStore() });
+    app = createApp({ pool, verify: createVerifier(identity), images: createMemoryImageStore(), authAdmin: createMemoryAuthAdmin() });
   });
 
   afterEach(() => vi.restoreAllMocks());

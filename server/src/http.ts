@@ -27,10 +27,16 @@ export type Handle = <T>(
   }
 ) => RequestHandler;
 
-/** Verifies the bearer token and stores the user id; Express 5 forwards the rejection. */
-export function authenticate(verify: Verifier): RequestHandler {
+/** Verifies the bearer token and stores the user id; Express 5 forwards the rejection.
+ * With `isDeleted`, a token for a deleted account is refused. */
+export function authenticate(
+  verify: Verifier,
+  isDeleted?: (userId: string) => Promise<boolean>
+): RequestHandler {
   return async (req, res, next) => {
-    res.locals.userId = (await verify(req.header('authorization'))).userId;
+    const { userId } = await verify(req.header('authorization'));
+    if (isDeleted && (await isDeleted(userId))) throw AppError.unauthenticated('account deleted');
+    res.locals.userId = userId;
     next();
   };
 }

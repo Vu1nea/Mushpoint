@@ -1,10 +1,12 @@
 import express, { Router, type Express } from 'express';
 import type { Pool } from 'pg';
 import type { Verifier } from './auth';
+import type { AuthAdmin } from './authAdmin';
 import { AppError } from './error';
 import { authenticate, errorHandler, makeHandle } from './http';
 import type { ImageStore } from './images';
 import * as idea from './repo/idea';
+import { deleteAccount } from './routes/account';
 import { categoriesRouter } from './routes/categories';
 import { goalsRouter } from './routes/goals';
 import { ideasRouter } from './routes/ideas';
@@ -20,9 +22,10 @@ export interface Deps {
   pool: Pool;
   verify: Verifier;
   images: ImageStore;
+  authAdmin: AuthAdmin;
 }
 
-export function createApp({ pool, verify, images }: Deps): Express {
+export function createApp({ pool, verify, images, authAdmin }: Deps): Express {
   const app = express();
   app.disable('x-powered-by');
 
@@ -36,7 +39,11 @@ export function createApp({ pool, verify, images }: Deps): Express {
     res.json({ status: 'ready' });
   });
   api.use(express.json({ limit: '1mb' }));
-  api.use(authenticate(verify));
+  // Before the tombstone check, so a deletion that failed partway can be retried.
+  api.delete('/account', authenticate(verify), deleteAccount(pool, images, authAdmin));
+  const isDeleted = async (userId: string) =>
+    (await pool.query('SELECT 1 FROM deleted_users WHERE user_id = $1', [userId])).rowCount !== 0;
+  api.use(authenticate(verify, isDeleted));
 
   const handle = makeHandle(pool);
   api.use('/categories', categoriesRouter(handle));
