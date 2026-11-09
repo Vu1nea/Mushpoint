@@ -32,7 +32,11 @@
 	let deleteOpen = $state(false);
 	let deleteTyped = $state('');
 	let deleting = $state(false);
-	const deleteConfirmed = $derived(auth.email !== null && deleteTyped === auth.email);
+	/** Emails are case-insensitive, so the typed address only has to match loosely. */
+	const normalizeEmail = (email: string) => email.trim().toLowerCase();
+	const deleteConfirmed = $derived(
+		auth.email !== null && normalizeEmail(deleteTyped) === normalizeEmail(auth.email)
+	);
 
 	/** Runs one form's action, showing its failure or its success notice. */
 	async function run(action: () => Promise<unknown>, success: string | null = null) {
@@ -235,7 +239,8 @@
 	title="Delete your account?"
 	body="Your login, goals, tasks, ideas and vision board are deleted. This cannot be undone."
 	confirmLabel="Delete account"
-	busy={deleting || !deleteConfirmed}
+	busy={deleting}
+	disabled={!deleteConfirmed}
 	onConfirm={removeAccount}
 	onCancel={() => {
 		if (!deleting) deleteOpen = false;
