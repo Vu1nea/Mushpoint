@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { openUrl as openExternal } from '@tauri-apps/plugin-opener';
 	import { browser } from '$app/environment';
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
@@ -188,14 +187,9 @@
 				</span>
 				<div class="flex shrink-0 gap-1">
 					{#if goal.repoUrl}
-						{@const repoUrl = goal.repoUrl}
-						<button
-							type="button"
-							class={button.icon}
-							onclick={() => openExternal(repoUrl).catch((e) => (actionError = e))}
-						>
+						<a href={goal.repoUrl} target="_blank" rel="noopener noreferrer" class={button.icon}>
 							<Icon name="github" size={14} label="Open repository" />
-						</button>
+						</a>
 					{/if}
 					<button type="button" class={button.icon} onclick={() => (editing = true)}>
 						<Icon name="edit" size={14} label="Edit goal" />

@@ -11,5 +11,3 @@ bun.lockb
 # Build output and generated files
 /build/
 /.svelte-kit/
-/src-tauri/target/
-/src-tauri/gen/

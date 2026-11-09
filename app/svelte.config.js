@@ -7,7 +7,7 @@ const config = {
 		runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
 	},
 	kit: {
-		// Tauri serves the built files from disk with no Node server, so the app
+		// The built files are served as-is with no Node server, so the app
 		// ships as a static SPA: one fallback page, routing resolved in the client.
 		adapter: adapter({ fallback: 'index.html' })
 	}

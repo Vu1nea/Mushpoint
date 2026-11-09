@@ -1,4 +1,4 @@
-// The whole app talks to a Tauri backend that only exists in the browser
-// process, so nothing is server-rendered or prerendered.
+// The app is a static SPA that loads its data from the API in the browser,
+// so nothing is server-rendered or prerendered.
 export const ssr = false;
 export const prerender = false;

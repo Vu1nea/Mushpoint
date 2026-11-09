@@ -1,13 +1,4 @@
-import { getDriver } from '../db/connection';
-import { AppError } from '../db/error';
-import { deleteImage } from '../images';
-import * as categoryRepo from '../db/repo/category';
-import * as goalRepo from '../db/repo/goal';
-import * as ideaRepo from '../db/repo/idea';
-import * as subgoalRepo from '../db/repo/subgoal';
-import * as taskRepo from '../db/repo/task';
-import * as streakRepo from '../db/repo/streak';
-import * as visionItemRepo from '../db/repo/visionItem';
+import { request } from './http';
 import type {
 	Category,
 	CategoryInput,
@@ -28,102 +19,94 @@ import type {
 	TaskStatus,
 	TaskSummary,
 	TaskUpdate,
-	VisionItem,
 	VisionItemInput
 } from './types';
+import type { VisionItemView } from './viewTypes';
 
 export * from './types';
-export { AppError };
-export type { ErrorKind } from '../db/error';
+export * from './viewTypes';
+export { AppError } from './error';
+export type { ErrorKind } from './error';
 
-export const listCategories = async (): Promise<Category[]> => categoryRepo.list(await getDriver());
-export const createCategory = async (input: CategoryInput): Promise<Category> =>
-	categoryRepo.create(await getDriver(), input);
-export const updateCategory = async (id: number, input: CategoryInput): Promise<Category> =>
-	categoryRepo.update(await getDriver(), id, input);
-export const deleteCategory = async (id: number): Promise<void> =>
-	categoryRepo.remove(await getDriver(), id);
+/** Appends the defined params as a query string; null/undefined are left out. */
+function withQuery(
+	path: string,
+	params: Record<string, string | number | boolean | null | undefined>
+) {
+	const query = new URLSearchParams();
+	for (const [key, value] of Object.entries(params)) {
+		if (value !== null && value !== undefined) query.set(key, String(value));
+	}
+	const text = query.toString();
+	return text ? `${path}?${text}` : path;
+}
 
-export const listGoals = async (status: GoalStatus | null = null): Promise<GoalSummary[]> =>
-	goalRepo.list(await getDriver(), status);
-export const getGoal = async (id: number): Promise<GoalDetail> => goalRepo.getDetail(await getDriver(), id);
-export const createGoal = async (input: GoalInput): Promise<Goal> => goalRepo.create(await getDriver(), input);
-export const updateGoal = async (id: number, input: GoalInput): Promise<Goal> =>
-	goalRepo.update(await getDriver(), id, input);
-export const setGoalStatus = async (id: number, status: GoalStatus): Promise<Goal> =>
-	goalRepo.setStatus(await getDriver(), id, status);
-export const deleteGoal = async (id: number, deleteOrphanedTasks: boolean): Promise<void> =>
-	goalRepo.remove(await getDriver(), id, deleteOrphanedTasks);
+export const listCategories = (): Promise<Category[]> => request('GET', '/categories');
+export const createCategory = (input: CategoryInput): Promise<Category> =>
+	request('POST', '/categories', input);
+export const updateCategory = (id: number, input: CategoryInput): Promise<Category> =>
+	request('PUT', `/categories/${id}`, input);
+export const deleteCategory = (id: number): Promise<void> => request('DELETE', `/categories/${id}`);
 
-export const listSubgoals = async (): Promise<Subgoal[]> => subgoalRepo.listAll(await getDriver());
-export const createSubgoal = async (input: SubgoalInput): Promise<Subgoal> =>
-	subgoalRepo.create(await getDriver(), input);
-export const updateSubgoal = async (id: number, input: SubgoalUpdate): Promise<Subgoal> =>
-	subgoalRepo.update(await getDriver(), id, input);
-export const setSubgoalComplete = async (id: number, isComplete: boolean): Promise<Subgoal> =>
-	subgoalRepo.setComplete(await getDriver(), id, isComplete);
-export const deleteSubgoal = async (id: number): Promise<void> =>
-	subgoalRepo.remove(await getDriver(), id);
+export const listGoals = (status: GoalStatus | null = null): Promise<GoalSummary[]> =>
+	request('GET', withQuery('/goals', { status }));
+export const getGoal = (id: number): Promise<GoalDetail> => request('GET', `/goals/${id}`);
+export const createGoal = (input: GoalInput): Promise<Goal> => request('POST', '/goals', input);
+export const updateGoal = (id: number, input: GoalInput): Promise<Goal> =>
+	request('PUT', `/goals/${id}`, input);
+export const setGoalStatus = (id: number, status: GoalStatus): Promise<Goal> =>
+	request('PUT', `/goals/${id}/status`, { status });
+export const deleteGoal = (id: number, deleteOrphanedTasks: boolean): Promise<void> =>
+	request('DELETE', withQuery(`/goals/${id}`, { deleteOrphanedTasks }));
 
-export const listTasks = async (): Promise<TaskSummary[]> => taskRepo.list(await getDriver());
-export const createTask = async (input: TaskInput): Promise<Task> => taskRepo.create(await getDriver(), input);
-export const updateTask = async (id: number, input: TaskUpdate): Promise<Task> =>
-	taskRepo.update(await getDriver(), id, input);
-export const setTaskStatus = async (id: number, status: TaskStatus): Promise<Task> =>
-	taskRepo.setStatus(await getDriver(), id, status);
-export const deleteTask = async (id: number): Promise<void> => taskRepo.remove(await getDriver(), id);
+export const listSubgoals = (): Promise<Subgoal[]> => request('GET', '/subgoals');
+export const createSubgoal = (input: SubgoalInput): Promise<Subgoal> =>
+	request('POST', '/subgoals', input);
+export const updateSubgoal = (id: number, input: SubgoalUpdate): Promise<Subgoal> =>
+	request('PUT', `/subgoals/${id}`, input);
+export const setSubgoalComplete = (id: number, isComplete: boolean): Promise<Subgoal> =>
+	request('PUT', `/subgoals/${id}/complete`, { isComplete });
+export const deleteSubgoal = (id: number): Promise<void> => request('DELETE', `/subgoals/${id}`);
 
-export const listStreaks = async (days?: number): Promise<StreakCard[]> =>
-	streakRepo.list(await getDriver(), days ?? streakRepo.DEFAULT_CELL_DAYS);
+export const listTasks = (): Promise<TaskSummary[]> => request('GET', '/tasks');
+export const createTask = (input: TaskInput): Promise<Task> => request('POST', '/tasks', input);
+export const updateTask = (id: number, input: TaskUpdate): Promise<Task> =>
+	request('PUT', `/tasks/${id}`, input);
+export const setTaskStatus = (id: number, status: TaskStatus): Promise<Task> =>
+	request('PUT', `/tasks/${id}/status`, { status });
+export const deleteTask = (id: number): Promise<void> => request('DELETE', `/tasks/${id}`);
+
+/** Omitting `days` lets the server pick its default window. */
+export const listStreaks = (days?: number): Promise<StreakCard[]> =>
+	request('GET', withQuery('/streaks', { days }));
 /** `date` is a local `YYYY-MM-DD`; omit it to mean today. */
-export const setTaskCompletion = async (
+export const setTaskCompletion = (
 	id: number,
 	done: boolean,
 	date: string | null = null
-): Promise<StreakCard> => streakRepo.setCompletion(await getDriver(), id, date, done, streakRepo.DEFAULT_CELL_DAYS);
+): Promise<StreakCard> => request('PUT', `/tasks/${id}/completion`, { done, date });
 
-export const listIdeas = async (opts?: { tag?: string; includePromoted?: boolean }): Promise<Idea[]> =>
-	ideaRepo.list(await getDriver(), opts);
-export const getIdea = async (id: number): Promise<Idea> => ideaRepo.get(await getDriver(), id);
-export const createIdea = async (input: IdeaInput): Promise<Idea> =>
-	ideaRepo.create(await getDriver(), input);
-export const updateIdea = async (id: number, input: IdeaInput): Promise<Idea> =>
-	ideaRepo.update(await getDriver(), id, input);
-export const deleteIdea = async (id: number): Promise<void> => ideaRepo.remove(await getDriver(), id);
-export const promoteIdea = async (id: number, goalId: number): Promise<Idea> =>
-	ideaRepo.promote(await getDriver(), id, goalId);
-export const listIdeaTags = async (): Promise<Tag[]> => ideaRepo.listTags(await getDriver());
+export const listIdeas = (opts?: { tag?: string; includePromoted?: boolean }): Promise<Idea[]> =>
+	request(
+		'GET',
+		withQuery('/ideas', { tag: opts?.tag || null, includePromoted: opts?.includePromoted })
+	);
+export const getIdea = (id: number): Promise<Idea> => request('GET', `/ideas/${id}`);
+export const createIdea = (input: IdeaInput): Promise<Idea> => request('POST', '/ideas', input);
+export const updateIdea = (id: number, input: IdeaInput): Promise<Idea> =>
+	request('PUT', `/ideas/${id}`, input);
+export const deleteIdea = (id: number): Promise<void> => request('DELETE', `/ideas/${id}`);
+export const promoteIdea = (id: number, goalId: number): Promise<Idea> =>
+	request('POST', `/ideas/${id}/promote`, { goalId });
+export const listIdeaTags = (): Promise<Tag[]> => request('GET', '/idea-tags');
 
-export const listVisionItems = async (): Promise<VisionItem[]> =>
-	visionItemRepo.list(await getDriver());
-export const createVisionItem = async (input: VisionItemInput): Promise<VisionItem> =>
-	visionItemRepo.create(await getDriver(), input);
-/** Updates the DB row first, then best-effort deletes the old image file if
- * it was replaced or removed — in that order so a failed file delete never
- * leaves a live record pointing at nothing, at the cost of occasionally
- * leaking a now-unreferenced file on disk. */
-export const updateVisionItem = async (id: number, input: VisionItemInput): Promise<VisionItem> => {
-	const driver = await getDriver();
-	const existing = await visionItemRepo.get(driver, id);
-	const saved = await visionItemRepo.update(driver, id, input);
-	if (existing.imagePath && existing.imagePath !== input.imagePath) {
-		try {
-			await deleteImage(existing.imagePath);
-		} catch {
-			// Best-effort: the DB row is already correct; a failed cleanup here
-			// just leaves an orphaned file, which is harmless.
-		}
-	}
-	return saved;
-};
-/** Deletes the backing image file before the row, so a failed file delete
- * leaves the record intact (and thus retryable) rather than orphaning a
- * file with no row left to reference it. */
-export const deleteVisionItem = async (id: number): Promise<void> => {
-	const driver = await getDriver();
-	const item = await visionItemRepo.get(driver, id);
-	if (item.imagePath) await deleteImage(item.imagePath);
-	await visionItemRepo.remove(driver, id);
-};
-export const reorderVisionItems = async (orderedIds: number[]): Promise<void> =>
-	visionItemRepo.reorder(await getDriver(), orderedIds);
+/** The server removes a replaced or deleted item's image itself. */
+export const listVisionItems = (): Promise<VisionItemView[]> => request('GET', '/vision-items');
+export const createVisionItem = (input: VisionItemInput): Promise<VisionItemView> =>
+	request('POST', '/vision-items', input);
+export const updateVisionItem = (id: number, input: VisionItemInput): Promise<VisionItemView> =>
+	request('PUT', `/vision-items/${id}`, input);
+export const deleteVisionItem = (id: number): Promise<void> =>
+	request('DELETE', `/vision-items/${id}`);
+export const reorderVisionItems = (orderedIds: number[]): Promise<void> =>
+	request('PUT', '/vision-items/order', { orderedIds });

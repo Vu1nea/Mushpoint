@@ -1,6 +1,5 @@
 import type { GoalDetail } from './api';
-import { compareDates } from './db/logic/dates';
-import { localDateOf } from './db/repo/helpers';
+import { compareDates, localDateOf } from './dates';
 
 export interface GanttRow {
 	key: string;

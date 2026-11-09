@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { deleteVisionItem, reorderVisionItems, type VisionItem } from '$lib/api';
+	import { deleteVisionItem, reorderVisionItems, type VisionItemView } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import VisionBoard from '$lib/components/VisionBoard.svelte';
@@ -12,8 +12,8 @@
 	let actionError = $state<unknown>(null);
 
 	let drawerOpen = $state(false);
-	let editingItem = $state<VisionItem | null>(null);
-	let deletingItem = $state<VisionItem | null>(null);
+	let editingItem = $state<VisionItemView | null>(null);
+	let deletingItem = $state<VisionItemView | null>(null);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -33,7 +33,7 @@
 		drawerOpen = true;
 	}
 
-	function edit(item: VisionItem) {
+	function edit(item: VisionItemView) {
 		editingItem = item;
 		drawerOpen = true;
 	}

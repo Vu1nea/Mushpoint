@@ -44,7 +44,7 @@ function isTheme(value: unknown): value is ThemeName {
 }
 
 /**
- * The active theme. SQLite is the source of truth, but the choice is mirrored to
+ * The active theme. The server's settings are the source of truth, but the choice is mirrored to
  * localStorage so the first paint after launch already uses the right palette
  * instead of flashing the default.
  */
