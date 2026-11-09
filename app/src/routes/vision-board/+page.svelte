@@ -48,15 +48,13 @@
 
 	/** The order the user just chose, shown until fresh data arrives. */
 	let pendingOrder = $state<number[] | null>(null);
-	$effect(() => {
-		void data.items;
-		pendingOrder = null;
-	});
 	const items = $derived.by(() => {
 		const order = pendingOrder;
 		if (!order) return data.items;
 		const byId = new Map(data.items.map((item) => [item.id, item]));
-		return order.flatMap((id) => byId.get(id) ?? []);
+		const ordered = order.flatMap((id) => byId.get(id) ?? []);
+		const missing = data.items.filter((item) => !order.includes(item.id));
+		return [...ordered, ...missing];
 	});
 
 	function reorder(orderedIds: number[]) {
@@ -67,7 +65,8 @@
 			revert: () => (pendingOrder = null),
 			call: () => reorderVisionItems(orderedIds),
 			refresh: invalidateAll,
-			onError: (error) => (actionError = error)
+			onError: (error) => (actionError = error),
+			settle: () => (pendingOrder = null)
 		});
 	}
 </script>

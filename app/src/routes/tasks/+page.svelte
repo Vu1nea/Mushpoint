@@ -37,10 +37,6 @@
 
 	/** Streak ticks the user just made, shown until fresh data arrives. */
 	let pendingToday = $state<Record<number, boolean>>({});
-	$effect(() => {
-		void data.streaks;
-		pendingToday = {};
-	});
 
 	function toggleToday(task: { id: number }, done: boolean) {
 		actionError = null;
@@ -50,7 +46,8 @@
 			revert: () => delete pendingToday[task.id],
 			call: () => setTaskCompletion(task.id, done),
 			refresh: invalidateAll,
-			onError: (error) => (actionError = error)
+			onError: (error) => (actionError = error),
+			settle: () => delete pendingToday[task.id]
 		});
 	}
 

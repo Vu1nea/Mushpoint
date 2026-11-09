@@ -43,10 +43,6 @@
 
 	/** The tick as the user just set it, shown until fresh data arrives. */
 	let pendingDone = $state<boolean | null>(null);
-	$effect(() => {
-		void task;
-		pendingDone = null;
-	});
 	const done = $derived(pendingDone ?? serverDone);
 
 	function toggle(checked: boolean) {
@@ -61,7 +57,8 @@
 			refresh: async () => {
 				await onMutated();
 			},
-			onError
+			onError,
+			settle: () => (pendingDone = null)
 		});
 	}
 

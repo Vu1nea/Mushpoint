@@ -13,6 +13,9 @@ export interface OptimisticOptions<T> {
 	/** Reloads server data (e.g. `invalidateAll`) after a successful call. */
 	refresh: () => Promise<void>;
 	onError: (error: unknown) => void;
+	/** Runs after `refresh` resolves, only if no newer call for the key started
+	 * meanwhile. Clear this item's local override here. */
+	settle?: () => void;
 }
 
 /**
@@ -23,21 +26,32 @@ export interface OptimisticOptions<T> {
 export async function optimistic<T>(opts: OptimisticOptions<T>): Promise<void> {
 	const id = ++counter;
 	latest.set(opts.key, id);
+	const isLatest = () => latest.get(opts.key) === id;
 	opts.apply();
 	try {
 		await opts.call();
 	} catch (error) {
-		if (latest.get(opts.key) !== id) return;
-		latest.delete(opts.key);
+		if (!isLatest()) return;
 		opts.revert();
 		opts.onError(error);
+		// An older call may have succeeded on the server, so resync from it.
+		try {
+			await opts.refresh();
+		} catch {
+			// The error is already reported; a failed resync adds nothing.
+		}
+		if (isLatest()) latest.delete(opts.key);
 		return;
 	}
-	if (latest.get(opts.key) !== id) return;
-	latest.delete(opts.key);
+	if (!isLatest()) return;
 	try {
 		await opts.refresh();
 	} catch (error) {
+		if (isLatest()) latest.delete(opts.key);
 		opts.onError(error);
+		return;
 	}
+	if (!isLatest()) return;
+	latest.delete(opts.key);
+	opts.settle?.();
 }

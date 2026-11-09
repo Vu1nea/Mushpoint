@@ -50,10 +50,6 @@
 
 	/** The tick as the user just set it, shown until fresh data arrives. */
 	let pendingComplete = $state<boolean | null>(null);
-	$effect(() => {
-		void subgoal;
-		pendingComplete = null;
-	});
 
 	function toggleComplete(checked: boolean) {
 		return optimistic({
@@ -64,7 +60,8 @@
 			refresh: async () => {
 				await onMutated();
 			},
-			onError
+			onError,
+			settle: () => (pendingComplete = null)
 		});
 	}
 

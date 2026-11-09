@@ -68,10 +68,6 @@
 
 	/** Moves the user just made, shown until fresh data arrives. */
 	let pending = $state<Record<number, Partial<TaskSummary>>>({});
-	$effect(() => {
-		void tasks;
-		pending = {};
-	});
 	const shown = $derived(tasks.map((t) => (pending[t.id] ? { ...t, ...pending[t.id] } : t)));
 
 	const subgoalNames = $derived(new Map(subgoals.map((s) => [s.id, s.title])));
@@ -171,7 +167,8 @@
 			refresh: async () => {
 				await onMutated();
 			},
-			onError
+			onError,
+			settle: () => delete pending[task.id]
 		});
 	}
 
