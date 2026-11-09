@@ -46,6 +46,7 @@ export function isOwnImagePath(userId: string, path: string): boolean {
 }
 
 const LIST_PAGE = 1000;
+const DELETE_BATCH = 1000;
 
 /** Supabase Storage REST client (same endpoints as `@supabase/storage-js`). */
 export function createSupabaseImageStore(opts: {
@@ -105,12 +106,14 @@ export function createSupabaseImageStore(opts: {
         paths.push(...page.map((o) => `${userId}/${o.name}`));
         if (page.length < LIST_PAGE) break;
       }
-      if (paths.length === 0) return;
-      await call(`/object/${opts.bucket}`, {
-        method: 'DELETE',
-        headers: { ...auth, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prefixes: paths })
-      });
+      // Storage accepts at most 1000 prefixes per delete.
+      for (let i = 0; i < paths.length; i += DELETE_BATCH) {
+        await call(`/object/${opts.bucket}`, {
+          method: 'DELETE',
+          headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefixes: paths.slice(i, i + DELETE_BATCH) })
+        });
+      }
     },
     async signedUrls(paths, expiresInSeconds) {
       if (paths.length === 0) return [];

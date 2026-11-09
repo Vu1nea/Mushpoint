@@ -160,6 +160,24 @@ describe('supabase store', () => {
     expect(JSON.parse(String(delInit!.body))).toEqual({ prefixes: [`${user}/one.png`, `${user}/two.jpg`] });
   });
 
+  it('removeAllFor deletes in batches of at most 1000 objects', async () => {
+    const user = randomUUID();
+    const names = Array.from({ length: 2500 }, (_, i) => ({ name: `${i}.png` }));
+    const fetch = vi.fn(async (_target: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
+      if (init?.method !== 'POST') return json([]);
+      const { limit, offset } = JSON.parse(String(init.body)) as { limit: number; offset: number };
+      return json(names.slice(offset, offset + limit));
+    });
+    const store = createSupabaseImageStore({ url, serviceKey, bucket: 'vision', fetch: fetch as typeof globalThis.fetch });
+    await store.removeAllFor(user);
+
+    const deletes = fetch.mock.calls
+      .filter(([, init]) => init?.method === 'DELETE')
+      .map(([, init]) => (JSON.parse(String(init!.body)) as { prefixes: string[] }).prefixes);
+    expect(deletes.map((p) => p.length)).toEqual([1000, 1000, 500]);
+    expect(deletes.flat()).toEqual(names.map((n) => `${user}/${n.name}`));
+  });
+
   it('removeAllFor sends no delete when the folder is empty', async () => {
     const { store, fetch } = setup(json([]));
     await store.removeAllFor(randomUUID());
