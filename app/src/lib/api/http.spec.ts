@@ -1,0 +1,99 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { AppError } from './error';
+import { configureHttp, request } from './http';
+
+const onUnauthenticated = vi.fn();
+let fetchMock: ReturnType<typeof vi.fn>;
+
+function setup(token: string | null = 'tok') {
+	configureHttp({
+		apiUrl: 'http://api.test',
+		getAccessToken: async () => token,
+		onUnauthenticated,
+		fetch: fetchMock as unknown as typeof fetch
+	});
+}
+
+function json(status: number, body: unknown) {
+	return new Response(JSON.stringify(body), {
+		status,
+		headers: { 'content-type': 'application/json' }
+	});
+}
+
+beforeEach(() => {
+	onUnauthenticated.mockReset();
+	fetchMock = vi.fn();
+	setup();
+});
+
+describe('request', () => {
+	it('sends auth, timezone and builds the url', async () => {
+		fetchMock.mockResolvedValue(json(200, { ok: true }));
+		await expect(request('GET', '/api/x')).resolves.toEqual({ ok: true });
+		const [url, init] = fetchMock.mock.calls[0];
+		expect(url).toBe('http://api.test/api/x');
+		const h = new Headers(init.headers);
+		expect(h.get('authorization')).toBe('Bearer tok');
+		expect(h.get('x-timezone')).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
+	});
+
+	it('omits Authorization without a token', async () => {
+		setup(null);
+		fetchMock.mockResolvedValue(json(200, {}));
+		await request('GET', '/api/x');
+		expect(new Headers(fetchMock.mock.calls[0][1].headers).has('authorization')).toBe(false);
+	});
+
+	it('sends JSON bodies with content-type', async () => {
+		fetchMock.mockResolvedValue(json(200, {}));
+		await request('POST', '/api/x', { a: 1 });
+		const init = fetchMock.mock.calls[0][1];
+		expect(new Headers(init.headers).get('content-type')).toBe('application/json');
+		expect(init.body).toBe('{"a":1}');
+	});
+
+	it('sends FormData as-is without content-type', async () => {
+		fetchMock.mockResolvedValue(json(200, {}));
+		const fd = new FormData();
+		fd.append('f', 'v');
+		await request('POST', '/api/x', fd);
+		const init = fetchMock.mock.calls[0][1];
+		expect(init.body).toBe(fd);
+		expect(new Headers(init.headers).has('content-type')).toBe(false);
+	});
+
+	it('resolves undefined on 204', async () => {
+		fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+		await expect(request('DELETE', '/api/x')).resolves.toBeUndefined();
+	});
+
+	it('maps error bodies to AppError', async () => {
+		fetchMock.mockResolvedValue(json(400, { kind: 'validation', message: 'bad' }));
+		const err = await request('POST', '/api/x', {}).catch((e) => e);
+		expect(err).toBeInstanceOf(AppError);
+		expect(err).toMatchObject({ kind: 'validation', message: 'bad' });
+	});
+
+	it('401 calls onUnauthenticated once and rejects unauthenticated', async () => {
+		fetchMock.mockResolvedValue(json(401, { kind: 'unauthenticated', message: 'no' }));
+		await expect(request('GET', '/api/x')).rejects.toMatchObject({ kind: 'unauthenticated' });
+		expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+	});
+
+	it('maps network failure to unavailable', async () => {
+		fetchMock.mockRejectedValue(new TypeError('fetch failed'));
+		await expect(request('GET', '/api/x')).rejects.toMatchObject({
+			kind: 'unavailable',
+			message: 'Could not reach Mushpoint. Check your connection and try again.'
+		});
+	});
+
+	it('maps non-JSON error bodies to internal', async () => {
+		fetchMock.mockResolvedValue(new Response('<html>bad gateway</html>', { status: 502 }));
+		await expect(request('GET', '/api/x')).rejects.toMatchObject({
+			kind: 'internal',
+			message: 'unexpected response (502)'
+		});
+	});
+});
