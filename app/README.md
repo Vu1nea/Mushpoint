@@ -19,6 +19,20 @@ npm install
 npm run dev
 ```
 
+### Supabase settings
+
+Sign-in uses Supabase email + password with the PKCE flow. In the Supabase dashboard
+(Authentication):
+
+- **Sign In / Providers → Email:** Confirm email **on**, Secure email change **on**.
+- **URL Configuration → Redirect URLs:** add `http://localhost:5173/auth/callback`
+  (dev) and `http://localhost:4173/auth/callback` (preview), plus the deployed
+  origin's `/auth/callback` when there is one.
+
+Every email link (sign-up confirmation, password reset, email change) lands on
+`/auth/callback`, which exchanges the code for a session. PKCE ties the link to the
+browser that asked for it, so it must be opened in that same browser.
+
 ## Tests
 
 ```sh
@@ -31,6 +45,7 @@ npm run check         # svelte-check
 ## Layout
 
 ```
+src/lib/auth/         Supabase session (sign-in, callback, token) and public-route rules
 src/lib/api/          the one interface routes/components use; one HTTP call per function
 src/lib/images.ts     vision image upload (type/size checked before it is sent)
 src/lib/theme/        active theme store, persisted via the API and mirrored to localStorage

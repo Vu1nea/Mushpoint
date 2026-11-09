@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { getSettings, setActiveTheme } from '$lib/api/settings';
+import { auth } from '$lib/auth/session.svelte';
 
 export const THEMES = ['nocturne', 'coquette'] as const;
 export type ThemeName = (typeof THEMES)[number];
@@ -51,12 +52,16 @@ function isTheme(value: unknown): value is ThemeName {
 class ThemeStore {
 	current = $state<ThemeName>(DEFAULT_THEME);
 
-	/** Applies the last known theme immediately, then reconciles with the database. */
+	/**
+	 * Applies the last known theme immediately, then reconciles with the server
+	 * when signed in. Signed out, the cached (or default) theme stays.
+	 */
 	async init() {
 		if (!browser) return;
 
 		const cached = localStorage.getItem(STORAGE_KEY);
 		if (isTheme(cached)) this.#apply(cached);
+		if (!auth.session) return;
 
 		const stored = (await getSettings()).activeTheme;
 		if (isTheme(stored)) this.#apply(stored);
