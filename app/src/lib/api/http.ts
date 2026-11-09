@@ -12,7 +12,7 @@ interface HttpOptions {
 let opts: HttpOptions | null = null;
 
 export function configureHttp(options: HttpOptions): void {
-	opts = options;
+	opts = { ...options, apiUrl: options.apiUrl.replace(/\/+$/, '') };
 }
 
 export async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
@@ -21,7 +21,13 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
 	const doFetch = opts.fetch ?? fetch;
 
 	const headers = new Headers({ 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone });
-	const token = await getAccessToken();
+	let token: string | null;
+	try {
+		token = await getAccessToken();
+	} catch {
+		onUnauthenticated();
+		throw AppError.unauthenticated('Your session has expired. Please sign in again.');
+	}
 	if (token) headers.set('Authorization', `Bearer ${token}`);
 
 	let payload: BodyInit | undefined;
@@ -44,7 +50,11 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
 
 	if (res.ok) {
 		if (res.status === 204) return undefined as T;
-		return (await res.json()) as T;
+		try {
+			return (await res.json()) as T;
+		} catch {
+			throw new AppError('internal', `unexpected response (${res.status})`);
+		}
 	}
 
 	let err: AppError;
