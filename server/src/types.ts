@@ -1,4 +1,5 @@
-/** Mirrors the serde-serialized structs in src-tauri/src/models.rs. */
+/** JSON types of the Mushpoint API. server/src/types.ts and app/src/lib/api/types.ts are
+ * byte-identical copies (server/src/types.spec.ts checks it): change both together. */
 
 export type Timeframe = 'short' | 'mid' | 'long';
 export type GoalStatus = 'active' | 'completed' | 'archived';
