@@ -8,6 +8,7 @@ import { createVerifier } from '../auth';
 import { createMemoryAuthAdmin } from '../authAdmin';
 import { createPool } from '../db/pool';
 import { createMemoryImageStore } from '../images';
+import { USER_TABLES } from '../repo/account';
 import { createTestIdentity } from '../testSupport/auth';
 import { clientFor } from '../testSupport/client';
 import { purgeUsers } from '../testSupport/db';
@@ -360,10 +361,6 @@ describe('profile', () => {
 
 describe('account deletion', () => {
   const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
-  const TABLES = [
-    'idea_tag_links', 'idea_tags', 'ideas', 'task_completions', 'tasks', 'subgoals',
-    'goals', 'vision_items', 'categories', 'settings', 'profiles'
-  ];
 
   it("removes every row, image and the login, then refuses the user's token", async () => {
     // C is deleted; D is the bystander. Fresh users keep the shared A/B usable.
@@ -385,7 +382,7 @@ describe('account deletion', () => {
     expect([...store.objects.keys()].filter((k) => k.startsWith(`${C}/`))).toEqual([]);
     const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
     try {
-      for (const table of TABLES) {
+      for (const table of USER_TABLES) {
         const { rows } = await owner.query(`SELECT 1 FROM ${table} WHERE user_id = $1`, [C]);
         expect(rows, table).toHaveLength(0);
       }
