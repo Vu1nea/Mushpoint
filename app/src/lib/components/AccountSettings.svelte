@@ -137,7 +137,9 @@
 						required
 						aria-label="New username"
 					/>
-					<button type="submit" class={button.ghost} disabled={busy}>Save</button>
+					<button type="submit" class={button.ghost} disabled={busy}>
+						{busy ? 'Saving…' : 'Save'}
+					</button>
 					<button type="button" class={button.ghost} onclick={() => (editingName = false)}>
 						Cancel
 					</button>
@@ -173,7 +175,9 @@
 						required
 					/>
 				</label>
-				<button type="submit" class={button.ghost} disabled={busy}>Change</button>
+				<button type="submit" class={button.ghost} disabled={busy}>
+					{busy ? 'Saving…' : 'Change'}
+				</button>
 			</div>
 		</form>
 
@@ -210,7 +214,7 @@
 				/>
 			</label>
 			<button type="submit" class="{button.ghost} self-start" disabled={busy}>
-				Change password
+				{busy ? 'Saving…' : 'Change password'}
 			</button>
 		</form>
 

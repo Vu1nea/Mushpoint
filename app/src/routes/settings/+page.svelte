@@ -153,7 +153,9 @@
 							required
 							aria-label="Rename {category.name}"
 						/>
-						<button type="submit" class={button.ghost} disabled={busy}>Save</button>
+						<button type="submit" class={button.ghost} disabled={busy}>
+							{busy ? 'Saving…' : 'Save'}
+						</button>
 						<button type="button" class={button.ghost} onclick={() => (editingId = null)}>
 							Cancel
 						</button>

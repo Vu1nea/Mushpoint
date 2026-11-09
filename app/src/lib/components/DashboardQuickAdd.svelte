@@ -33,7 +33,13 @@
 			if (kind === 'idea') {
 				await createIdea({ title: value, note: null, tagNames: [] });
 			} else if (kind === 'task') {
-				await createTask({ title: value, dueDate: null, goalId: null, subgoalId: null, recurrence: null });
+				await createTask({
+					title: value,
+					dueDate: null,
+					goalId: null,
+					subgoalId: null,
+					recurrence: null
+				});
 			} else {
 				await createGoal({
 					categoryId: null,
@@ -87,6 +93,6 @@
 
 	<button type="submit" class={button.primary} disabled={submitting || !title.trim()}>
 		<Icon name="plus" size={15} weight={2.4} />
-		Add
+		{submitting ? 'Adding…' : 'Add'}
 	</button>
 </form>

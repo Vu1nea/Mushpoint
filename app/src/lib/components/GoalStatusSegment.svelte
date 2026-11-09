@@ -73,13 +73,11 @@
 			key: `goal-status:${goalId}`,
 			apply: () => (current = next),
 			revert: () => (current = previous),
-			call: async () => {
-				await setGoalStatus(goalId, next);
+			call: () => setGoalStatus(goalId, next),
+			refresh: async () => {
 				saved = true;
 				savedTimer = setTimeout(() => (saved = false), 1500);
 				if (next === 'completed') celebrating = true;
-			},
-			refresh: async () => {
 				await onMutated();
 			},
 			onError

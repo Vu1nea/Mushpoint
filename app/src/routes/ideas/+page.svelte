@@ -112,7 +112,7 @@
 	</div>
 	<button type="submit" class={button.primary} disabled={busy}>
 		<Icon name="plus" size={15} weight={2.4} />
-		Add Idea
+		{busy ? 'Adding…' : 'Add Idea'}
 	</button>
 </form>
 
