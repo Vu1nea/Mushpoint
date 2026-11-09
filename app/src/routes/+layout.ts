@@ -70,9 +70,10 @@ export const load = async ({ url }): Promise<LayoutData> => {
 	}
 	if (path === '/login' || path === '/signup') redirect(307, '/');
 
+	let profile: Profile;
 	loading++;
 	try {
-		return { profile: await getProfile(), error: null };
+		profile = await getProfile();
 	} catch (error) {
 		if (error instanceof AppError && error.kind === 'unauthenticated') {
 			await signOut().catch(() => {});
@@ -82,4 +83,9 @@ export const load = async ({ url }): Promise<LayoutData> => {
 	} finally {
 		loading--;
 	}
+
+	// A username is chosen once, on /welcome, before anything else.
+	if (profile.username === null && path !== '/welcome') redirect(307, '/welcome');
+	if (profile.username !== null && path === '/welcome') redirect(307, '/');
+	return { profile, error: null };
 };

@@ -126,3 +126,31 @@ export async function completeCallback(url: URL): Promise<CallbackResult> {
 export async function setNewPassword(password: string): Promise<void> {
 	check(await supabase().auth.updateUser({ password }));
 }
+
+/** Starts an email change; Supabase mails a confirmation link to both addresses. */
+export async function changeEmail(newEmail: string): Promise<void> {
+	check(
+		await supabase().auth.updateUser(
+			{ email: newEmail },
+			{ emailRedirectTo: callbackUrl('email_change') }
+		)
+	);
+}
+
+/**
+ * Changes the password after re-checking the current one, so a session left
+ * open on a shared machine cannot be used to take over the account.
+ */
+export async function changePassword(current: string, next: string): Promise<void> {
+	const email = auth.email;
+	if (!email) throw AppError.unauthenticated('Sign in again to change your password.');
+
+	const verify = await supabase().auth.signInWithPassword({ email, password: current });
+	if (verify.error) {
+		if (verify.error.code === 'invalid_credentials') {
+			throw AppError.validation('Current password is incorrect.');
+		}
+		throw toAppError(verify.error);
+	}
+	check(await supabase().auth.updateUser({ password: next }));
+}

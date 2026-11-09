@@ -13,6 +13,7 @@
 	let error = $state<unknown>(null);
 	let resent = $state(false);
 
+	const deleted = $derived(page.url.searchParams.get('deleted') === '1');
 	const unconfirmed = $derived(error instanceof Error && error.message === EMAIL_NOT_CONFIRMED);
 
 	async function submit(event: SubmitEvent) {
@@ -51,6 +52,9 @@
 	<h1 class="mb-1 font-display text-2xl font-bold">Sign in</h1>
 	<p class="mb-6 text-sm text-muted">Welcome back to Mushpoint</p>
 
+	{#if deleted}
+		<p class="mb-4 text-sm text-muted" role="status">Your account was deleted.</p>
+	{/if}
 	{#if error}
 		<div class="mb-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
 	{/if}

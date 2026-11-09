@@ -75,6 +75,35 @@ describe('root layout load', () => {
 		await expect(run('/goals')).resolves.toEqual({ profile: { username: 'mush' }, error: null });
 	});
 
+	it('sends a signed-in user without a username to /welcome', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		m.getProfile.mockResolvedValue({ username: null });
+		await expect(redirectOf(run('/goals'))).resolves.toEqual({
+			status: 307,
+			location: '/welcome'
+		});
+	});
+
+	it('lets a user without a username stay on /welcome', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		m.getProfile.mockResolvedValue({ username: null });
+		await expect(run('/welcome')).resolves.toEqual({ profile: { username: null }, error: null });
+	});
+
+	it('sends a user who has a username away from /welcome', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		m.getProfile.mockResolvedValue({ username: 'mush' });
+		await expect(redirectOf(run('/welcome'))).resolves.toEqual({ status: 307, location: '/' });
+	});
+
+	it('does not send anyone to /welcome when the profile failed to load', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		const down = new AppError('unavailable', 'down');
+		m.getProfile.mockRejectedValue(down);
+		await expect(run('/goals')).resolves.toEqual({ profile: null, error: down });
+		await expect(run('/welcome')).resolves.toEqual({ profile: null, error: down });
+	});
+
 	it('signs out and redirects to /login when the profile request is unauthenticated', async () => {
 		m.getAccessToken.mockResolvedValue('tok');
 		m.getProfile.mockRejectedValue(AppError.unauthenticated('expired'));

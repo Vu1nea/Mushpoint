@@ -2,6 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { createCategory, deleteCategory, updateCategory } from '$lib/api';
 	import { setStreakGraceDays } from '$lib/api/settings';
+	import AccountSettings from '$lib/components/AccountSettings.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
@@ -92,7 +93,7 @@
 
 <header class="mb-6">
 	<h1 class="mb-1 font-display text-3xl font-bold">Settings</h1>
-	<p class="text-sm text-muted">How Mushpoint looks and what it tracks</p>
+	<p class="text-sm text-muted">Your account, how Mushpoint looks and what it tracks</p>
 </header>
 
 {#if actionError}
@@ -101,6 +102,8 @@
 {#if data.error}
 	<div class="mb-4"><ErrorBanner error={data.error} /></div>
 {/if}
+
+<AccountSettings username={data.profile?.username ?? null} />
 
 <section class="mb-8">
 	<h2 class="{sectionHeading} mb-3">Theme</h2>

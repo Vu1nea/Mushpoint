@@ -7,6 +7,7 @@
 	import mushIcon from '$lib/assets/mush-icon.png';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import SidebarUser from '$lib/components/SidebarUser.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
@@ -159,6 +160,8 @@
 					</a>
 				{/each}
 			</nav>
+
+			<SidebarUser open={sidebarOpen} username={data.profile?.username ?? null} />
 
 			<div class="flex flex-col gap-1 border-t border-subtle px-3.5 py-3">
 				<div class="flex items-center justify-between gap-2">

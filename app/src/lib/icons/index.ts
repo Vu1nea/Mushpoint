@@ -1,4 +1,7 @@
-import { iconMarkup as designIconMarkup, type IconName as DesignIconName } from 'mushpoint-design/icons';
+import {
+	iconMarkup as designIconMarkup,
+	type IconName as DesignIconName
+} from 'mushpoint-design/icons';
 
 /**
  * Mushpoint-specific icons (goal/task/vision-board navigation and domain
@@ -17,7 +20,9 @@ export type AppIconName =
 	| 'idea'
 	| 'vision'
 	| 'settings'
-	| 'flame';
+	| 'flame'
+	| 'user'
+	| 'signout';
 
 export type IconName = DesignIconName | AppIconName;
 
@@ -29,7 +34,9 @@ const appIcons: Record<AppIconName, string> = {
 	idea: `<path d="M12 3a6 6 0 00-3.5 10.9c.6.45 1 1.15 1 1.9v.7h5v-.7c0-.75.4-1.45 1-1.9A6 6 0 0012 3z"/><path d="M10 19h4M10.5 21h3"/>`,
 	vision: `<rect x="3.5" y="3.5" width="8" height="8" rx="1.5"/><rect x="12.5" y="3.5" width="8" height="5" rx="1.5"/><rect x="12.5" y="10.5" width="8" height="10" rx="1.5"/><rect x="3.5" y="13.5" width="8" height="7" rx="1.5"/>`,
 	settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.2a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.2a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.2a1.6 1.6 0 00-1.5 1z"/>`,
-	flame: `<path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0112 21a5.5 5.5 0 01-5.5-5.5C6.5 10 9 7 12 2z"/>`
+	flame: `<path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0112 21a5.5 5.5 0 01-5.5-5.5C6.5 10 9 7 12 2z"/>`,
+	user: `<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0115 0"/>`,
+	signout: `<path d="M9.5 20.5H6a2.5 2.5 0 01-2.5-2.5V6A2.5 2.5 0 016 3.5h3.5"/><path d="M16 16.5l4.5-4.5L16 7.5M20.5 12H9.5"/>`
 };
 
 function isAppIcon(name: IconName): name is AppIconName {

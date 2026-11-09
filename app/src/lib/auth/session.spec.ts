@@ -27,7 +27,8 @@ const supabase = vi.hoisted(() => {
 		exchangeCodeForSession: vi.fn(async () => {
 			setSession({ access_token: 'tok-2', user: { email: 'a@b.c' } }, 'SIGNED_IN');
 			return { data: { session }, error: null };
-		})
+		}),
+		updateUser: vi.fn(async () => ({ data: { user: null }, error: null }))
 	};
 	return {
 		auth,
@@ -42,8 +43,16 @@ vi.mock('@supabase/supabase-js', () => ({
 	createClient: vi.fn(() => ({ auth: supabase.auth }))
 }));
 
-const { initAuth, getAccessToken, signIn, signOut, completeCallback, auth } =
-	await import('./session.svelte');
+const {
+	initAuth,
+	getAccessToken,
+	signIn,
+	signOut,
+	completeCallback,
+	changeEmail,
+	changePassword,
+	auth
+} = await import('./session.svelte');
 const { createClient } = await import('@supabase/supabase-js');
 
 const config: AppConfig = {
@@ -138,5 +147,54 @@ describe('session', () => {
 			'error'
 		);
 		expect(supabase.auth.exchangeCodeForSession).not.toHaveBeenCalled();
+	});
+
+	it('changePassword rejects a wrong current password without updating', async () => {
+		await signIn('me@example.com', 'secret-pass');
+		supabase.auth.signInWithPassword.mockResolvedValueOnce({
+			data: { session: null },
+			error: { code: 'invalid_credentials', message: 'Invalid login credentials' }
+		});
+		await expect(changePassword('wrong', 'newpass123')).rejects.toMatchObject({
+			kind: 'validation',
+			message: 'Current password is incorrect.'
+		});
+		expect(supabase.auth.signInWithPassword).toHaveBeenLastCalledWith({
+			email: 'me@example.com',
+			password: 'wrong'
+		});
+		expect(supabase.auth.updateUser).not.toHaveBeenCalled();
+	});
+
+	it('changePassword re-verifies the current password, then updates it', async () => {
+		await signIn('me@example.com', 'secret-pass');
+		await changePassword('secret-pass', 'newpass123');
+		expect(supabase.auth.signInWithPassword).toHaveBeenLastCalledWith({
+			email: 'me@example.com',
+			password: 'secret-pass'
+		});
+		expect(supabase.auth.updateUser).toHaveBeenCalledWith({ password: 'newpass123' });
+	});
+
+	it('changePassword refuses without a signed-in email', async () => {
+		auth.session = null;
+		await expect(changePassword('x', 'newpass123')).rejects.toMatchObject({
+			kind: 'unauthenticated'
+		});
+		expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
+		expect(supabase.auth.updateUser).not.toHaveBeenCalled();
+	});
+
+	it('changeEmail redirects the confirmation links to the email_change callback', async () => {
+		vi.stubGlobal('location', { origin: 'http://app.test' });
+		try {
+			await changeEmail('new@example.com');
+		} finally {
+			vi.unstubAllGlobals();
+		}
+		expect(supabase.auth.updateUser).toHaveBeenCalledWith(
+			{ email: 'new@example.com' },
+			{ emailRedirectTo: 'http://app.test/auth/callback?type=email_change' }
+		);
 	});
 });
