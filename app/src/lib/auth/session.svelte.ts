@@ -10,6 +10,8 @@ export const EMAIL_NOT_CONFIRMED = 'Confirm your email first. Check your inbox.'
 class AuthState {
 	session = $state<Session | null>(null);
 	readonly email = $derived(this.session?.user.email ?? null);
+	/** The address an email change is waiting to be confirmed for, if any. */
+	readonly pendingEmail = $derived(this.session?.user.new_email ?? null);
 }
 
 /** The signed-in user, kept in sync with Supabase's auth events. */

@@ -4,7 +4,7 @@ import type { AppConfig } from '$lib/config';
 type FakeSession = { access_token: string; user: { email: string } };
 
 const supabase = vi.hoisted(() => {
-	let session: { access_token: string; user: { email: string } } | null = null;
+	let session: { access_token: string; user: { email: string; new_email?: string } } | null = null;
 	const listeners: ((event: string, s: typeof session) => void)[] = [];
 	const setSession = (next: typeof session, event: string) => {
 		session = next;
@@ -32,6 +32,7 @@ const supabase = vi.hoisted(() => {
 	};
 	return {
 		auth,
+		emit: setSession,
 		reset() {
 			session = null;
 			listeners.length = 0;
@@ -256,6 +257,19 @@ describe('session', () => {
 		});
 		expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled();
 		expect(supabase.auth.updateUser).not.toHaveBeenCalled();
+	});
+
+	it('exposes a pending email change until it is confirmed', async () => {
+		await signIn('old@example.com', 'pw');
+		expect(auth.pendingEmail).toBeNull();
+		supabase.emit(
+			{ access_token: 'tok-1', user: { email: 'old@example.com', new_email: 'new@example.com' } },
+			'USER_UPDATED'
+		);
+		expect(auth.pendingEmail).toBe('new@example.com');
+		supabase.emit({ access_token: 'tok-1', user: { email: 'new@example.com' } }, 'USER_UPDATED');
+		expect(auth.pendingEmail).toBeNull();
+		expect(auth.email).toBe('new@example.com');
 	});
 
 	it('changeEmail redirects the confirmation links to the email_change callback', async () => {

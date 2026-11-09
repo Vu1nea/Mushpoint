@@ -70,6 +70,7 @@
 	async function saveEmail(event: SubmitEvent) {
 		event.preventDefault();
 		const email = newEmail.trim();
+		// The pending address also stays under the current one until it is confirmed.
 		if (await run(() => changeEmail(email), 'Check both inboxes to confirm the change.')) {
 			newEmail = '';
 		}
@@ -168,6 +169,12 @@
 		<form class={card} onsubmit={saveEmail}>
 			<div class="mb-1.5 text-xs font-semibold text-muted">Email</div>
 			<p class="mb-3 text-md">{auth.email ?? '—'}</p>
+			{#if auth.pendingEmail}
+				<p class="mb-3 text-xs text-muted" role="status">
+					Changing to <strong class="text-content">{auth.pendingEmail}</strong>, waiting for
+					confirmation from both inboxes.
+				</p>
+			{/if}
 			<div class="flex items-end gap-2">
 				<label class="flex-1">
 					<span class={field.label}>New email</span>
