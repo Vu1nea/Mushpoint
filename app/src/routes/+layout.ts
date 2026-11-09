@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import { goto } from '$app/navigation';
-import { getProfile } from '$lib/api/account';
+import { deleteAccount, getProfile } from '$lib/api/account';
 import { AppError } from '$lib/api/error';
 import { configureHttp } from '$lib/api/http';
 import type { Profile } from '$lib/api/types';
@@ -48,6 +48,25 @@ function setup(): Promise<void> {
 	return ready;
 }
 
+/** The API's 401 message for a user whose account deletion has started. */
+const ACCOUNT_DELETED = 'account deleted';
+
+/**
+ * The account is tombstoned but its login survived (the deletion failed
+ * partway), so every request is refused. Retries the whole idempotent
+ * deletion, signs out, and returns where to send the user.
+ */
+async function finishDeletion(): Promise<string> {
+	let done = true;
+	try {
+		await deleteAccount();
+	} catch {
+		done = false;
+	}
+	await signOut().catch(() => {});
+	return done ? '/login?deleted=1' : '/login?deleted=pending';
+}
+
 /**
  * `error` is set when the profile could not be loaded for a reason other than an
  * expired session (e.g. the API is down); the layout then shows it with a retry
@@ -76,6 +95,7 @@ export const load = async ({ url }): Promise<LayoutData> => {
 		profile = await getProfile();
 	} catch (error) {
 		if (error instanceof AppError && error.kind === 'unauthenticated') {
+			if (error.message === ACCOUNT_DELETED) redirect(307, await finishDeletion());
 			await signOut().catch(() => {});
 			redirect(307, loginPath(path + url.search));
 		}

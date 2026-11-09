@@ -5,6 +5,7 @@ import { AppError } from '$lib/api/error';
 const m = vi.hoisted(() => ({
 	goto: vi.fn(async () => {}),
 	getProfile: vi.fn(),
+	deleteAccount: vi.fn(),
 	configureHttp: vi.fn(),
 	getAccessToken: vi.fn(),
 	initAuth: vi.fn(),
@@ -13,7 +14,10 @@ const m = vi.hoisted(() => ({
 }));
 
 vi.mock('$app/navigation', () => ({ goto: m.goto }));
-vi.mock('$lib/api/account', () => ({ getProfile: m.getProfile }));
+vi.mock('$lib/api/account', () => ({
+	getProfile: m.getProfile,
+	deleteAccount: m.deleteAccount
+}));
 vi.mock('$lib/api/http', () => ({ configureHttp: m.configureHttp }));
 vi.mock('$lib/config', () => ({ loadConfig: m.loadConfig }));
 vi.mock('$lib/auth/session.svelte', () => ({
@@ -46,6 +50,7 @@ beforeEach(() => {
 	m.goto.mockClear();
 	m.signOut.mockClear();
 	m.getProfile.mockReset();
+	m.deleteAccount.mockReset();
 	m.getAccessToken.mockReset();
 	vi.stubGlobal('location', { pathname: '/tasks', search: '?view=kanban' });
 });
@@ -112,6 +117,39 @@ describe('root layout load', () => {
 			location: '/login?next=%2Fgoals%2F3'
 		});
 		expect(m.signOut).toHaveBeenCalledOnce();
+	});
+
+	it('finishes a half-done account deletion, then signs out to /login?deleted=1', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		m.getProfile.mockRejectedValue(AppError.unauthenticated('account deleted'));
+		m.deleteAccount.mockResolvedValue(undefined);
+		await expect(redirectOf(run('/goals'))).resolves.toEqual({
+			status: 307,
+			location: '/login?deleted=1'
+		});
+		expect(m.deleteAccount).toHaveBeenCalledOnce();
+		expect(m.signOut).toHaveBeenCalledOnce();
+		expect(m.deleteAccount.mock.invocationCallOrder[0]).toBeLessThan(
+			m.signOut.mock.invocationCallOrder[0]
+		);
+	});
+
+	it('signs out to /login?deleted=pending when finishing the deletion fails', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		m.getProfile.mockRejectedValue(AppError.unauthenticated('account deleted'));
+		m.deleteAccount.mockRejectedValue(new AppError('unavailable', 'down'));
+		await expect(redirectOf(run('/goals'))).resolves.toEqual({
+			status: 307,
+			location: '/login?deleted=pending'
+		});
+		expect(m.signOut).toHaveBeenCalledOnce();
+	});
+
+	it('does not retry deletion for an ordinary expired session', async () => {
+		m.getAccessToken.mockResolvedValue('tok');
+		m.getProfile.mockRejectedValue(AppError.unauthenticated('expired'));
+		await redirectOf(run('/goals'));
+		expect(m.deleteAccount).not.toHaveBeenCalled();
 	});
 
 	it('returns the error instead of throwing when the API is unavailable', async () => {
