@@ -56,7 +56,12 @@ const callbackUrl = (type: string) => `${location.origin}/auth/callback?type=${t
 /** The current access token, refreshed by Supabase when it has expired. */
 export async function getAccessToken(): Promise<string | null> {
 	const { data, error } = await supabase().auth.getSession();
-	if (error) throw toAppError(error);
+	// A failed refresh (e.g. a revoked refresh token) comes back as an error with
+	// no session: that is a signed-out user, not a failure to surface.
+	if (error && !data.session) {
+		auth.session = null;
+		return null;
+	}
 	auth.session = data.session;
 	return data.session?.access_token ?? null;
 }

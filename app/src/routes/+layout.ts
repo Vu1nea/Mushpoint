@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import { goto } from '$app/navigation';
 import { getProfile } from '$lib/api/account';
+import { AppError } from '$lib/api/error';
 import { configureHttp } from '$lib/api/http';
 import { getAccessToken, initAuth, signOut } from '$lib/auth/session.svelte';
 import { isPublicRoute } from '$lib/auth/routes';
@@ -11,6 +12,25 @@ import { loadConfig } from '$lib/config';
 export const ssr = false;
 export const prerender = false;
 
+const loginPath = (next: string) => '/login?next=' + encodeURIComponent(next);
+
+/** Set while a sign-out + redirect to /login is underway, so parallel 401s run it once. */
+let redirecting = false;
+/** Layout loads in flight. They handle a 401 themselves with `redirect`. */
+let loading = 0;
+
+/** A request came back 401: drop the session and send the user to sign in. */
+function onUnauthenticated() {
+	if (redirecting || loading > 0 || isPublicRoute(location.pathname)) return;
+	redirecting = true;
+	const next = location.pathname + location.search;
+	// A failed sign-out (offline) must not keep the user on a dead session.
+	signOut()
+		.catch(() => {})
+		.then(() => goto(loginPath(next)))
+		.finally(() => (redirecting = false));
+}
+
 let ready: Promise<void> | null = null;
 
 /** Loads the runtime config and wires auth and the HTTP client, once per page load. */
@@ -18,16 +38,7 @@ function setup(): Promise<void> {
 	ready ??= loadConfig()
 		.then((config) => {
 			initAuth(config);
-			configureHttp({
-				apiUrl: config.apiUrl,
-				getAccessToken,
-				onUnauthenticated: () => {
-					// A failed sign-out (offline) must not keep the user on a dead session.
-					signOut()
-						.catch(() => {})
-						.then(() => goto('/login?next=' + encodeURIComponent(location.pathname)));
-				}
-			});
+			configureHttp({ apiUrl: config.apiUrl, getAccessToken, onUnauthenticated });
 		})
 		.catch((error) => {
 			ready = null;
@@ -42,9 +53,21 @@ export const load = async ({ url }) => {
 	const path = url.pathname;
 
 	if (!signedIn) {
-		if (!isPublicRoute(path)) redirect(307, '/login?next=' + encodeURIComponent(path + url.search));
+		if (!isPublicRoute(path)) redirect(307, loginPath(path + url.search));
 		return { profile: null };
 	}
 	if (path === '/login' || path === '/signup') redirect(307, '/');
-	return { profile: await getProfile() };
+
+	loading++;
+	try {
+		return { profile: await getProfile() };
+	} catch (error) {
+		if (error instanceof AppError && error.kind === 'unauthenticated') {
+			await signOut().catch(() => {});
+			redirect(307, loginPath(path + url.search));
+		}
+		throw error;
+	} finally {
+		loading--;
+	}
 };

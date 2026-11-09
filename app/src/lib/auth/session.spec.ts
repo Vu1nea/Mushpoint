@@ -76,6 +76,16 @@ describe('session', () => {
 		expect((auth.session as FakeSession | null)?.access_token).toBe('tok-1');
 	});
 
+	it('treats a failed refresh (error, no session) as signed out', async () => {
+		await signIn('me@example.com', 'secret-pass');
+		supabase.auth.getSession.mockResolvedValueOnce({
+			data: { session: null },
+			error: { code: 'refresh_token_not_found', message: 'Invalid Refresh Token' }
+		} as never);
+		await expect(getAccessToken()).resolves.toBeNull();
+		expect(auth.session).toBeNull();
+	});
+
 	it('clears the token on signOut', async () => {
 		await signIn('me@example.com', 'secret-pass');
 		await signOut();
