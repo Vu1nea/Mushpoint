@@ -3,6 +3,7 @@ import { goto } from '$app/navigation';
 import { getProfile } from '$lib/api/account';
 import { AppError } from '$lib/api/error';
 import { configureHttp } from '$lib/api/http';
+import type { Profile } from '$lib/api/types';
 import { getAccessToken, initAuth, signOut } from '$lib/auth/session.svelte';
 import { isPublicRoute } from '$lib/auth/routes';
 import { loadConfig } from '$lib/config';
@@ -47,26 +48,37 @@ function setup(): Promise<void> {
 	return ready;
 }
 
-export const load = async ({ url }) => {
+/**
+ * `error` is set when the profile could not be loaded for a reason other than an
+ * expired session (e.g. the API is down); the layout then shows it with a retry
+ * instead of the app. It is not thrown: SvelteKit renders a root error page by
+ * re-running this load, which would fail the same way.
+ */
+interface LayoutData {
+	profile: Profile | null;
+	error: unknown;
+}
+
+export const load = async ({ url }): Promise<LayoutData> => {
 	await setup();
 	const signedIn = (await getAccessToken()) !== null;
 	const path = url.pathname;
 
 	if (!signedIn) {
 		if (!isPublicRoute(path)) redirect(307, loginPath(path + url.search));
-		return { profile: null };
+		return { profile: null, error: null };
 	}
 	if (path === '/login' || path === '/signup') redirect(307, '/');
 
 	loading++;
 	try {
-		return { profile: await getProfile() };
+		return { profile: await getProfile(), error: null };
 	} catch (error) {
 		if (error instanceof AppError && error.kind === 'unauthenticated') {
 			await signOut().catch(() => {});
 			redirect(307, loginPath(path + url.search));
 		}
-		throw error;
+		return { profile: null, error };
 	} finally {
 		loading--;
 	}

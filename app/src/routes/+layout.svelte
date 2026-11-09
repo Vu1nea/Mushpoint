@@ -2,8 +2,10 @@
 	import './layout.css';
 	import { onMount, untrack } from 'svelte';
 
+	import { invalidateAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
 	import mushIcon from '$lib/assets/mush-icon.png';
+	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
@@ -11,7 +13,7 @@
 	import { isPublicRoute } from '$lib/auth/routes';
 	import { THEME_LABELS, theme } from '$lib/theme/theme.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	/**
 	 * Sidebar entries for the screens that exist. There is no separate Project
@@ -51,6 +53,18 @@
 		sidebarOpen = localStorage.getItem(SIDEBAR_KEY) !== 'false';
 		osName = detectOsName();
 	});
+
+	let retrying = $state(false);
+
+	/** Re-runs the loads; the shell comes back once the profile loads. */
+	async function retry() {
+		retrying = true;
+		try {
+			await invalidateAll();
+		} finally {
+			retrying = false;
+		}
+	}
 
 	function detectOsName(): string {
 		const ua = navigator.userAgent;
@@ -94,6 +108,17 @@
 		class="flex min-h-screen w-full items-center justify-center bg-background px-4 py-10 font-sans text-content"
 	>
 		{@render children()}
+	</main>
+{:else if data.error}
+	<main
+		class="flex min-h-screen w-full items-center justify-center bg-background px-4 py-10 font-sans text-content"
+	>
+		<div class="mp-enter flex w-full max-w-sm flex-col gap-4">
+			<ErrorBanner error={data.error} />
+			<button type="button" class={button.primary} disabled={retrying} onclick={retry}>
+				Try again
+			</button>
+		</div>
 	</main>
 {:else}
 	<div class="flex h-screen w-full overflow-hidden bg-background font-sans text-content">

@@ -61,7 +61,7 @@ describe('root layout load', () => {
 
 	it('lets a signed-out visitor see public routes', async () => {
 		m.getAccessToken.mockResolvedValue(null);
-		await expect(run('/login')).resolves.toEqual({ profile: null });
+		await expect(run('/login')).resolves.toEqual({ profile: null, error: null });
 	});
 
 	it('sends a signed-in user away from /login', async () => {
@@ -72,7 +72,7 @@ describe('root layout load', () => {
 	it('returns the profile when signed in', async () => {
 		m.getAccessToken.mockResolvedValue('tok');
 		m.getProfile.mockResolvedValue({ username: 'mush' });
-		await expect(run('/goals')).resolves.toEqual({ profile: { username: 'mush' } });
+		await expect(run('/goals')).resolves.toEqual({ profile: { username: 'mush' }, error: null });
 	});
 
 	it('signs out and redirects to /login when the profile request is unauthenticated', async () => {
@@ -85,11 +85,12 @@ describe('root layout load', () => {
 		expect(m.signOut).toHaveBeenCalledOnce();
 	});
 
-	it('lets other profile errors propagate', async () => {
+	it('returns the error instead of throwing when the API is unavailable', async () => {
 		m.getAccessToken.mockResolvedValue('tok');
 		const down = new AppError('unavailable', 'down');
 		m.getProfile.mockRejectedValue(down);
-		await expect(run('/goals')).rejects.toBe(down);
+		await expect(run('/goals')).resolves.toEqual({ profile: null, error: down });
+		expect(m.signOut).not.toHaveBeenCalled();
 	});
 });
 
