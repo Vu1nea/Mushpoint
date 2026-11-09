@@ -11,6 +11,7 @@
 	} from '$lib/api';
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { motion } from '$lib/motion';
+	import { optimistic } from '$lib/optimistic';
 	import Checkbox from './Checkbox.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
@@ -45,6 +46,26 @@
 		} finally {
 			busy = false;
 		}
+	}
+
+	/** The tick as the user just set it, shown until fresh data arrives. */
+	let pendingComplete = $state<boolean | null>(null);
+	$effect(() => {
+		void subgoal;
+		pendingComplete = null;
+	});
+
+	function toggleComplete(checked: boolean) {
+		return optimistic({
+			key: `subgoal:${subgoal.id}`,
+			apply: () => (pendingComplete = checked),
+			revert: () => (pendingComplete = null),
+			call: () => setSubgoalComplete(subgoal.id, checked),
+			refresh: async () => {
+				await onMutated();
+			},
+			onError
+		});
 	}
 
 	async function removeSubgoal() {
@@ -100,8 +121,7 @@
 			</div>
 			<span class="shrink-0 text-xs text-muted tabular-nums">{percent(subgoal.progress)}</span>
 			<span
-				class="min-w-[70px] shrink-0 text-right text-2xs {dueTone(subgoal.dueDate) ===
-				'overdue'
+				class="min-w-[70px] shrink-0 text-right text-2xs {dueTone(subgoal.dueDate) === 'overdue'
 					? 'text-warn'
 					: 'text-muted'}"
 			>
@@ -130,7 +150,7 @@
 		open={confirmingDelete}
 		title="Delete “{subgoal.title}”?"
 		body="Its tasks stay, moved to the goal directly. This cannot be undone."
-		busy={busy}
+		{busy}
 		onConfirm={removeSubgoal}
 		onCancel={() => (confirmingDelete = false)}
 	/>
@@ -152,11 +172,10 @@
 				     is null); habits are excluded. With no such task, there is nothing to
 				     average, so the subgoal's own checkbox is its progress instead. -->
 				<Checkbox
-					checked={subgoal.isComplete}
+					checked={pendingComplete ?? subgoal.isComplete}
 					label="Mark {subgoal.title} complete"
 					showLabel
-					disabled={busy}
-					onchange={(checked) => run(() => setSubgoalComplete(subgoal.id, checked))}
+					onchange={toggleComplete}
 				/>
 			{/if}
 

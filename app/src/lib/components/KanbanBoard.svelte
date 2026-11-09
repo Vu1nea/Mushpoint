@@ -25,6 +25,7 @@
 		type DueFilter
 	} from '$lib/kanban';
 	import { motion, stagger } from '$lib/motion';
+	import { optimistic } from '$lib/optimistic';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
 	import { button, field, sectionHeading } from './ui';
@@ -65,6 +66,14 @@
 		done: ''
 	});
 
+	/** Moves the user just made, shown until fresh data arrives. */
+	let pending = $state<Record<number, Partial<TaskSummary>>>({});
+	$effect(() => {
+		void tasks;
+		pending = {};
+	});
+	const shown = $derived(tasks.map((t) => (pending[t.id] ? { ...t, ...pending[t.id] } : t)));
+
 	const subgoalNames = $derived(new Map(subgoals.map((s) => [s.id, s.title])));
 	const goalTitles = $derived(new Map(goals.map((g) => [g.id, g.title])));
 
@@ -89,7 +98,7 @@
 	]);
 	const columns = $derived(
 		groupByStatus(
-			filterTasks(tasks, { query, due, goalId: goalFilter ? Number(goalFilter) : null })
+			filterTasks(shown, { query, due, goalId: goalFilter ? Number(goalFilter) : null })
 		)
 	);
 	const paged = $derived({
@@ -149,8 +158,21 @@
 		clearTimeout(moveTimer);
 		moveTimer = setTimeout(() => (justMovedId = null), 500);
 
-		if (task.recurrence) return run(() => setTaskCompletion(task.id, status === 'done'));
-		return run(() => setTaskStatus(task.id, status));
+		const recurring = Boolean(task.recurrence);
+		const change: Partial<TaskSummary> = recurring
+			? { completedToday: status === 'done' }
+			: { status, updatedAt: new Date().toISOString() };
+		return optimistic<unknown>({
+			key: `task:${task.id}`,
+			apply: () => (pending[task.id] = change),
+			revert: () => delete pending[task.id],
+			call: () =>
+				recurring ? setTaskCompletion(task.id, status === 'done') : setTaskStatus(task.id, status),
+			refresh: async () => {
+				await onMutated();
+			},
+			onError
+		});
 	}
 
 	/**
@@ -185,7 +207,7 @@
 		dragOverStatus = null;
 		if (busy) return;
 		const id = Number(event.dataTransfer?.getData('text/plain'));
-		const task = tasks.find((t) => t.id === id);
+		const task = shown.find((t) => t.id === id);
 		if (task && !columns[status].includes(task)) moveTask(task, status);
 	}
 

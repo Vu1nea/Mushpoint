@@ -5,6 +5,7 @@
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import VisionBoard from '$lib/components/VisionBoard.svelte';
 	import VisionItemDrawer from '$lib/components/VisionItemDrawer.svelte';
+	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();
 
@@ -45,8 +46,29 @@
 		await run(() => deleteVisionItem(item.id));
 	}
 
+	/** The order the user just chose, shown until fresh data arrives. */
+	let pendingOrder = $state<number[] | null>(null);
+	$effect(() => {
+		void data.items;
+		pendingOrder = null;
+	});
+	const items = $derived.by(() => {
+		const order = pendingOrder;
+		if (!order) return data.items;
+		const byId = new Map(data.items.map((item) => [item.id, item]));
+		return order.flatMap((id) => byId.get(id) ?? []);
+	});
+
 	function reorder(orderedIds: number[]) {
-		return run(() => reorderVisionItems(orderedIds));
+		actionError = null;
+		return optimistic({
+			key: 'vision-order',
+			apply: () => (pendingOrder = orderedIds),
+			revert: () => (pendingOrder = null),
+			call: () => reorderVisionItems(orderedIds),
+			refresh: invalidateAll,
+			onError: (error) => (actionError = error)
+		});
 	}
 </script>
 
@@ -65,7 +87,7 @@
 {/if}
 
 <VisionBoard
-	items={data.items}
+	{items}
 	{busy}
 	onReorder={reorder}
 	onEdit={edit}

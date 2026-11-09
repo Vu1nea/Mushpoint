@@ -7,6 +7,7 @@
 		type TaskSummary
 	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
+	import { optimistic } from '$lib/optimistic';
 	import Checkbox from './Checkbox.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
@@ -38,11 +39,30 @@
 	/** A habit has no lasting status — ticking it logs today's completion
 	 * instead of writing `status = 'done'`, so it stays in sync with the
 	 * board and the streak/heatmap. */
-	const done = $derived(task.recurrence ? task.completedToday : task.status === 'done');
+	const serverDone = $derived(task.recurrence ? task.completedToday : task.status === 'done');
+
+	/** The tick as the user just set it, shown until fresh data arrives. */
+	let pendingDone = $state<boolean | null>(null);
+	$effect(() => {
+		void task;
+		pendingDone = null;
+	});
+	const done = $derived(pendingDone ?? serverDone);
 
 	function toggle(checked: boolean) {
-		if (task.recurrence) return run(() => setTaskCompletion(task.id, checked));
-		return run(() => setTaskStatus(task.id, checked ? 'done' : 'todo'));
+		return optimistic<unknown>({
+			key: `task:${task.id}`,
+			apply: () => (pendingDone = checked),
+			revert: () => (pendingDone = null),
+			call: () =>
+				task.recurrence
+					? setTaskCompletion(task.id, checked)
+					: setTaskStatus(task.id, checked ? 'done' : 'todo'),
+			refresh: async () => {
+				await onMutated();
+			},
+			onError
+		});
 	}
 
 	async function removeTask() {
@@ -52,7 +72,7 @@
 </script>
 
 <li class="group flex items-center gap-2.5 py-1 text-md">
-	<Checkbox checked={done} label="Mark {task.title} done" disabled={busy} onchange={toggle} />
+	<Checkbox checked={done} label="Mark {task.title} done" onchange={toggle} />
 
 	<span class="min-w-0 flex-1 truncate {done ? 'text-muted line-through' : ''}">
 		{task.title}
@@ -96,7 +116,7 @@
 		open={confirmingDelete}
 		title="Delete “{task.title}”?"
 		body="The task is removed from the board. This cannot be undone."
-		busy={busy}
+		{busy}
 		onConfirm={removeTask}
 		onCancel={() => (confirmingDelete = false)}
 	/>

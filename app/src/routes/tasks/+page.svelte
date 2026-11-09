@@ -10,6 +10,7 @@
 	import StreakCard from '$lib/components/StreakCard.svelte';
 	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
 	import { button, sectionHeading, segment } from '$lib/components/ui';
+	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();
 
@@ -34,8 +35,23 @@
 		}
 	}
 
-	async function toggleToday(task: { id: number }, done: boolean) {
-		await run(() => setTaskCompletion(task.id, done));
+	/** Streak ticks the user just made, shown until fresh data arrives. */
+	let pendingToday = $state<Record<number, boolean>>({});
+	$effect(() => {
+		void data.streaks;
+		pendingToday = {};
+	});
+
+	function toggleToday(task: { id: number }, done: boolean) {
+		actionError = null;
+		return optimistic({
+			key: `task:${task.id}`,
+			apply: () => (pendingToday[task.id] = done),
+			revert: () => delete pendingToday[task.id],
+			call: () => setTaskCompletion(task.id, done),
+			refresh: invalidateAll,
+			onError: (error) => (actionError = error)
+		});
 	}
 
 	async function removeTask() {
@@ -115,7 +131,12 @@
 		<h2 class="{sectionHeading} mb-3">Streaks</h2>
 		<div class="grid gap-4 sm:grid-cols-2">
 			{#each data.streaks as card (card.task.id)}
-				<StreakCard {card} {busy} onToggle={(done) => toggleToday(card.task, done)} />
+				<StreakCard
+					card={card.task.id in pendingToday
+						? { ...card, doneToday: pendingToday[card.task.id] }
+						: card}
+					onToggle={(done) => toggleToday(card.task, done)}
+				/>
 			{/each}
 		</div>
 	</section>

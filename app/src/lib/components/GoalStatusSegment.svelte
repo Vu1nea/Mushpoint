@@ -4,6 +4,7 @@
 
 	import { GOAL_STATUS_LABELS, GOAL_STATUSES, setGoalStatus, type GoalStatus } from '$lib/api';
 	import { motion } from '$lib/motion';
+	import { optimistic } from '$lib/optimistic';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import GoalCompleteCelebration from './GoalCompleteCelebration.svelte';
 	import Icon from './Icon.svelte';
@@ -33,10 +34,6 @@
 	let buttons: (HTMLButtonElement | null)[] = [];
 	let confirmingArchive = $state(false);
 	let celebrating = $state(false);
-
-	/** Guards against an in-flight save resolving after a newer click has
-	 * already moved the selection on. */
-	let requestId = 0;
 
 	const index = $derived(GOAL_STATUSES.indexOf(current));
 	/** Progress hit 100% but the goal isn't marked Completed yet — suggest it,
@@ -68,24 +65,25 @@
 		apply(next);
 	}
 
-	async function apply(next: GoalStatus) {
+	function apply(next: GoalStatus) {
 		const previous = current;
-		current = next;
-		const id = ++requestId;
 		clearTimeout(savedTimer);
 		saved = false;
-		try {
-			await setGoalStatus(goalId, next);
-			if (id !== requestId) return;
-			saved = true;
-			savedTimer = setTimeout(() => (saved = false), 1500);
-			if (next === 'completed') celebrating = true;
-			await onMutated();
-		} catch (error) {
-			if (id !== requestId) return;
-			current = previous;
-			onError(error);
-		}
+		return optimistic({
+			key: `goal-status:${goalId}`,
+			apply: () => (current = next),
+			revert: () => (current = previous),
+			call: async () => {
+				await setGoalStatus(goalId, next);
+				saved = true;
+				savedTimer = setTimeout(() => (saved = false), 1500);
+				if (next === 'completed') celebrating = true;
+			},
+			refresh: async () => {
+				await onMutated();
+			},
+			onError
+		});
 	}
 
 	function confirmArchive() {
