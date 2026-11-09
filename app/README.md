@@ -61,6 +61,24 @@ Then `npm run test:e2e`. Playwright starts the API (`npm --prefix ../server run 
 reuses one already on port 3000) and builds and previews the app on port 4173. Without
 `.env.e2e` the run stops at once and names the missing variables.
 
+### Manual checks
+
+The E2E run confirms users through the admin API and never opens an email, so check
+these by hand against a real Supabase project before a release:
+
+1. **Sign up with real email confirmation:** sign up with an inbox you can read, open
+   the confirmation link in the same browser, land signed in, pick a username.
+2. **Password reset:** "Forgot password" on `/login`, open the emailed link, set a new
+   password, sign in with it (and not with the old one).
+3. **Email change:** in Settings, change the email; the pending address shows as
+   waiting for confirmation. Confirm from both inboxes, then sign in with the new
+   address.
+4. **Delete account:** in Settings, the confirm button stays disabled until the
+   account email is typed; deleting lands on `/login` with "Your account was deleted."
+   and the old credentials no longer sign in.
+5. **Reload a signed-in page:** on `/goals`, `/tasks` and `/settings`, reload and open
+   the page in a new tab; each loads its data without an error banner.
+
 ## Layout
 
 ```

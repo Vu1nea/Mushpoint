@@ -25,6 +25,15 @@ Copy `.env.example` to `.env` first. The defaults point at the compose database.
 | `npm run dev` | Runs `src/main.ts` with tsx in watch mode, reading `.env` |
 | `npm run build` | Bundles `dist/main.js` and `dist/db/migrateCli.js` with esbuild and copies the migrations |
 
+## Deploying
+
+Apply the migrations to the live database with `npm run migrate` **before**
+deploying a server version that needs them. This version needs `0003_profiles`
+and `0004_deleted_users`: without them every authenticated request fails,
+because each one checks `deleted_users` and the profile routes read `profiles`.
+Migrations only add, so the previous server version keeps working on the
+migrated database.
+
 ## Environment
 
 | Variable | Used by | Required | Meaning |
@@ -95,15 +104,18 @@ same image runs migrations with the command `node dist/db/migrateCli.js`.
 
 ## Deleting an account
 
-`DELETE /api/account` answers 204 after it removes, in order: every image under
-`<userId>/` in the bucket, every row the user owns (recording a tombstone in
-`deleted_users`), and the Supabase login through the Auth admin API
+`DELETE /api/account` answers 204 after it, in order: records a tombstone in
+`deleted_users`, removes every image under `<userId>/` in the bucket, every row
+the user owns, and the Supabase login through the Auth admin API
 (`DELETE <SUPABASE_URL>/auth/v1/admin/users/<userId>` with the service key; an
 already-missing login counts as done). Each step is idempotent, so a request
 that fails partway (503 `unavailable` when Storage or Auth is down) can simply
 be retried with the same token.
 
 Access tokens stay valid until they expire, so every other route refuses a
-token whose user is in `deleted_users` with 401 `account deleted`. Without that
+token whose user is in `deleted_users` with 401 `account deleted`. The
+tombstone goes first so that a deletion that fails partway still locks the
+account out; the web client sees that 401 on its next load, retries the
+deletion and signs out. Without that
 check, the next request would quietly recreate the user's settings and default
 categories. `DELETE /api/account` itself skips the check so the retry works.
