@@ -29,6 +29,7 @@ const A = randomUUID();
 const B = randomUUID();
 const C = randomUUID();
 const D = randomUUID();
+const E = randomUUID();
 const store = createMemoryImageStore();
 const authAdmin = createMemoryAuthAdmin();
 let app: Express;
@@ -37,9 +38,10 @@ let b: ReturnType<typeof clientFor>;
 let tokenA: string;
 let c: ReturnType<typeof clientFor>;
 let d: ReturnType<typeof clientFor>;
+let identity: Awaited<ReturnType<typeof createTestIdentity>>;
 
 beforeAll(async () => {
-  const identity = await createTestIdentity();
+  identity = await createTestIdentity();
   app = createApp({ pool, verify: createVerifier(identity), images: store, authAdmin });
   tokenA = await identity.sign({ sub: A });
   a = clientFor(app, tokenA);
@@ -49,7 +51,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await purgeUsers([A, B, C, D]);
+  await purgeUsers([A, B, C, D, E]);
   await pool.end();
 });
 
@@ -396,5 +398,41 @@ describe('account deletion', () => {
     await c.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
     await c.delete('/api/account').expect(204);
     expect((await d.put('/api/profile/username').send({ username }).expect(200)).body).toEqual({ username });
+  });
+
+  it('records the tombstone before anything else, so a failed deletion leaves the account locked and retryable', async () => {
+    const tombstoned = async () =>
+      (await pool.query('SELECT 1 FROM deleted_users WHERE user_id = $1', [E])).rowCount === 1;
+    const seen: boolean[] = [];
+    let failImages = true;
+    const flakyStore = {
+      ...store,
+      async removeAllFor(userId: string) {
+        seen.push(await tombstoned());
+        if (failImages) throw new Error('storage down');
+        await store.removeAllFor(userId);
+      }
+    };
+    const flakyAuth = createMemoryAuthAdmin();
+    const flakyApp = createApp({ pool, verify: createVerifier(identity), images: flakyStore, authAdmin: flakyAuth });
+    const e = clientFor(flakyApp, await identity.sign({ sub: E }));
+    const goal = (await e.post('/api/goals').send(goalBody).expect(200)).body;
+
+    await e.delete('/api/account').expect(500);
+    expect(seen).toEqual([true]);
+    expect(flakyAuth.deleted).toEqual([]);
+    expect((await e.get('/api/goals').expect(401)).body).toEqual({ kind: 'unauthenticated', message: 'account deleted' });
+    const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
+    try {
+      expect((await owner.query('SELECT 1 FROM goals WHERE id = $1', [goal.id])).rows).toHaveLength(1);
+
+      failImages = false;
+      await e.delete('/api/account').expect(204);
+      expect(flakyAuth.deleted).toEqual([E]);
+      expect((await owner.query('SELECT 1 FROM goals WHERE id = $1', [goal.id])).rows).toHaveLength(0);
+      expect(await tombstoned()).toBe(true);
+    } finally {
+      await owner.end();
+    }
   });
 });
