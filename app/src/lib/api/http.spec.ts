@@ -119,3 +119,24 @@ describe('request', () => {
 		expect(fetchMock).not.toHaveBeenCalled();
 	});
 });
+
+describe('request before configureHttp', () => {
+	it('waits for configureHttp instead of failing', async () => {
+		vi.resetModules();
+		const fresh = await import('./http');
+		const fetchLater = vi.fn().mockResolvedValue(json(200, { ok: 1 }));
+		let settled = false;
+		const pending = fresh.request('GET', '/x').finally(() => (settled = true));
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(settled).toBe(false);
+		expect(fetchLater).not.toHaveBeenCalled();
+		fresh.configureHttp({
+			apiUrl: 'http://api.test/api',
+			getAccessToken: async () => 'tok',
+			onUnauthenticated,
+			fetch: fetchLater as unknown as typeof fetch
+		});
+		await expect(pending).resolves.toEqual({ ok: 1 });
+		expect(fetchLater.mock.calls[0][0]).toBe('http://api.test/api/x');
+	});
+});

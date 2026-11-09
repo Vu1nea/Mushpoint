@@ -10,15 +10,28 @@ interface HttpOptions {
 }
 
 let opts: HttpOptions | null = null;
+let markConfigured!: (options: HttpOptions) => void;
+/**
+ * Resolves with the options once `configureHttp` has run. SvelteKit runs page
+ * loads in parallel with the root layout load that configures the client, so a
+ * request made first waits here instead of failing. It never rejects: if setup
+ * fails, the layout shows its error view and waiting requests stay pending.
+ */
+const configured = new Promise<HttpOptions>((resolve) => (markConfigured = resolve));
 
 export function configureHttp(options: HttpOptions): void {
 	opts = { ...options, apiUrl: options.apiUrl.replace(/\/+$/, '') };
+	markConfigured(opts);
 }
 
 export async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
-	if (!opts) throw new AppError('internal', 'HTTP client is not configured');
-	const { apiUrl, getAccessToken, onUnauthenticated } = opts;
-	const doFetch = opts.fetch ?? fetch;
+	const {
+		apiUrl,
+		getAccessToken,
+		onUnauthenticated,
+		fetch: customFetch
+	} = opts ?? (await configured);
+	const doFetch = customFetch ?? fetch;
 
 	const headers = new Headers({ 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone });
 	let token: string | null;
