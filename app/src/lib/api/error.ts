@@ -1,6 +1,10 @@
 export type ErrorKind =
 	'not_found' | 'validation' | 'database' | 'internal' | 'unavailable' | 'unauthenticated';
 
+/** Shown when a request never reached a server (offline, DNS, CORS, …). */
+export const UNREACHABLE_MESSAGE =
+	'Could not reach Mushpoint. Check your connection and try again.';
+
 /** Every failure the UI can observe. Thrown directly by repo code — there is
  * no process boundary left to serialize across. */
 export class AppError extends Error {

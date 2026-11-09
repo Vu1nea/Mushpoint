@@ -1,5 +1,5 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
-import { AppError } from '$lib/api/error';
+import { AppError, UNREACHABLE_MESSAGE } from '$lib/api/error';
 import type { AppConfig } from '$lib/config';
 
 export type CallbackResult = 'signed_in' | 'recovery' | 'email_changed' | 'error';
@@ -36,18 +36,39 @@ function supabase(): SupabaseClient {
 	return client;
 }
 
-function toAppError(error: { code?: string; message: string }): AppError {
-	switch (error.code) {
-		case 'invalid_credentials':
-			return AppError.validation('Email or password is incorrect.');
-		case 'email_not_confirmed':
-			return AppError.validation(EMAIL_NOT_CONFIRMED);
-		default:
-			return new AppError('unavailable', error.message);
+type SupabaseError = { code?: string; status?: number; name?: string; message: string };
+
+/** Clearer wording for Supabase errors the user can act on. */
+const REWORDED: Record<string, string> = {
+	invalid_credentials: 'Email or password is incorrect.',
+	email_not_confirmed: EMAIL_NOT_CONFIRMED,
+	user_already_exists: 'An account with this email already exists. Sign in instead.',
+	email_exists: 'An account with this email already exists. Sign in instead.',
+	over_email_send_rate_limit: 'Too many emails sent. Wait a few minutes and try again.',
+	over_request_rate_limit: 'Too many attempts. Wait a few minutes and try again.',
+	same_password: 'Choose a password that is different from your current one.',
+	email_address_invalid: 'Enter a valid email address.'
+};
+
+/** Codes that are the user's to fix even when no HTTP status came with them. */
+const USER_FIXABLE = new Set([...Object.keys(REWORDED), 'weak_password']);
+
+function toAppError(error: SupabaseError): AppError {
+	// Supabase reports a request that never got an answer as a retryable fetch
+	// error with status 0.
+	if (error.name === 'AuthRetryableFetchError' || error.status === 0) {
+		return new AppError('unavailable', UNREACHABLE_MESSAGE);
 	}
+	const fixable =
+		(error.code !== undefined && USER_FIXABLE.has(error.code)) ||
+		(error.status !== undefined && error.status >= 400 && error.status < 500);
+	if (fixable) {
+		return AppError.validation((error.code && REWORDED[error.code]) || error.message);
+	}
+	return new AppError('unavailable', error.message);
 }
 
-function check(result: { error: { code?: string; message: string } | null }): void {
+function check(result: { error: SupabaseError | null }): void {
 	if (result.error) throw toAppError(result.error);
 }
 

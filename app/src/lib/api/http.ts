@@ -1,4 +1,4 @@
-import { AppError, type ErrorKind } from './error';
+import { AppError, UNREACHABLE_MESSAGE, type ErrorKind } from './error';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
@@ -55,10 +55,7 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
 	try {
 		res = await doFetch(apiUrl + path, { method, headers, body: payload });
 	} catch {
-		throw new AppError(
-			'unavailable',
-			'Could not reach Mushpoint. Check your connection and try again.'
-		);
+		throw new AppError('unavailable', UNREACHABLE_MESSAGE);
 	}
 
 	if (res.ok) {

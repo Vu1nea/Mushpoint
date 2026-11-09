@@ -125,14 +125,87 @@ describe('session', () => {
 		});
 	});
 
-	it('maps unknown Supabase errors to unavailable with their message', async () => {
+	it('maps unknown server-side Supabase errors to unavailable with their message', async () => {
 		supabase.auth.signInWithPassword.mockResolvedValueOnce({
 			data: { session: null },
-			error: { code: 'over_request_rate_limit', message: 'Too many requests' }
+			error: { code: 'unexpected_failure', status: 500, message: 'Something broke' }
 		});
 		await expect(signIn('me@example.com', 'x')).rejects.toMatchObject({
 			kind: 'unavailable',
-			message: 'Too many requests'
+			message: 'Something broke'
+		});
+	});
+
+	it.each([
+		[
+			'weak_password',
+			422,
+			'Password should be at least 8 characters.',
+			'Password should be at least 8 characters.'
+		],
+		[
+			'user_already_exists',
+			422,
+			'User already registered',
+			'An account with this email already exists. Sign in instead.'
+		],
+		[
+			'over_email_send_rate_limit',
+			429,
+			'email rate limit exceeded',
+			'Too many emails sent. Wait a few minutes and try again.'
+		],
+		[
+			'over_request_rate_limit',
+			429,
+			'Request rate limit reached',
+			'Too many attempts. Wait a few minutes and try again.'
+		],
+		[
+			'same_password',
+			422,
+			'New password should be different.',
+			'Choose a password that is different from your current one.'
+		],
+		['email_address_invalid', 400, 'Email address is invalid', 'Enter a valid email address.']
+	])('maps %s to a validation error', async (code, status, message, expected) => {
+		supabase.auth.signInWithPassword.mockResolvedValueOnce({
+			data: { session: null },
+			error: { code, status, message }
+		});
+		await expect(signIn('me@example.com', 'x')).rejects.toMatchObject({
+			kind: 'validation',
+			message: expected
+		});
+	});
+
+	it('maps any other 4xx Supabase error to validation with its message', async () => {
+		supabase.auth.signInWithPassword.mockResolvedValueOnce({
+			data: { session: null },
+			error: {
+				code: 'signup_disabled',
+				status: 422,
+				message: 'Signups not allowed for this instance'
+			}
+		});
+		await expect(signIn('me@example.com', 'x')).rejects.toMatchObject({
+			kind: 'validation',
+			message: 'Signups not allowed for this instance'
+		});
+	});
+
+	it('maps a failed fetch to unavailable with a readable message', async () => {
+		const offline = Object.assign(new Error('Failed to fetch'), {
+			name: 'AuthRetryableFetchError',
+			status: 0
+		});
+		supabase.auth.signInWithPassword.mockResolvedValueOnce({
+			data: { session: null },
+			error: offline
+		});
+		await expect(signIn('me@example.com', 'x')).rejects.toMatchObject({
+			kind: 'unavailable',
+			message: 'Could not reach Mushpoint. Check your connection and try again.'
 		});
 	});
 
