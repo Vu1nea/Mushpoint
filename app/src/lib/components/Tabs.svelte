@@ -57,7 +57,7 @@
 			aria-selected={selected}
 			aria-controls={tabPanelId(id, tab.value)}
 			tabindex={selected ? 0 : -1}
-			class="-mb-px border-b-2 px-0.5 pb-2.5 text-sm font-semibold transition-colors focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
+			class="-mb-px border-b-2 px-0.5 pb-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
 				? 'border-accent text-content'
 				: 'border-transparent text-muted hover:text-content'}"
 			onclick={() => onChange(tab.value)}
