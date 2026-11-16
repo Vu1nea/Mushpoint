@@ -96,178 +96,185 @@
 
 <svelte:head><title>Settings · Mushpoint</title></svelte:head>
 
-<header class="mb-6">
-	<h1 class="mb-1 font-display text-3xl font-bold">Settings</h1>
-	<p class="text-sm text-muted">Your account, how Mushpoint looks and what it tracks</p>
-</header>
+<!-- Centered column: max-w-115 fits two theme cards per row. -->
+<div class="mx-auto w-full max-w-115">
+	<header class="mb-6">
+		<h1 class="mb-1 font-display text-3xl font-bold">Settings</h1>
+		<p class="text-sm text-muted">Your account, how Mushpoint looks and what it tracks</p>
+	</header>
 
-{#if actionError}
-	<div class="mb-4"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
-{/if}
-{#if data.error}
-	<div class="mb-4"><ErrorBanner error={data.error} /></div>
-{/if}
+	{#if actionError}
+		<div class="mb-4">
+			<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
+		</div>
+	{/if}
+	{#if data.error}
+		<div class="mb-4"><ErrorBanner error={data.error} /></div>
+	{/if}
 
-<AccountSettings username={data.profile?.username ?? null} />
+	<AccountSettings username={data.profile?.username ?? null} />
 
-<section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Theme</h2>
-	<div class="flex flex-wrap gap-3.5">
-		{#each THEMES as name (name)}
-			{@const preview = THEME_PREVIEWS[name]}
-			<button
-				type="button"
-				disabled={busy}
-				onclick={() => pickTheme(name)}
-				aria-pressed={theme.current === name}
-				class="w-55 rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 {theme.current ===
-				name
-					? 'border-accent'
-					: 'border-transparent'}"
-			>
-				<span class="block overflow-hidden rounded-xl border border-subtle">
-					<span class="flex h-15 items-center gap-2 px-3.5" style="background:{preview.bg}">
-						{#each preview.accents as swatch (swatch)}
-							<span class="size-3.5 rounded-full" style="background:{swatch}"></span>
-						{/each}
-					</span>
-					<span class="block px-3 py-3 text-left" style="background:{preview.surface}">
-						<span class="text-md font-bold" style="color:{preview.text}">
-							{THEME_LABELS[name]}
+	<section class="mb-8">
+		<h2 class="{sectionHeading} mb-3">Theme</h2>
+		<div class="flex flex-wrap gap-3.5">
+			{#each THEMES as name (name)}
+				{@const preview = THEME_PREVIEWS[name]}
+				<button
+					type="button"
+					disabled={busy}
+					onclick={() => pickTheme(name)}
+					aria-pressed={theme.current === name}
+					class="w-55 rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 {theme.current ===
+					name
+						? 'border-accent'
+						: 'border-transparent'}"
+				>
+					<span class="block overflow-hidden rounded-xl border border-subtle">
+						<span class="flex h-15 items-center gap-2 px-3.5" style="background:{preview.bg}">
+							{#each preview.accents as swatch (swatch)}
+								<span class="size-3.5 rounded-full" style="background:{swatch}"></span>
+							{/each}
+						</span>
+						<span class="block px-3 py-3 text-left" style="background:{preview.surface}">
+							<span class="text-md font-bold" style="color:{preview.text}">
+								{THEME_LABELS[name]}
+							</span>
 						</span>
 					</span>
-				</span>
-			</button>
-		{/each}
-	</div>
-</section>
-
-<section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Categories</h2>
-	<div class="flex max-w-105 flex-col gap-2">
-		{#each data.categories as category, index (category.id)}
-			<div
-				class="mp-enter flex items-center gap-2.5 rounded-card border border-subtle bg-surface px-3.5 py-2.5"
-				style="--mp-delay:{stagger(index, 30)}"
-			>
-				{#if editingId === category.id}
-					<form class="flex flex-1 flex-col gap-2" onsubmit={saveEditing}>
-						<div class="flex gap-2">
-							<input
-								class="{field.input} py-1.5 text-md"
-								bind:value={editingName}
-								required
-								aria-label="Rename {category.name}"
-							/>
-							<button type="submit" class={button.ghost} disabled={busy} aria-busy={busy}>
-								{#if busy}<Spinner />{/if}
-								{busy ? 'Saving…' : 'Save'}
-							</button>
-							<button type="button" class={button.ghost} onclick={() => (editingId = null)}>
-								Cancel
-							</button>
-						</div>
-						<div
-							class="flex items-center gap-2"
-							role="radiogroup"
-							aria-label="Color for {category.name}"
-						>
-							<span class="text-xs text-muted">Color</span>
-							{#each CATEGORY_COLOR_TOKENS as option (option.token)}
-								{@const selected = (editingColor ?? 'accent-primary') === option.token}
-								<button
-									type="button"
-									role="radio"
-									aria-checked={selected}
-									aria-label={option.label}
-									title={option.label}
-									disabled={busy}
-									onclick={() => (editingColor = option.token)}
-									class="size-5 rounded-full border-2 transition-transform duration-150 hover:scale-110 {selected
-										? 'border-current'
-										: 'border-transparent'}"
-									style="background:{categoryColor(option.token)}"
-								></button>
-							{/each}
-						</div>
-					</form>
-				{:else}
-					<button
-						type="button"
-						class="size-2.5 rounded-full outline-offset-2 transition-transform duration-150 hover:scale-150"
-						style="background:{categoryColor(category.colorToken)}"
-						title="Change color"
-						aria-label="Change color of {category.name}"
-						onclick={() => startEditing(category)}
-					></button>
-					<span class="flex-1 text-md">{category.name}</span>
-					{#if category.isDefault}
-						<span class="text-2xs text-muted">default</span>
-					{/if}
-					<button type="button" class={button.bare} onclick={() => startEditing(category)}>
-						<Icon name="edit" size={14} label="Edit {category.name}" />
-					</button>
-					<button
-						type="button"
-						class={button.bare}
-						disabled={busy}
-						onclick={() => (deleting = { id: category.id, name: category.name })}
-					>
-						<Icon name="trash" size={14} label="Delete {category.name}" />
-					</button>
-				{/if}
-			</div>
-		{/each}
-
-		<form onsubmit={addCategory}>
-			<input
-				class="{field.dashed} w-full"
-				bind:value={newCategoryName}
-				placeholder="+ Add category…"
-				aria-label="New category name"
-			/>
-		</form>
-	</div>
-</section>
-
-<section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Streaks</h2>
-	<div class="flex max-w-105 items-center gap-4 rounded-card border border-subtle bg-surface p-4.5">
-		<div class="flex-1">
-			<div class="mb-0.5 text-md font-semibold">Grace period</div>
-			<div class="text-xs text-muted">Missing days within this window won't break a streak</div>
+				</button>
+			{/each}
 		</div>
-		<button
-			type="button"
-			class={button.icon}
-			disabled={busy || !data.settings || grace === 0}
-			onclick={() => nudgeGrace(-1)}
-		>
-			<Icon name="minus" size={13} label="Decrease grace period" />
-		</button>
-		<span class="min-w-13 text-center text-base font-bold tabular-nums">
-			{#if data.settings}
-				{grace}
-				{grace === 1 ? 'day' : 'days'}
-			{:else}
-				&mdash;
-			{/if}
-		</span>
-		<button
-			type="button"
-			class={button.icon}
-			disabled={busy || !data.settings || grace === 7}
-			onclick={() => nudgeGrace(1)}
-		>
-			<Icon name="plus" size={13} label="Increase grace period" />
-		</button>
-	</div>
-</section>
+	</section>
 
-<section>
-	<h2 class="{sectionHeading} mb-3">About</h2>
-	<p class="text-sm text-muted">Mushpoint · v0.1.0 · local-first, no cloud sync</p>
-</section>
+	<section class="mb-8">
+		<h2 class="{sectionHeading} mb-3">Categories</h2>
+		<div class="flex max-w-105 flex-col gap-2">
+			{#each data.categories as category, index (category.id)}
+				<div
+					class="mp-enter flex items-center gap-2.5 rounded-card border border-subtle bg-surface px-3.5 py-2.5"
+					style="--mp-delay:{stagger(index, 30)}"
+				>
+					{#if editingId === category.id}
+						<form class="flex flex-1 flex-col gap-2" onsubmit={saveEditing}>
+							<div class="flex gap-2">
+								<input
+									class="{field.input} py-1.5 text-md"
+									bind:value={editingName}
+									required
+									aria-label="Rename {category.name}"
+								/>
+								<button type="submit" class={button.ghost} disabled={busy} aria-busy={busy}>
+									{#if busy}<Spinner />{/if}
+									{busy ? 'Saving…' : 'Save'}
+								</button>
+								<button type="button" class={button.ghost} onclick={() => (editingId = null)}>
+									Cancel
+								</button>
+							</div>
+							<div
+								class="flex items-center gap-2"
+								role="radiogroup"
+								aria-label="Color for {category.name}"
+							>
+								<span class="text-xs text-muted">Color</span>
+								{#each CATEGORY_COLOR_TOKENS as option (option.token)}
+									{@const selected = (editingColor ?? 'accent-primary') === option.token}
+									<button
+										type="button"
+										role="radio"
+										aria-checked={selected}
+										aria-label={option.label}
+										title={option.label}
+										disabled={busy}
+										onclick={() => (editingColor = option.token)}
+										class="size-5 rounded-full border-2 transition-transform duration-150 hover:scale-110 {selected
+											? 'border-current'
+											: 'border-transparent'}"
+										style="background:{categoryColor(option.token)}"
+									></button>
+								{/each}
+							</div>
+						</form>
+					{:else}
+						<button
+							type="button"
+							class="size-2.5 rounded-full outline-offset-2 transition-transform duration-150 hover:scale-150"
+							style="background:{categoryColor(category.colorToken)}"
+							title="Change color"
+							aria-label="Change color of {category.name}"
+							onclick={() => startEditing(category)}
+						></button>
+						<span class="flex-1 text-md">{category.name}</span>
+						{#if category.isDefault}
+							<span class="text-2xs text-muted">default</span>
+						{/if}
+						<button type="button" class={button.bare} onclick={() => startEditing(category)}>
+							<Icon name="edit" size={14} label="Edit {category.name}" />
+						</button>
+						<button
+							type="button"
+							class={button.bare}
+							disabled={busy}
+							onclick={() => (deleting = { id: category.id, name: category.name })}
+						>
+							<Icon name="trash" size={14} label="Delete {category.name}" />
+						</button>
+					{/if}
+				</div>
+			{/each}
+
+			<form onsubmit={addCategory}>
+				<input
+					class="{field.dashed} w-full"
+					bind:value={newCategoryName}
+					placeholder="+ Add category…"
+					aria-label="New category name"
+				/>
+			</form>
+		</div>
+	</section>
+
+	<section class="mb-8">
+		<h2 class="{sectionHeading} mb-3">Streaks</h2>
+		<div
+			class="flex max-w-105 items-center gap-4 rounded-card border border-subtle bg-surface p-4.5"
+		>
+			<div class="flex-1">
+				<div class="mb-0.5 text-md font-semibold">Grace period</div>
+				<div class="text-xs text-muted">Missing days within this window won't break a streak</div>
+			</div>
+			<button
+				type="button"
+				class={button.icon}
+				disabled={busy || !data.settings || grace === 0}
+				onclick={() => nudgeGrace(-1)}
+			>
+				<Icon name="minus" size={13} label="Decrease grace period" />
+			</button>
+			<span class="min-w-13 text-center text-base font-bold tabular-nums">
+				{#if data.settings}
+					{grace}
+					{grace === 1 ? 'day' : 'days'}
+				{:else}
+					&mdash;
+				{/if}
+			</span>
+			<button
+				type="button"
+				class={button.icon}
+				disabled={busy || !data.settings || grace === 7}
+				onclick={() => nudgeGrace(1)}
+			>
+				<Icon name="plus" size={13} label="Increase grace period" />
+			</button>
+		</div>
+	</section>
+
+	<section>
+		<h2 class="{sectionHeading} mb-3">About</h2>
+		<p class="text-sm text-muted">Mushpoint · v0.1.0 · local-first, no cloud sync</p>
+	</section>
+</div>
 
 <ConfirmDialog
 	open={deleting !== null}
