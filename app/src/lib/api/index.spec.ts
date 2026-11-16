@@ -16,6 +16,17 @@ vi.mock('./http', () => ({ request: vi.fn() }));
 
 const requestMock = vi.mocked(request);
 
+const goalInput = {
+	categoryId: null,
+	title: 'G',
+	description: null,
+	timeframe: 'mid' as const,
+	dueDate: null,
+	motivationText: null,
+	motivationImagePath: null,
+	repoUrl: null
+};
+
 beforeEach(() => {
 	requestMock.mockReset();
 	requestMock.mockResolvedValue(undefined);
@@ -36,7 +47,7 @@ describe('api routes', () => {
 			() => listIdeas({ tag: 'x', includePromoted: true }),
 			['GET', '/ideas?tag=x&includePromoted=true']
 		],
-		['promoteIdea', () => promoteIdea(2, 9), ['POST', '/ideas/2/promote', { goalId: 9 }]],
+		['promoteIdea', () => promoteIdea(2, goalInput), ['POST', '/ideas/2/promote', goalInput]],
 		[
 			'reorderVisionItems',
 			() => reorderVisionItems([3, 1]),

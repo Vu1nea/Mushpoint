@@ -178,20 +178,28 @@ describe('streaks', () => {
 });
 
 describe('ideas', () => {
-  it('promotes into the owner goal and lists tags', async () => {
-    const goal = await newGoal();
+  it('promotes into a new owner goal once and lists tags', async () => {
     const idea = (await a.post('/api/ideas').send({ title: 'I', note: null, tagNames: ['Spark'] }).expect(200)).body;
     expect((await a.get(`/api/ideas/${idea.id}`).expect(200)).body.id).toBe(idea.id);
     await b.get(`/api/ideas/${idea.id}`).expect(404);
     expect((await a.get('/api/idea-tags').expect(200)).body.map((t: any) => t.name)).toContain('Spark');
     expect((await b.get('/api/idea-tags').expect(200)).body).toEqual([]);
-    await b.post(`/api/ideas/${idea.id}/promote`).send({ goalId: goal.id }).expect(404);
-    const otherGoal = (await b.post('/api/goals').send(goalBody).expect(200)).body;
-    await a.post(`/api/ideas/${idea.id}/promote`).send({ goalId: otherGoal.id }).expect(404);
-    const promoted = (await a.post(`/api/ideas/${idea.id}/promote`).send({ goalId: goal.id }).expect(200)).body;
-    expect(promoted.promotedGoalId).toBe(goal.id);
+    const bGoalsBefore = ids((await b.get('/api/goals').expect(200)).body);
+    await b.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: 'Stolen' }).expect(404);
+    expect(ids((await b.get('/api/goals').expect(200)).body)).toEqual(bGoalsBefore); // rolled back
+    const promoted = (await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: 'From I' }).expect(200)).body;
+    expect(promoted.goal.title).toBe('From I');
+    expect(promoted.idea.promotedGoalId).toBe(promoted.goal.id);
+    expect((await a.get(`/api/goals/${promoted.goal.id}`).expect(200)).body.fromIdea).toBe(true);
+    await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: 'Again' }).expect(400);
     expect(ids((await a.get('/api/ideas').expect(200)).body)).not.toContain(idea.id);
     expect(ids((await a.get('/api/ideas?includePromoted=true').expect(200)).body)).toContain(idea.id);
+  });
+
+  it('a rejected goal body promotes nothing', async () => {
+    const idea = (await a.post('/api/ideas').send({ title: 'Keep', note: null, tagNames: [] }).expect(200)).body;
+    await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: '  ' }).expect(400);
+    expect(ids((await a.get('/api/ideas').expect(200)).body)).toContain(idea.id);
   });
 
   it('filters by tag', async () => {

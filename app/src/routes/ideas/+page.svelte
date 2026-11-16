@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { createIdea, deleteIdea, promoteIdea, type Goal, type Idea } from '$lib/api';
+	import { createIdea, deleteIdea, promoteIdea, type GoalInput, type Idea } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
@@ -69,11 +69,11 @@
 		promotingIdea = null;
 	}
 
-	/** The idea only drops out of the inbox once the new goal exists and the
-	 * promotion is recorded — both must succeed before the page reloads. */
-	async function onGoalCreated(newGoal: Goal) {
-		if (!promotingIdea) return;
-		await run(() => promoteIdea(promotingIdea!.id, newGoal.id));
+	/** The server creates the goal and records the promotion together, so a
+	 * failure leaves the drawer open with nothing created and a retry is safe. */
+	async function createPromotedGoal(input: GoalInput) {
+		if (!promotingIdea) throw new Error('no idea is being promoted');
+		return (await promoteIdea(promotingIdea.id, input)).goal;
 	}
 </script>
 
@@ -201,7 +201,8 @@
 	categories={data.categories}
 	prefill={promotingIdea ? { title: promotingIdea.title, description: promotingIdea.note } : null}
 	onClose={closePromoteDrawer}
-	onSaved={onGoalCreated}
+	create={createPromotedGoal}
+	onSaved={() => invalidateAll()}
 />
 
 <ConfirmDialog
