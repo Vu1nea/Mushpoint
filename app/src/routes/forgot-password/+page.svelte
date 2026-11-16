@@ -44,7 +44,14 @@
 		<form class="flex flex-col gap-4" onsubmit={submit}>
 			<label>
 				<span class={field.label}>Email</span>
-				<input class={field.input} type="email" autocomplete="email" bind:value={email} required />
+				<input
+					class={field.input}
+					type="email"
+					autocomplete="email"
+					name="email"
+					bind:value={email}
+					required
+				/>
 			</label>
 			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy}>
 				Send reset link

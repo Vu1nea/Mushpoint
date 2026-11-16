@@ -76,7 +76,14 @@
 	<form class="flex flex-col gap-4" onsubmit={submit}>
 		<label>
 			<span class={field.label}>Email</span>
-			<input class={field.input} type="email" autocomplete="email" bind:value={email} required />
+			<input
+				class={field.input}
+				type="email"
+				autocomplete="email"
+				name="email"
+				bind:value={email}
+				required
+			/>
 		</label>
 		<label>
 			<span class={field.label}>Password</span>
@@ -84,6 +91,7 @@
 				class={field.input}
 				type="password"
 				autocomplete="current-password"
+				name="password"
 				bind:value={password}
 				required
 			/>

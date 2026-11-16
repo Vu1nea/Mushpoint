@@ -65,6 +65,7 @@
 				autocapitalize="none"
 				spellcheck="false"
 				maxlength="30"
+				name="username"
 				bind:value={username}
 				required
 			/>

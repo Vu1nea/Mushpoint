@@ -74,6 +74,7 @@
 					class={field.input}
 					type="password"
 					autocomplete="new-password"
+					name="password"
 					bind:value={password}
 					required
 				/>
@@ -84,6 +85,7 @@
 					class={field.input}
 					type="password"
 					autocomplete="new-password"
+					name="confirm-password"
 					bind:value={confirm}
 					required
 				/>

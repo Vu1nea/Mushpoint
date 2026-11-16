@@ -134,6 +134,7 @@
 				<form class="flex gap-2" onsubmit={saveName}>
 					<input
 						class="{field.input} py-1.5 text-md"
+						name="username"
 						bind:value={nameDraft}
 						autocomplete="username"
 						autocapitalize="none"
@@ -182,6 +183,7 @@
 						class="{field.input} py-1.5 text-md"
 						type="email"
 						autocomplete="email"
+						name="email"
 						bind:value={newEmail}
 						required
 					/>
@@ -200,6 +202,7 @@
 					class={field.input}
 					type="password"
 					autocomplete="current-password"
+					name="current-password"
 					bind:value={currentPassword}
 					required
 				/>
@@ -210,6 +213,7 @@
 					class={field.input}
 					type="password"
 					autocomplete="new-password"
+					name="new-password"
 					bind:value={newPassword}
 					required
 				/>
@@ -220,6 +224,7 @@
 					class={field.input}
 					type="password"
 					autocomplete="new-password"
+					name="confirm-password"
 					bind:value={confirmPassword}
 					required
 				/>
@@ -260,6 +265,7 @@
 			type="email"
 			autocomplete="off"
 			spellcheck="false"
+			name="confirm-email"
 			bind:value={deleteTyped}
 			aria-label="Type your email to confirm"
 		/>
