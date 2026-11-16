@@ -104,7 +104,7 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		await expect(page.getByText('Your account was deleted.')).toBeVisible();
 
 		await page.getByLabel('Email').fill(users.a.email);
-		await page.getByLabel('Password').fill(password);
+		await page.getByLabel('Password', { exact: true }).fill(password);
 		await page.getByRole('button', { name: 'Sign in' }).click();
 		await expect(page.getByRole('alert')).toBeVisible();
 		await expect(page).toHaveURL(/\/login/);

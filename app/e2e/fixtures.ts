@@ -17,7 +17,7 @@ export const test = base.extend<{ signIn: (page: Page, who: Who) => Promise<void
 			const user = readUsers()[who];
 			await page.goto('/login');
 			await page.getByLabel('Email').fill(user.email);
-			await page.getByLabel('Password').fill(process.env.E2E_PASSWORD ?? '');
+			await page.getByLabel('Password', { exact: true }).fill(process.env.E2E_PASSWORD ?? '');
 			await page.getByRole('button', { name: 'Sign in' }).click();
 			await page.waitForURL((url) => !url.pathname.startsWith('/login'));
 

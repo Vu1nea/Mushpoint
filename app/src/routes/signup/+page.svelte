@@ -3,6 +3,7 @@
 	import { AppError } from '$lib/api/error';
 	import { resendConfirmation, signUp } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import PasswordInput from '$lib/components/PasswordInput.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	const MIN_PASSWORD = 8;
@@ -93,20 +94,11 @@
 			</label>
 			<label>
 				<span class={field.label}>Password</span>
-				<input
-					class={field.input}
-					type="password"
-					autocomplete="new-password"
-					name="password"
-					bind:value={password}
-					required
-				/>
+				<PasswordInput autocomplete="new-password" name="password" bind:value={password} required />
 			</label>
 			<label>
 				<span class={field.label}>Confirm password</span>
-				<input
-					class={field.input}
-					type="password"
+				<PasswordInput
 					autocomplete="new-password"
 					name="confirm-password"
 					bind:value={confirm}

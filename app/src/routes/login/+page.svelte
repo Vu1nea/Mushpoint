@@ -5,6 +5,7 @@
 	import { safeNext } from '$lib/auth/routes';
 	import { EMAIL_NOT_CONFIRMED, resendConfirmation, signIn } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import PasswordInput from '$lib/components/PasswordInput.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let email = $state('');
@@ -87,9 +88,7 @@
 		</label>
 		<label>
 			<span class={field.label}>Password</span>
-			<input
-				class={field.input}
-				type="password"
+			<PasswordInput
 				autocomplete="current-password"
 				name="password"
 				bind:value={password}
