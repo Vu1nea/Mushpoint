@@ -45,7 +45,7 @@
 				<VisionImage
 					src={item.imageUrl}
 					alt=""
-					class="h-full min-h-0 w-full min-w-0 object-cover"
+					class="h-full min-h-0 w-full min-w-0 bg-surface-raised object-contain object-center"
 				/>
 			{/each}
 		</div>
