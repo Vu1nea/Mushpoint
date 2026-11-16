@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { createCategory, deleteCategory, updateCategory } from '$lib/api';
+	import { createCategory, deleteCategory, updateCategory, type Category } from '$lib/api';
 	import { setStreakGraceDays } from '$lib/api/settings';
 	import AccountSettings from '$lib/components/AccountSettings.svelte';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button, field, sectionHeading } from '$lib/components/ui';
 	import { stagger } from '$lib/motion';
-	import { categoryColor } from '$lib/theme/category';
+	import { CATEGORY_COLOR_TOKENS, categoryColor } from '$lib/theme/category';
 	import {
 		theme,
 		THEME_LABELS,
@@ -24,6 +25,7 @@
 	let newCategoryName = $state('');
 	let editingId = $state<number | null>(null);
 	let editingName = $state('');
+	let editingColor = $state<string | null>(null);
 	let deleting = $state<{ id: number; name: string } | null>(null);
 
 	async function run(action: () => Promise<unknown>) {
@@ -59,15 +61,18 @@
 		await run(() => createCategory({ name, colorToken: null }));
 	}
 
+	function startEditing(category: Category) {
+		editingId = category.id;
+		editingName = category.name;
+		editingColor = category.colorToken;
+	}
+
 	async function saveEditing(event: SubmitEvent) {
 		event.preventDefault();
 		if (editingId === null) return;
 
 		const id = editingId;
-		const category = data.categories.find((entry) => entry.id === id);
-		await run(() =>
-			updateCategory(id, { name: editingName, colorToken: category?.colorToken ?? null })
-		);
+		await run(() => updateCategory(id, { name: editingName, colorToken: editingColor }));
 		if (!actionError) editingId = null;
 	}
 
@@ -146,39 +151,61 @@
 				style="--mp-delay:{stagger(index, 30)}"
 			>
 				{#if editingId === category.id}
-					<form class="flex flex-1 gap-2" onsubmit={saveEditing}>
-						<input
-							class="{field.input} py-1.5 text-md"
-							bind:value={editingName}
-							required
-							aria-label="Rename {category.name}"
-						/>
-						<button type="submit" class={button.ghost} disabled={busy}>
-							{busy ? 'Saving…' : 'Save'}
-						</button>
-						<button type="button" class={button.ghost} onclick={() => (editingId = null)}>
-							Cancel
-						</button>
+					<form class="flex flex-1 flex-col gap-2" onsubmit={saveEditing}>
+						<div class="flex gap-2">
+							<input
+								class="{field.input} py-1.5 text-md"
+								bind:value={editingName}
+								required
+								aria-label="Rename {category.name}"
+							/>
+							<button type="submit" class={button.ghost} disabled={busy} aria-busy={busy}>
+								{#if busy}<Spinner />{/if}
+								{busy ? 'Saving…' : 'Save'}
+							</button>
+							<button type="button" class={button.ghost} onclick={() => (editingId = null)}>
+								Cancel
+							</button>
+						</div>
+						<div
+							class="flex items-center gap-2"
+							role="radiogroup"
+							aria-label="Color for {category.name}"
+						>
+							<span class="text-xs text-muted">Color</span>
+							{#each CATEGORY_COLOR_TOKENS as option (option.token)}
+								{@const selected = (editingColor ?? 'accent-primary') === option.token}
+								<button
+									type="button"
+									role="radio"
+									aria-checked={selected}
+									aria-label={option.label}
+									title={option.label}
+									disabled={busy}
+									onclick={() => (editingColor = option.token)}
+									class="size-5 rounded-full border-2 transition-transform duration-150 hover:scale-110 {selected
+										? 'border-current'
+										: 'border-transparent'}"
+									style="background:{categoryColor(option.token)}"
+								></button>
+							{/each}
+						</div>
 					</form>
 				{:else}
-					<span
-						class="size-2.5 rounded-full"
+					<button
+						type="button"
+						class="size-2.5 rounded-full outline-offset-2 transition-transform duration-150 hover:scale-150"
 						style="background:{categoryColor(category.colorToken)}"
-						aria-hidden="true"
-					></span>
+						title="Change color"
+						aria-label="Change color of {category.name}"
+						onclick={() => startEditing(category)}
+					></button>
 					<span class="flex-1 text-md">{category.name}</span>
 					{#if category.isDefault}
 						<span class="text-2xs text-muted">default</span>
 					{/if}
-					<button
-						type="button"
-						class={button.bare}
-						onclick={() => {
-							editingId = category.id;
-							editingName = category.name;
-						}}
-					>
-						<Icon name="edit" size={14} label="Rename {category.name}" />
+					<button type="button" class={button.bare} onclick={() => startEditing(category)}>
+						<Icon name="edit" size={14} label="Edit {category.name}" />
 					</button>
 					<button
 						type="button"
