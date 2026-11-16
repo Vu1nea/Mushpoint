@@ -74,11 +74,16 @@
 			apply: () => (current = next),
 			revert: () => (current = previous),
 			call: () => setGoalStatus(goalId, next),
+			// `refresh` also runs after a failed save (to resync), so it must not
+			// claim success. The tick and celebration belong in `settle`, which
+			// runs only when this call succeeded and is still the latest.
 			refresh: async () => {
+				await onMutated();
+			},
+			settle: () => {
 				saved = true;
 				savedTimer = setTimeout(() => (saved = false), 1500);
 				if (next === 'completed') celebrating = true;
-				await onMutated();
 			},
 			onError
 		});

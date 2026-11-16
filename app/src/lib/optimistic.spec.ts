@@ -150,6 +150,16 @@ describe('optimistic', () => {
 		expect(done).toEqual(['refresh', 'settle']);
 	});
 
+	it('failure refreshes to resync but never settles', async () => {
+		const settle = vi.fn();
+		const { opts } = setup('task:fail-settle', async () => {
+			throw new Error('boom');
+		});
+		await optimistic({ ...opts, settle });
+		expect(opts.refresh).toHaveBeenCalledTimes(1);
+		expect(settle).not.toHaveBeenCalled();
+	});
+
 	it('refresh failure calls onError', async () => {
 		const { opts, run } = setup('task:r', async () => {});
 		const boom = new Error('refresh failed');
