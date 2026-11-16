@@ -33,7 +33,6 @@
 	const SIDEBAR_KEY = 'mushpoint:sidebar-open';
 
 	let sidebarOpen = $state(true);
-	let osName = $state('personal operating system');
 
 	/** Sign-in screens and onboarding stand alone, without the app shell. */
 	const bare = $derived.by(() => {
@@ -52,7 +51,6 @@
 
 	onMount(() => {
 		sidebarOpen = localStorage.getItem(SIDEBAR_KEY) !== 'false';
-		osName = detectOsName();
 	});
 
 	let retrying = $state(false);
@@ -65,14 +63,6 @@
 		} finally {
 			retrying = false;
 		}
-	}
-
-	function detectOsName(): string {
-		const ua = navigator.userAgent;
-		if (ua.includes('Windows')) return 'Windows';
-		if (ua.includes('Mac OS X') || ua.includes('Macintosh')) return 'macOS';
-		if (ua.includes('Linux')) return 'Linux';
-		return '';
 	}
 
 	function toggleSidebar() {
@@ -127,7 +117,11 @@
 			class="duration-250ms flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] ease-out"
 			style="width:{sidebarOpen ? '236px' : '76px'}"
 		>
-			<div class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap">
+			<div
+				class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap {sidebarOpen
+					? ''
+					: 'flex-col'}"
+			>
 				<img
 					src={mushIcon}
 					alt=""
@@ -137,6 +131,13 @@
 				{#if sidebarOpen}
 					<span class="font-display text-base font-bold tracking-[0.2px]">Mushpoint</span>
 				{/if}
+				<button
+					type="button"
+					class="{button.bare} {sidebarOpen ? 'ml-auto' : ''}"
+					onclick={toggleSidebar}
+				>
+					<Icon name="sidebar" size={17} weight={1.7} label="Toggle sidebar" />
+				</button>
 			</div>
 
 			{#if sidebarOpen}
@@ -206,13 +207,6 @@
 		</aside>
 
 		<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-			<header class="flex shrink-0 items-center gap-2.5 border-b border-subtle px-6 py-3.5">
-				<button type="button" class={button.bare} onclick={toggleSidebar}>
-					<Icon name="sidebar" size={17} weight={1.7} label="Toggle sidebar" />
-				</button>
-				<span class="text-sm text-muted">{osName}</span>
-			</header>
-
 			<main class="flex-1 overflow-y-auto px-11 pt-9 pb-15">
 				{@render children()}
 			</main>
