@@ -9,7 +9,9 @@
 	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
 	import StreakCard from '$lib/components/StreakCard.svelte';
 	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
-	import { button, sectionHeading, segment } from '$lib/components/ui';
+	import { tabId, tabPanelId } from '$lib/components/tabIds';
+	import Tabs from '$lib/components/Tabs.svelte';
+	import { button, sectionHeading } from '$lib/components/ui';
 	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();
@@ -20,6 +22,10 @@
 	let deletingTask = $state<TaskSummary | null>(null);
 	let busy = $state(false);
 	let actionError = $state<unknown>(null);
+	const TASK_VIEWS = [
+		{ value: 'board', label: 'Board' },
+		{ value: 'calendar', label: 'Calendar' }
+	] as const;
 	let view = $state<'board' | 'calendar'>('board');
 
 	async function run(action: () => Promise<unknown>) {
@@ -90,30 +96,10 @@
 		<h1 class="mb-1 font-display text-3xl font-bold">Tasks</h1>
 		<p class="text-sm text-muted">Everything on your plate</p>
 	</div>
-	<div class="flex items-center gap-2">
-		<div class="flex gap-1.5">
-			<button
-				type="button"
-				class={segment(view === 'board')}
-				aria-pressed={view === 'board'}
-				onclick={() => setView('board')}
-			>
-				Board
-			</button>
-			<button
-				type="button"
-				class={segment(view === 'calendar')}
-				aria-pressed={view === 'calendar'}
-				onclick={() => setView('calendar')}
-			>
-				Calendar
-			</button>
-		</div>
-		<button type="button" class={button.primary} onclick={() => newTask()}>
-			<Icon name="plus" size={15} weight={2.4} />
-			New Task
-		</button>
-	</div>
+	<button type="button" class={button.primary} onclick={() => newTask()}>
+		<Icon name="plus" size={15} weight={2.4} />
+		New Task
+	</button>
 </header>
 
 {#if data.error}
@@ -139,30 +125,45 @@
 	</section>
 {/if}
 
-{#if view === 'board'}
-	<KanbanBoard
-		tasks={data.tasks}
-		subgoals={data.subgoals}
-		goals={data.goals}
-		parentChipMode="goal-and-subgoal"
-		onMutated={invalidateAll}
-		onError={(error) => (actionError = error)}
-		onEditTask={edit}
-		onDeleteTask={(task) => (deletingTask = task)}
-	/>
-{:else}
-	<CalendarView
-		tasks={data.tasks}
-		subgoals={data.subgoals}
-		goals={data.goals}
-		parentChipMode="goal-and-subgoal"
-		onMutated={invalidateAll}
-		onError={(error) => (actionError = error)}
-		onEditTask={edit}
-		onDeleteTask={(task) => (deletingTask = task)}
-		onCreateTask={newTask}
-	/>
-{/if}
+<Tabs
+	id="tasks-view"
+	label="Task view"
+	tabs={TASK_VIEWS}
+	value={view}
+	onChange={setView}
+	class="mb-5"
+/>
+
+<div
+	role="tabpanel"
+	id={tabPanelId('tasks-view', view)}
+	aria-labelledby={tabId('tasks-view', view)}
+>
+	{#if view === 'board'}
+		<KanbanBoard
+			tasks={data.tasks}
+			subgoals={data.subgoals}
+			goals={data.goals}
+			parentChipMode="goal-and-subgoal"
+			onMutated={invalidateAll}
+			onError={(error) => (actionError = error)}
+			onEditTask={edit}
+			onDeleteTask={(task) => (deletingTask = task)}
+		/>
+	{:else}
+		<CalendarView
+			tasks={data.tasks}
+			subgoals={data.subgoals}
+			goals={data.goals}
+			parentChipMode="goal-and-subgoal"
+			onMutated={invalidateAll}
+			onError={(error) => (actionError = error)}
+			onEditTask={edit}
+			onDeleteTask={(task) => (deletingTask = task)}
+			onCreateTask={newTask}
+		/>
+	{/if}
+</div>
 
 <TaskDrawer
 	open={drawerOpen}
