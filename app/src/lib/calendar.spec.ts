@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { TaskSummary } from './api';
-import { tasksByDay } from './calendar';
+import { shiftYear, tasksByDay } from './calendar';
 
 function task(overrides: Partial<TaskSummary> & Pick<TaskSummary, 'id'>): TaskSummary {
 	return {
@@ -103,5 +103,17 @@ describe('tasksByDay', () => {
 		const result = tasksByDay([a, b], DAYS);
 
 		expect(result.get(MON)?.map((t) => t.id)).toEqual([6, 7]);
+	});
+});
+
+describe('shiftYear', () => {
+	it('steps forward and back a year, keeping the month', () => {
+		expect(shiftYear(2026, 7, 1)).toEqual({ year: 2027, month: 7 });
+		expect(shiftYear(2026, 7, -1)).toEqual({ year: 2025, month: 7 });
+	});
+
+	it('keeps January and December in place rather than wrapping', () => {
+		expect(shiftYear(2026, 0, -1)).toEqual({ year: 2025, month: 0 });
+		expect(shiftYear(2026, 11, 1)).toEqual({ year: 2027, month: 11 });
 	});
 });

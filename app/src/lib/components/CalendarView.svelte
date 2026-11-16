@@ -9,7 +9,7 @@
 		type SubgoalDetail,
 		type TaskSummary
 	} from '$lib/api';
-	import { tasksByDay } from '$lib/calendar';
+	import { shiftYear, tasksByDay } from '$lib/calendar';
 	import { monthGrid, monthLabel, shiftMonth, todayIso } from '$lib/calendarGrid';
 	import { dueTone } from '$lib/format';
 	import { motion } from '$lib/motion';
@@ -113,6 +113,12 @@
 		viewMonth = next.month;
 	}
 
+	function changeYear(delta: 1 | -1) {
+		const next = shiftYear(viewYear, viewMonth, delta);
+		viewYear = next.year;
+		viewMonth = next.month;
+	}
+
 	function goToday() {
 		const [year, month] = todayIso().split('-').map(Number);
 		viewYear = year;
@@ -165,7 +171,17 @@
 		<button
 			type="button"
 			class="rounded-control p-1 text-muted transition-colors hover:text-content"
+			aria-label="Previous year"
+			title="Previous year"
+			onclick={() => changeYear(-1)}
+		>
+			<Icon name="chevrons-right" size={14} weight={2.2} class="rotate-180" />
+		</button>
+		<button
+			type="button"
+			class="rounded-control p-1 text-muted transition-colors hover:text-content"
 			aria-label="Previous month"
+			title="Previous month"
 			onclick={() => changeMonth(-1)}
 		>
 			<Icon name="chevron-right" size={14} weight={2.2} class="rotate-180" />
@@ -175,9 +191,19 @@
 			type="button"
 			class="rounded-control p-1 text-muted transition-colors hover:text-content"
 			aria-label="Next month"
+			title="Next month"
 			onclick={() => changeMonth(1)}
 		>
 			<Icon name="chevron-right" size={14} weight={2.2} />
+		</button>
+		<button
+			type="button"
+			class="rounded-control p-1 text-muted transition-colors hover:text-content"
+			aria-label="Next year"
+			title="Next year"
+			onclick={() => changeYear(1)}
+		>
+			<Icon name="chevrons-right" size={14} weight={2.2} />
 		</button>
 	</div>
 	<button type="button" class={button.ghost} onclick={goToday}>Today</button>

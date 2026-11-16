@@ -33,3 +33,15 @@ export function tasksByDay(tasks: TaskSummary[], days: string[]): Map<string, Ta
 
 	return byDay;
 }
+
+/**
+ * Steps a month view by whole years, keeping the month (0-based). The view
+ * holds no day, so there is nothing to clamp.
+ */
+export function shiftYear(
+	year: number,
+	month: number,
+	delta: number
+): { year: number; month: number } {
+	return { year: year + delta, month };
+}
