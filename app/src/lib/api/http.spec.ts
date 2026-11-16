@@ -38,11 +38,11 @@ describe('request', () => {
 		expect(h.get('x-timezone')).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
 	});
 
-	it('omits Authorization without a token', async () => {
+	it('rejects unauthenticated without calling the API when there is no token', async () => {
 		setup(null);
-		fetchMock.mockResolvedValue(json(200, {}));
-		await request('GET', '/x');
-		expect(new Headers(fetchMock.mock.calls[0][1].headers).has('authorization')).toBe(false);
+		await expect(request('GET', '/x')).rejects.toMatchObject({ kind: 'unauthenticated' });
+		expect(onUnauthenticated).not.toHaveBeenCalled();
+		expect(fetchMock).not.toHaveBeenCalled();
 	});
 
 	it('sends JSON bodies with content-type', async () => {
@@ -115,7 +115,7 @@ describe('request', () => {
 			fetch: fetchMock as unknown as typeof fetch
 		});
 		await expect(request('GET', '/x')).rejects.toMatchObject({ kind: 'unauthenticated' });
-		expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+		expect(onUnauthenticated).not.toHaveBeenCalled();
 		expect(fetchMock).not.toHaveBeenCalled();
 	});
 });

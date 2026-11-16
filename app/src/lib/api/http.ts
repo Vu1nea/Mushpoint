@@ -34,14 +34,12 @@ export async function request<T>(method: Method, path: string, body?: unknown): 
 	const doFetch = customFetch ?? fetch;
 
 	const headers = new Headers({ 'X-Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone });
-	let token: string | null;
-	try {
-		token = await getAccessToken();
-	} catch {
-		onUnauthenticated();
-		throw AppError.unauthenticated('Your session has expired. Please sign in again.');
-	}
-	if (token) headers.set('Authorization', `Bearer ${token}`);
+	// Every API route needs a token, so a signed-out caller fails here instead
+	// of spending a request on a guaranteed 401. No onUnauthenticated: having no
+	// session is the layout guard's job; that callback is for tokens the API refuses.
+	const token = await getAccessToken().catch(() => null);
+	if (!token) throw AppError.unauthenticated('Your session has expired. Please sign in again.');
+	headers.set('Authorization', `Bearer ${token}`);
 
 	let payload: BodyInit | undefined;
 	if (body instanceof FormData) {
