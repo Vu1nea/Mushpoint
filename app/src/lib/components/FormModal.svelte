@@ -5,6 +5,7 @@
 	import { normalizeError } from 'mushpoint-design/utils/errors';
 	import { motion } from '$lib/motion';
 	import Icon from './Icon.svelte';
+	import Spinner from './Spinner.svelte';
 	import { button } from './ui';
 
 	interface Props {
@@ -103,9 +104,14 @@
 						</div>
 					{/if}
 
-					<button type="submit" class="{button.primary} w-full py-3" disabled={submitting}>
+					<button
+						type="submit"
+						class="{button.primary} w-full py-3"
+						disabled={submitting}
+						aria-busy={submitting}
+					>
 						{#if submitting}
-							<Icon name="spinner" size={15} weight={2.5} class="mp-spin" />
+							<Spinner size={15} />
 						{/if}
 						{submitting ? 'Saving…' : submitLabel}
 					</button>

@@ -9,6 +9,7 @@
 	import type { Snippet } from 'svelte';
 	import { fade, scale } from 'svelte/transition';
 	import { motion } from '$lib/motion';
+	import Spinner from './Spinner.svelte';
 
 	interface Props {
 		open: boolean;
@@ -79,10 +80,12 @@
 			</button>
 			<button
 				type="button"
-				class="rounded-control bg-warn px-4 py-2.5 text-md font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+				class="inline-flex items-center justify-center gap-1.5 rounded-control bg-warn px-4 py-2.5 text-md font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
 				disabled={busy || disabled}
+				aria-busy={busy}
 				onclick={onConfirm}
 			>
+				{#if busy}<Spinner />{/if}
 				{busy ? busyLabel : confirmLabel}
 			</button>
 		</div>

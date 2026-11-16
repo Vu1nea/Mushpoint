@@ -4,6 +4,7 @@
 	import { resendConfirmation, signUp } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import PasswordInput from '$lib/components/PasswordInput.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	const MIN_PASSWORD = 8;
@@ -70,7 +71,14 @@
 		{#if resent}
 			<p class="mb-4 text-sm text-muted" role="status">We sent it again.</p>
 		{/if}
-		<button type="button" class="{button.ghost} w-full" disabled={busy} onclick={resend}>
+		<button
+			type="button"
+			class="{button.ghost} w-full"
+			disabled={busy}
+			aria-busy={busy}
+			onclick={resend}
+		>
+			{#if busy}<Spinner />{/if}
 			Resend email
 		</button>
 		<p class="mt-5 text-sm">
@@ -105,7 +113,8 @@
 					required
 				/>
 			</label>
-			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy}>
+			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy} aria-busy={busy}>
+				{#if busy}<Spinner />{/if}
 				Create account
 			</button>
 		</form>

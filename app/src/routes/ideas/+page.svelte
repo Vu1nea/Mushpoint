@@ -6,6 +6,7 @@
 	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import IdeaDrawer from '$lib/components/IdeaDrawer.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import TagInput from '$lib/components/TagInput.svelte';
 	import { button, chip, field } from '$lib/components/ui';
 	import { stagger } from '$lib/motion';
@@ -110,8 +111,12 @@
 		/>
 		<TagInput bind:tags={quickAdd.tags} ariaLabel="Tags for the new idea" placeholder="Add tags…" />
 	</div>
-	<button type="submit" class={button.primary} disabled={busy}>
-		<Icon name="plus" size={15} weight={2.4} />
+	<button type="submit" class={button.primary} disabled={busy} aria-busy={busy}>
+		{#if busy}
+			<Spinner size={15} />
+		{:else}
+			<Icon name="plus" size={15} weight={2.4} />
+		{/if}
 		{busy ? 'Adding…' : 'Add Idea'}
 	</button>
 </form>

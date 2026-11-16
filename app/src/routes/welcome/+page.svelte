@@ -6,10 +6,14 @@
 	import { USERNAME_PATTERN } from '$lib/api/types';
 	import { signOut } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let username = $state('');
 	let busy = $state(false);
+	/** Signing out also sets `busy`, but the spinner belongs to Continue only. */
+	let leaving = $state(false);
+	const saving = $derived(busy && !leaving);
 	let error = $state<unknown>(null);
 
 	async function submit(event: SubmitEvent) {
@@ -33,6 +37,7 @@
 	}
 
 	async function leave() {
+		leaving = true;
 		busy = true;
 		try {
 			await signOut();
@@ -70,7 +75,10 @@
 				required
 			/>
 		</label>
-		<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy}>Continue</button>
+		<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy} aria-busy={saving}>
+			{#if saving}<Spinner />{/if}
+			Continue
+		</button>
 	</form>
 
 	<button type="button" class="mt-5 text-sm text-muted hover:text-content" onclick={leave}>

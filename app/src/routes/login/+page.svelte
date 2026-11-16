@@ -6,11 +6,14 @@
 	import { EMAIL_NOT_CONFIRMED, resendConfirmation, signIn } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import PasswordInput from '$lib/components/PasswordInput.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let email = $state('');
 	let password = $state('');
-	let busy = $state(false);
+	/** Which request is in flight; both buttons are disabled while either runs. */
+	let pending = $state<'signin' | 'resend' | null>(null);
+	const busy = $derived(pending !== null);
 	let error = $state<unknown>(null);
 	let resent = $state(false);
 
@@ -19,7 +22,7 @@
 
 	async function submit(event: SubmitEvent) {
 		event.preventDefault();
-		busy = true;
+		pending = 'signin';
 		error = null;
 		resent = false;
 		try {
@@ -28,12 +31,12 @@
 		} catch (e) {
 			error = e;
 		} finally {
-			busy = false;
+			pending = null;
 		}
 	}
 
 	async function resend() {
-		busy = true;
+		pending = 'resend';
 		try {
 			await resendConfirmation(email.trim());
 			resent = true;
@@ -41,7 +44,7 @@
 		} catch (e) {
 			error = e;
 		} finally {
-			busy = false;
+			pending = null;
 		}
 	}
 </script>
@@ -64,7 +67,14 @@
 		<div class="mb-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
 	{/if}
 	{#if unconfirmed}
-		<button type="button" class="{button.ghost} mb-4 w-full" disabled={busy} onclick={resend}>
+		<button
+			type="button"
+			class="{button.ghost} mb-4 w-full"
+			disabled={busy}
+			aria-busy={pending === 'resend'}
+			onclick={resend}
+		>
+			{#if pending === 'resend'}<Spinner />{/if}
 			Resend email
 		</button>
 	{/if}
@@ -95,7 +105,15 @@
 				required
 			/>
 		</label>
-		<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy}>Sign in</button>
+		<button
+			type="submit"
+			class="{button.primary} mt-1 w-full"
+			disabled={busy}
+			aria-busy={pending === 'signin'}
+		>
+			{#if pending === 'signin'}<Spinner />{/if}
+			Sign in
+		</button>
 	</form>
 
 	<div class="mt-5 flex justify-between text-sm">

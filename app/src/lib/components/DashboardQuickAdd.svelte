@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createGoal, createIdea, createTask } from '$lib/api';
 	import Icon from './Icon.svelte';
+	import Spinner from './Spinner.svelte';
 	import { button, field, segment } from './ui';
 
 	type QuickAddKind = 'idea' | 'task' | 'goal';
@@ -91,8 +92,18 @@
 		class={field.input}
 	/>
 
-	<button type="submit" class={button.primary} disabled={submitting || !title.trim()}>
-		<Icon name="plus" size={15} weight={2.4} />
+	<button
+		type="submit"
+		class={button.primary}
+		disabled={submitting || !title.trim()}
+		aria-busy={submitting}
+	>
+		<!-- The spinner takes the plus icon's place, so the button doesn't grow. -->
+		{#if submitting}
+			<Spinner size={15} />
+		{:else}
+			<Icon name="plus" size={15} weight={2.4} />
+		{/if}
 		{submitting ? 'Adding…' : 'Add'}
 	</button>
 </form>

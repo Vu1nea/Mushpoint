@@ -8,6 +8,7 @@
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import SidebarUser from '$lib/components/SidebarUser.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
@@ -106,7 +107,14 @@
 	>
 		<div class="mp-enter flex w-full max-w-sm flex-col gap-4">
 			<ErrorBanner error={data.error} />
-			<button type="button" class={button.primary} disabled={retrying} onclick={retry}>
+			<button
+				type="button"
+				class={button.primary}
+				disabled={retrying}
+				aria-busy={retrying}
+				onclick={retry}
+			>
+				{#if retrying}<Spinner />{/if}
 				Try again
 			</button>
 		</div>

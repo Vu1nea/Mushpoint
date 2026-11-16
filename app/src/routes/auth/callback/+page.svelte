@@ -7,6 +7,7 @@
 	import { AppError } from '$lib/api/error';
 	import { completeCallback, setNewPassword, type CallbackResult } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	const MIN_PASSWORD = 8;
@@ -90,7 +91,8 @@
 					required
 				/>
 			</label>
-			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy}>
+			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy} aria-busy={busy}>
+				{#if busy}<Spinner />{/if}
 				Save password
 			</button>
 		</form>

@@ -41,4 +41,17 @@ describe('ConfirmDialog', () => {
 		expect(isDisabled(button)).toBe(true);
 		expect(button).toContain('Deleting…');
 	});
+
+	it('shows a hidden spinner and marks the button busy while busy', () => {
+		const button = confirmButton(render(ConfirmDialog, { props: { ...base, busy: true } }).body);
+		expect(button).toContain('aria-busy="true"');
+		expect(button).toContain('mp-spin');
+		expect(button).toMatch(/<svg[^>]*aria-hidden="true"/);
+	});
+
+	it('has no spinner when not busy', () => {
+		const button = confirmButton(render(ConfirmDialog, { props: base }).body);
+		expect(button).not.toContain('mp-spin');
+		expect(button).not.toContain('aria-busy="true"');
+	});
 });

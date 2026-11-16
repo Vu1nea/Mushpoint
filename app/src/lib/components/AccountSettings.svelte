@@ -7,6 +7,7 @@
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import ErrorBanner from './ErrorBanner.svelte';
 	import Icon from './Icon.svelte';
+	import Spinner from './Spinner.svelte';
 	import { button, field, sectionHeading } from './ui';
 
 	interface Props {
@@ -20,7 +21,9 @@
 
 	let error = $state<unknown>(null);
 	let notice = $state<string | null>(null);
-	let busy = $state(false);
+	/** The form whose request is in flight; every form is disabled while one runs. */
+	let pending = $state<'name' | 'email' | 'password' | null>(null);
+	const busy = $derived(pending !== null);
 
 	let editingName = $state(false);
 	let nameDraft = $state('');
@@ -39,8 +42,12 @@
 	);
 
 	/** Runs one form's action, showing its failure or its success notice. */
-	async function run(action: () => Promise<unknown>, success: string | null = null) {
-		busy = true;
+	async function run(
+		form: NonNullable<typeof pending>,
+		action: () => Promise<unknown>,
+		success: string | null = null
+	) {
+		pending = form;
 		error = null;
 		notice = null;
 		try {
@@ -51,7 +58,7 @@
 			error = e;
 			return false;
 		} finally {
-			busy = false;
+			pending = null;
 		}
 	}
 
@@ -64,14 +71,14 @@
 			return;
 		}
 		// The layout reloads the profile, so the sidebar shows the new name.
-		if (await run(() => setUsername(name).then(() => invalidateAll()))) editingName = false;
+		if (await run('name', () => setUsername(name).then(() => invalidateAll()))) editingName = false;
 	}
 
 	async function saveEmail(event: SubmitEvent) {
 		event.preventDefault();
 		const email = newEmail.trim();
 		// The pending address also stays under the current one until it is confirmed.
-		if (await run(() => changeEmail(email), 'Check both inboxes to confirm the change.')) {
+		if (await run('email', () => changeEmail(email), 'Check both inboxes to confirm the change.')) {
 			newEmail = '';
 		}
 	}
@@ -88,7 +95,9 @@
 			notice = null;
 			return;
 		}
-		if (await run(() => changePassword(currentPassword, newPassword), 'Password changed.')) {
+		if (
+			await run('password', () => changePassword(currentPassword, newPassword), 'Password changed.')
+		) {
 			currentPassword = newPassword = confirmPassword = '';
 		}
 	}
@@ -143,8 +152,9 @@
 						required
 						aria-label="New username"
 					/>
-					<button type="submit" class={button.ghost} disabled={busy}>
-						{busy ? 'Saving…' : 'Save'}
+					<button type="submit" class={button.ghost} disabled={busy} aria-busy={pending === 'name'}>
+						{#if pending === 'name'}<Spinner />{/if}
+						{pending === 'name' ? 'Saving…' : 'Save'}
 					</button>
 					<button type="button" class={button.ghost} onclick={() => (editingName = false)}>
 						Cancel
@@ -188,8 +198,9 @@
 						required
 					/>
 				</label>
-				<button type="submit" class={button.ghost} disabled={busy}>
-					{busy ? 'Saving…' : 'Change'}
+				<button type="submit" class={button.ghost} disabled={busy} aria-busy={pending === 'email'}>
+					{#if pending === 'email'}<Spinner />{/if}
+					{pending === 'email' ? 'Saving…' : 'Change'}
 				</button>
 			</div>
 		</form>
@@ -229,8 +240,14 @@
 					required
 				/>
 			</label>
-			<button type="submit" class="{button.ghost} self-start" disabled={busy}>
-				{busy ? 'Saving…' : 'Change password'}
+			<button
+				type="submit"
+				class="{button.ghost} self-start"
+				disabled={busy}
+				aria-busy={pending === 'password'}
+			>
+				{#if pending === 'password'}<Spinner />{/if}
+				{pending === 'password' ? 'Saving…' : 'Change password'}
 			</button>
 		</form>
 

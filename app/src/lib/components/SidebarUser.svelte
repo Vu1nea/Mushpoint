@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { auth, signOut } from '$lib/auth/session.svelte';
 	import Icon from './Icon.svelte';
+	import Spinner from './Spinner.svelte';
 
 	interface Props {
 		/** False in the collapsed rail: every entry shrinks to its icon. */
@@ -39,8 +40,20 @@
 			<span class="min-w-0 truncate text-sm font-semibold text-content">{name}</span>
 		{/if}
 	</a>
-	<button type="button" class={row} disabled={busy} onclick={leave}>
-		<Icon name="signout" size={16} label={open ? undefined : 'Sign out'} />
+	<button
+		type="button"
+		class={row}
+		disabled={busy}
+		aria-busy={busy}
+		aria-label={open ? undefined : 'Sign out'}
+		onclick={leave}
+	>
+		<!-- Swaps in for the icon, so the collapsed sidebar row keeps its size. -->
+		{#if busy}
+			<Spinner size={16} />
+		{:else}
+			<Icon name="signout" size={16} label={open ? undefined : 'Sign out'} />
+		{/if}
 		{#if open}
 			<span class="text-sm">Sign out</span>
 		{/if}

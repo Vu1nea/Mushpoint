@@ -2,6 +2,7 @@
 	import mushIcon from '$lib/assets/mush-icon.png';
 	import { requestPasswordReset } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let email = $state('');
@@ -53,7 +54,8 @@
 					required
 				/>
 			</label>
-			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy}>
+			<button type="submit" class="{button.primary} mt-1 w-full" disabled={busy} aria-busy={busy}>
+				{#if busy}<Spinner />{/if}
 				Send reset link
 			</button>
 		</form>
