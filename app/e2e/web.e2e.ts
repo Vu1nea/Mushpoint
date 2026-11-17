@@ -18,7 +18,7 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 	await test.step('A signs in and picks a username', async () => {
 		await signIn(page, 'a');
 		await page.goto('/settings');
-		await expect(page.getByText(usernameFor('a'), { exact: true })).toBeVisible();
+		await expect(page.getByLabel('Username')).toHaveValue(usernameFor('a'));
 	});
 
 	await test.step('A creates a goal', async () => {

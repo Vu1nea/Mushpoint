@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { addDays, isoOf, monthGrid, monthLabel, shiftMonth, todayIso } from './calendarGrid';
+import type { TaskSummary } from './api';
+import {
+	addDays,
+	dayDots,
+	defaultSelectedDay,
+	dotTone,
+	isoOf,
+	monthGrid,
+	monthLabel,
+	shiftMonth,
+	todayIso
+} from './calendarGrid';
 
 describe('isoOf', () => {
 	it('formats a zero-padded ISO date from a local year/month/day', () => {
@@ -74,5 +85,90 @@ describe('monthGrid', () => {
 		const grid = monthGrid(2026, 7, null, '2026-08-15');
 		expect(grid[0].inCurrentMonth).toBe(false);
 		expect(grid.at(-1)?.inCurrentMonth).toBe(false);
+	});
+});
+
+function task(overrides: Partial<TaskSummary> & Pick<TaskSummary, 'id'>): TaskSummary {
+	return {
+		title: 'Task',
+		status: 'todo',
+		dueDate: null,
+		goalId: null,
+		subgoalId: null,
+		recurrence: null,
+		createdAt: '2026-08-01T00:00:00Z',
+		updatedAt: '2026-08-01T00:00:00Z',
+		completedToday: false,
+		expectedToday: true,
+		...overrides
+	};
+}
+
+describe('dotTone', () => {
+	const today = '2026-08-15';
+
+	it('marks a habit as a habit whatever its status', () => {
+		expect(dotTone(task({ id: 1, recurrence: 'daily', status: 'done' }), today)).toBe('habit');
+	});
+
+	it('marks a done one-off task done, even when its date has passed', () => {
+		expect(dotTone(task({ id: 1, status: 'done', dueDate: '2026-08-01' }), today)).toBe('done');
+	});
+
+	it('marks an unfinished task past its due date overdue', () => {
+		expect(dotTone(task({ id: 1, dueDate: '2026-08-14' }), today)).toBe('overdue');
+		expect(dotTone(task({ id: 2, dueDate: '2026-08-15' }), today)).toBe('task');
+		expect(dotTone(task({ id: 3, status: 'in_progress', dueDate: '2026-09-01' }), today)).toBe(
+			'task'
+		);
+	});
+});
+
+describe('dayDots', () => {
+	const today = '2026-08-15';
+
+	it('shows one dot per task when there are few', () => {
+		expect(dayDots([task({ id: 1 }), task({ id: 2, status: 'done' })], today)).toEqual({
+			tones: ['task', 'done'],
+			extra: 0
+		});
+	});
+
+	it('caps at three dots by default and counts the rest', () => {
+		const tasks = [1, 2, 3, 4, 5].map((id) => task({ id }));
+		expect(dayDots(tasks, today)).toEqual({ tones: ['task', 'task', 'task'], extra: 2 });
+	});
+
+	it('takes a custom cap', () => {
+		expect(dayDots([task({ id: 1 }), task({ id: 2 })], today, 1).extra).toBe(1);
+	});
+
+	it('is empty for a day with no tasks', () => {
+		expect(dayDots([], today)).toEqual({ tones: [], extra: 0 });
+	});
+});
+
+describe('defaultSelectedDay', () => {
+	it('picks today when it is in the month on view', () => {
+		expect(defaultSelectedDay(monthGrid(2026, 7, null, '2026-08-15'), '2026-08-15')).toBe(
+			'2026-08-15'
+		);
+	});
+
+	it("picks the month's first day when today is elsewhere", () => {
+		expect(defaultSelectedDay(monthGrid(2026, 8, null, '2026-08-15'), '2026-08-15')).toBe(
+			'2026-09-01'
+		);
+	});
+
+	it('ignores today when it only shows as a neighboring-month filler day', () => {
+		// Sep 2026's grid starts on Sun Aug 30.
+		expect(defaultSelectedDay(monthGrid(2026, 8, null, '2026-08-31'), '2026-08-31')).toBe(
+			'2026-09-01'
+		);
+	});
+
+	it('is null for an empty grid', () => {
+		expect(defaultSelectedDay([], '2026-08-15')).toBeNull();
 	});
 });

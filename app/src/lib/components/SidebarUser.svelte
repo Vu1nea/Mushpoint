@@ -8,9 +8,11 @@
 		/** False in the collapsed rail: every entry shrinks to its icon. */
 		open: boolean;
 		username: string | null;
+		/** True on /settings: this row is the way into Settings. */
+		current?: boolean;
 	}
 
-	let { open, username }: Props = $props();
+	let { open, username, current = false }: Props = $props();
 
 	const name = $derived(username ?? auth.email ?? 'Account');
 
@@ -29,15 +31,24 @@
 		await goto('/login', { replaceState: true });
 	}
 
-	const row =
-		'flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap font-medium text-muted transition-colors hover:bg-surface-raised hover:text-content disabled:opacity-50';
+	const row = $derived(
+		`flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap font-medium text-muted transition-colors hover:bg-surface-raised hover:text-content disabled:opacity-50`
+	);
 </script>
 
 <div class="flex flex-col gap-px border-t border-subtle px-2.5 py-2">
-	<a href="/settings" class={row} title={open ? name : undefined}>
-		<Icon name="user" size={16} label={open ? undefined : name} />
+	<!-- The single way into Settings: your name opens your account settings. -->
+	<a
+		href="/settings"
+		class="{row} {current ? 'bg-surface-raised' : ''}"
+		aria-current={current ? 'page' : undefined}
+		title={open ? `${name} · Settings` : undefined}
+	>
+		<Icon name="user" size={16} label={open ? undefined : `Settings (${name})`} />
 		{#if open}
-			<span class="min-w-0 truncate text-sm font-semibold text-content">{name}</span>
+			<span class="min-w-0 flex-1 truncate text-sm font-semibold text-content">{name}</span>
+			<span class="sr-only">Settings</span>
+			<Icon name="settings" size={14} />
 		{/if}
 	</a>
 	<button

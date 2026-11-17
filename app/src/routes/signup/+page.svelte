@@ -65,8 +65,8 @@
 	{#if sent}
 		<h1 class="mb-1 font-display text-2xl font-bold">Check your email to confirm your account</h1>
 		<p class="mb-6 text-sm text-muted">
-			We sent a link to <span class="font-semibold text-content">{email.trim()}</span>. Open it in
-			this browser to finish signing up.
+			We sent a link to <span class="font-semibold wrap-anywhere text-content">{email.trim()}</span
+			>. Open it in this browser to finish signing up.
 		</p>
 		{#if resent}
 			<p class="mb-4 text-sm text-muted" role="status">We sent it again.</p>

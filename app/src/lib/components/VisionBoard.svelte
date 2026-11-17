@@ -91,12 +91,17 @@
 				{/if}
 
 				<div
-					class="mt-2 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+					class="mt-2 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
 				>
-					<button type="button" class={button.bare} onclick={() => onEdit(item)}>
+					<button type="button" class="{button.bare} mp-hit" onclick={() => onEdit(item)}>
 						<Icon name="edit" size={13} label="Edit vision item" />
 					</button>
-					<button type="button" class={button.bare} disabled={busy} onclick={() => onDelete(item)}>
+					<button
+						type="button"
+						class="{button.bare} mp-hit"
+						disabled={busy}
+						onclick={() => onDelete(item)}
+					>
 						<Icon name="trash" size={13} label="Delete vision item" />
 					</button>
 				</div>

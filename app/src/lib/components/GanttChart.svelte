@@ -24,16 +24,17 @@
 	</p>
 {:else}
 	<div class="rounded-card border border-subtle bg-surface p-4">
-		<div class="mb-2 flex justify-between pl-[34%] text-2xs text-muted tabular-nums">
+		<div class="mb-2 flex justify-between text-2xs text-muted tabular-nums md:pl-[34%]">
 			<span>{chart.start}</span>
 			<span>{chart.end}</span>
 		</div>
 
-		<ul class="flex flex-col gap-1.5">
+		<ul class="flex flex-col gap-2.5 md:gap-1.5">
 			{#each chart.rows as row (row.key)}
-				<li class="flex items-center gap-2">
-					<span class="w-[33%] shrink-0 truncate text-xs" title={row.title}>{row.title}</span>
-					<div class="relative h-5 flex-1 rounded-control bg-background">
+				<!-- Phones: title above a full-width bar. md+: title in a side column. -->
+				<li class="flex flex-col gap-1 md:flex-row md:items-center md:gap-2">
+					<span class="shrink-0 truncate text-xs md:w-[33%]" title={row.title}>{row.title}</span>
+					<div class="relative h-5 rounded-control bg-background md:flex-1">
 						<div
 							class="absolute inset-y-0 w-px bg-accent/60"
 							style="left:{chart.todayLeft}%"

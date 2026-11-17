@@ -102,7 +102,7 @@
 
 	<button
 		type="button"
-		class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+		class="{button.bare} mp-hit opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
 		disabled={busy}
 		onclick={() => (confirmingDelete = true)}
 	>

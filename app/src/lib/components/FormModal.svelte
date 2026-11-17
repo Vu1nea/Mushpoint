@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { fade, scale } from 'svelte/transition';
+	import { fade, fly, scale, type TransitionConfig } from 'svelte/transition';
 
 	import { normalizeError } from 'mushpoint-design/utils/errors';
 	import { motion } from '$lib/motion';
@@ -43,6 +43,15 @@
 		if (open && event.key === 'Escape') onClose();
 	}
 
+	/** Below `md` the form is a bottom sheet that slides up; from `md` it is a
+	 * centered dialog that scales in. Decided per open, from the viewport then. */
+	function enter(node: Element): TransitionConfig {
+		const desktop = window.matchMedia('(min-width: 48rem)').matches;
+		return desktop
+			? scale(node, { start: 0.96, duration: motion(180) })
+			: fly(node, { y: '100%', opacity: 1, duration: motion(240) });
+	}
+
 	function submit(event: SubmitEvent) {
 		event.preventDefault();
 		onSubmit();
@@ -60,19 +69,23 @@
 		transition:fade={{ duration: motion(180) }}
 	></button>
 
-	<!-- Centered by flex, not translate: a resting transform here would become the
-	     containing block for the date and select popovers inside. -->
-	<div class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4">
+	<!-- Placed by flex, not translate: a resting transform here would become the
+	     containing block for the date and select popovers inside. The fly/scale
+	     transitions only transform while animating. Below `md` it is a bottom
+	     sheet (anchored by items-end, rounded top only); from `md` a centered dialog. -->
+	<div
+		class="pointer-events-none fixed inset-0 z-50 flex items-end justify-center md:items-center md:p-4"
+	>
 		<div
-			class="pointer-events-auto flex max-h-[85vh] w-110 max-w-full flex-col rounded-card border border-subtle bg-surface shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
+			class="pointer-events-auto flex max-h-[90dvh] w-full flex-col rounded-t-card border border-b-0 border-subtle bg-surface shadow-[0_20px_50px_rgba(0,0,0,0.35)] md:max-h-[85vh] md:w-110 md:max-w-full md:rounded-card md:border-b"
 			role="dialog"
 			aria-modal="true"
 			aria-label={title}
-			transition:scale={{ start: 0.96, duration: motion(180) }}
+			transition:enter
 		>
 			<div class="flex items-center justify-between border-b border-subtle px-5.5 py-4.5">
 				<h2 class="font-display text-lg font-bold">{title}</h2>
-				<button type="button" class={button.bare} onclick={onClose}>
+				<button type="button" class="{button.bare} mp-hit" onclick={onClose}>
 					<Icon name="close" size={18} weight={2} label="Close" />
 				</button>
 			</div>
@@ -82,7 +95,11 @@
 					{@render children()}
 				</div>
 
-				<div class="flex flex-col gap-3 border-t border-subtle px-5.5 py-4.5">
+				<!-- Outside the scrolling body, so the submit button stays in view; the
+				     bottom padding clears the home indicator when shown as a sheet. -->
+				<div
+					class="flex flex-col gap-3 border-t border-subtle px-5.5 pt-4.5 pb-[calc(1.125rem+env(safe-area-inset-bottom))] md:pb-4.5"
+				>
 					{#if error}
 						{@const failure = normalizeError(error)}
 						<div

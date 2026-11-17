@@ -91,12 +91,12 @@
 
 <svelte:head><title>Tasks · Mushpoint</title></svelte:head>
 
-<header class="mb-6 flex items-start justify-between gap-4">
-	<div>
-		<h1 class="mb-1 font-display text-3xl font-bold">Tasks</h1>
+<header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+	<div class="min-w-0">
+		<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Tasks</h1>
 		<p class="text-sm text-muted">Everything on your plate</p>
 	</div>
-	<button type="button" class={button.primary} onclick={() => newTask()}>
+	<button type="button" class="{button.primary} shrink-0" onclick={() => newTask()}>
 		<Icon name="plus" size={15} weight={2.4} />
 		New Task
 	</button>

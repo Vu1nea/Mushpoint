@@ -27,7 +27,7 @@ test('the sidebar links to every built screen', async ({ page }) => {
 
 	await page.getByRole('link', { name: 'Settings' }).click();
 	await expect(page).toHaveURL(/\/settings/);
-	await expect(page.getByRole('heading', { name: 'Theme' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 });
 
 test('the task board shows all three columns', async ({ page }) => {
@@ -51,13 +51,15 @@ test('the sidebar collapses to an icon rail', async ({ page }) => {
 
 test('the theme picker offers both shipped themes', async ({ page }) => {
 	await page.goto('/settings');
+	await page.getByRole('tab', { name: 'Appearance' }).click();
+	await expect(page).toHaveURL(/tab=appearance/);
 
 	await expect(page.getByRole('button', { name: /Nocturne/ })).toBeVisible();
 	await expect(page.getByRole('button', { name: /Coquette/ })).toBeVisible();
 });
 
 test('the settings screen offers the streak grace period', async ({ page }) => {
-	await page.goto('/settings');
+	await page.goto('/settings?tab=tracking');
 
 	await expect(page.getByRole('heading', { name: 'Streaks' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Increase grace period' })).toBeVisible();
@@ -67,7 +69,10 @@ test('the settings screen offers the streak grace period', async ({ page }) => {
 test('the settings screen starts with the account section', async ({ page }) => {
 	await page.goto('/settings');
 
-	await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible();
+	await expect(page.getByRole('tab', { name: 'Account' })).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+	await expect(page.getByLabel('Username')).toBeVisible();
+	await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Delete account' })).toBeVisible();
 });
 

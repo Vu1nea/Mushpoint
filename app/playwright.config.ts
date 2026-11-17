@@ -1,4 +1,4 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 import { loadE2eEnv } from './e2e/env';
 
 // Workers import this file too, so they inherit E2E_PASSWORD from .env.e2e.
@@ -21,5 +21,23 @@ export default defineConfig({
 			timeout: 180_000
 		}
 	],
-	testMatch: '**/*.e2e.{ts,js}'
+	testMatch: '**/*.e2e.{ts,js}',
+	projects: [
+		{
+			// No `use` overrides: the same Desktop Chromium defaults the suite ran with before projects.
+			name: 'desktop',
+			testIgnore: '**/mobile.e2e.{ts,js}'
+		},
+		{
+			// iPhone 13 viewport, touch, DPR and UA, emulated on Chromium so the suite needs one browser.
+			name: 'iphone-13',
+			testMatch: '**/mobile.e2e.{ts,js}',
+			use: { ...devices['iPhone 13'], browserName: 'chromium' }
+		},
+		{
+			name: 'pixel-7',
+			testMatch: '**/mobile.e2e.{ts,js}',
+			use: { ...devices['Pixel 7'] }
+		}
+	]
 });

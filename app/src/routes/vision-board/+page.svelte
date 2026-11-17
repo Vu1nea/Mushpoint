@@ -74,7 +74,7 @@
 <svelte:head><title>Vision Board · Mushpoint</title></svelte:head>
 
 <header class="mb-6">
-	<h1 class="mb-1 font-display text-3xl font-bold">Vision Board</h1>
+	<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Vision Board</h1>
 	<p class="text-sm text-muted">Images and quotes worth seeing every day</p>
 </header>
 

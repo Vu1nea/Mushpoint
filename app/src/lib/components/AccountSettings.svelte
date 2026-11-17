@@ -6,7 +6,6 @@
 	import { auth, changeEmail, changePassword, signOut } from '$lib/auth/session.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import ErrorBanner from './ErrorBanner.svelte';
-	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 	import { button, field, sectionHeading } from './ui';
 
@@ -17,20 +16,26 @@
 	let { username }: Props = $props();
 
 	const MIN_PASSWORD = 8;
-	const card = 'rounded-card border border-subtle bg-surface p-4.5';
 
 	let error = $state<unknown>(null);
 	let notice = $state<string | null>(null);
 	/** The form whose request is in flight; every form is disabled while one runs. */
-	let pending = $state<'name' | 'email' | 'password' | null>(null);
+	let pending = $state<'profile' | 'password' | null>(null);
 	const busy = $derived(pending !== null);
 
-	let editingName = $state(false);
 	let nameDraft = $state('');
-	let newEmail = $state('');
+	let emailDraft = $state('');
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let confirmPassword = $state('');
+
+	// Drafts follow the saved values whenever those change (load, save, sign-in).
+	$effect.pre(() => {
+		nameDraft = username ?? '';
+	});
+	$effect.pre(() => {
+		emailDraft = auth.email ?? '';
+	});
 
 	let deleteOpen = $state(false);
 	let deleteTyped = $state('');
@@ -40,6 +45,10 @@
 	const deleteConfirmed = $derived(
 		auth.email !== null && normalizeEmail(deleteTyped) === normalizeEmail(auth.email)
 	);
+
+	const nameDirty = $derived(nameDraft.trim() !== (username ?? ''));
+	const emailDirty = $derived(normalizeEmail(emailDraft) !== normalizeEmail(auth.email ?? ''));
+	const profileDirty = $derived(nameDirty || emailDirty);
 
 	/** Runs one form's action, showing its failure or its success notice. */
 	async function run(
@@ -62,25 +71,33 @@
 		}
 	}
 
-	async function saveName(event: SubmitEvent) {
+	function resetProfile() {
+		nameDraft = username ?? '';
+		emailDraft = auth.email ?? '';
+	}
+
+	async function saveProfile(event: SubmitEvent) {
 		event.preventDefault();
 		const name = nameDraft.trim();
-		if (!USERNAME_PATTERN.test(name)) {
+		const email = emailDraft.trim();
+		if (nameDirty && !USERNAME_PATTERN.test(name)) {
 			error = AppError.validation('Use 3 to 30 letters, numbers, underscores or dots.');
 			notice = null;
 			return;
 		}
-		// The layout reloads the profile, so the sidebar shows the new name.
-		if (await run('name', () => setUsername(name).then(() => invalidateAll()))) editingName = false;
-	}
-
-	async function saveEmail(event: SubmitEvent) {
-		event.preventDefault();
-		const email = newEmail.trim();
-		// The pending address also stays under the current one until it is confirmed.
-		if (await run('email', () => changeEmail(email), 'Check both inboxes to confirm the change.')) {
-			newEmail = '';
-		}
+		const changeName = nameDirty;
+		const changeMail = emailDirty;
+		const saved = await run(
+			'profile',
+			async () => {
+				// The layout reloads the profile, so the sidebar shows the new name.
+				if (changeName) await setUsername(name).then(() => invalidateAll());
+				if (changeMail) await changeEmail(email);
+			},
+			changeMail ? 'Check both inboxes to confirm the email change.' : 'Profile saved.'
+		);
+		// The current address stays until both inboxes confirm; the pending one shows below.
+		if (saved && changeMail) emailDraft = auth.email ?? '';
 	}
 
 	async function savePassword(event: SubmitEvent) {
@@ -126,140 +143,120 @@
 	}
 </script>
 
+{#if error}
+	<div class="mb-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
+{/if}
+{#if notice}
+	<p class="mb-4 text-sm text-muted" role="status">{notice}</p>
+{/if}
+
 <section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Account</h2>
-
-	{#if error}
-		<div class="mb-3 max-w-105"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
-	{/if}
-	{#if notice}
-		<p class="mb-3 max-w-105 text-sm text-muted" role="status">{notice}</p>
-	{/if}
-
-	<div class="flex max-w-105 flex-col gap-3">
-		<div class={card}>
-			<div class="mb-1.5 text-xs font-semibold text-muted">Username</div>
-			{#if editingName}
-				<form class="flex gap-2" onsubmit={saveName}>
-					<input
-						class="{field.input} py-1.5 text-md"
-						name="username"
-						bind:value={nameDraft}
-						autocomplete="username"
-						autocapitalize="none"
-						spellcheck="false"
-						maxlength="30"
-						required
-						aria-label="New username"
-					/>
-					<button type="submit" class={button.ghost} disabled={busy} aria-busy={pending === 'name'}>
-						{#if pending === 'name'}<Spinner />{/if}
-						{pending === 'name' ? 'Saving…' : 'Save'}
-					</button>
-					<button type="button" class={button.ghost} onclick={() => (editingName = false)}>
-						Cancel
-					</button>
-				</form>
-			{:else}
-				<div class="flex items-center gap-2.5">
-					<span class="flex-1 text-md">{username ?? '—'}</span>
-					<button
-						type="button"
-						class={button.bare}
-						onclick={() => {
-							nameDraft = username ?? '';
-							editingName = true;
-						}}
-					>
-						<Icon name="edit" size={14} label="Change username" />
-					</button>
-				</div>
-			{/if}
-		</div>
-
-		<form class={card} onsubmit={saveEmail}>
-			<div class="mb-1.5 text-xs font-semibold text-muted">Email</div>
-			<p class="mb-3 text-md">{auth.email ?? '—'}</p>
+	<h2 class="{sectionHeading} mb-3">Profile</h2>
+	<form class="flex flex-col gap-4" onsubmit={saveProfile}>
+		<label>
+			<span class={field.label}>Username</span>
+			<input
+				class={field.input}
+				name="username"
+				bind:value={nameDraft}
+				autocomplete="username"
+				autocapitalize="none"
+				spellcheck="false"
+				maxlength="30"
+				required
+			/>
+		</label>
+		<label>
+			<span class={field.label}>Email</span>
+			<input
+				class={field.input}
+				type="email"
+				name="email"
+				bind:value={emailDraft}
+				autocomplete="email"
+				required
+			/>
 			{#if auth.pendingEmail}
-				<p class="mb-3 text-xs text-muted" role="status">
+				<span class="mt-1.5 block text-xs wrap-anywhere text-muted" role="status">
 					Changing to <strong class="text-content">{auth.pendingEmail}</strong>, waiting for
 					confirmation from both inboxes.
-				</p>
+				</span>
 			{/if}
-			<div class="flex items-end gap-2">
-				<label class="flex-1">
-					<span class={field.label}>New email</span>
-					<input
-						class="{field.input} py-1.5 text-md"
-						type="email"
-						autocomplete="email"
-						name="email"
-						bind:value={newEmail}
-						required
-					/>
-				</label>
-				<button type="submit" class={button.ghost} disabled={busy} aria-busy={pending === 'email'}>
-					{#if pending === 'email'}<Spinner />{/if}
-					{pending === 'email' ? 'Saving…' : 'Change'}
+		</label>
+		{#if profileDirty || pending === 'profile'}
+			<div class="flex justify-end gap-2">
+				<button type="button" class={button.ghost} disabled={busy} onclick={resetProfile}>
+					Cancel
+				</button>
+				<button
+					type="submit"
+					class={button.primary}
+					disabled={busy}
+					aria-busy={pending === 'profile'}
+				>
+					{#if pending === 'profile'}<Spinner />{/if}
+					{pending === 'profile' ? 'Saving…' : 'Save'}
 				</button>
 			</div>
-		</form>
+		{/if}
+	</form>
+</section>
 
-		<form class="{card} flex flex-col gap-3" onsubmit={savePassword}>
-			<div class="text-xs font-semibold text-muted">Password</div>
-			<label>
-				<span class={field.label}>Current password</span>
-				<input
-					class={field.input}
-					type="password"
-					autocomplete="current-password"
-					name="current-password"
-					bind:value={currentPassword}
-					required
-				/>
-			</label>
-			<label>
-				<span class={field.label}>New password</span>
-				<input
-					class={field.input}
-					type="password"
-					autocomplete="new-password"
-					name="new-password"
-					bind:value={newPassword}
-					required
-				/>
-			</label>
-			<label>
-				<span class={field.label}>Confirm new password</span>
-				<input
-					class={field.input}
-					type="password"
-					autocomplete="new-password"
-					name="confirm-password"
-					bind:value={confirmPassword}
-					required
-				/>
-			</label>
-			<button
-				type="submit"
-				class="{button.ghost} self-start"
-				disabled={busy}
-				aria-busy={pending === 'password'}
-			>
+<section class="mb-8">
+	<h2 class="{sectionHeading} mb-3">Password</h2>
+	<form class="flex flex-col gap-4" onsubmit={savePassword}>
+		<label>
+			<span class={field.label}>Current password</span>
+			<input
+				class={field.input}
+				type="password"
+				autocomplete="current-password"
+				name="current-password"
+				bind:value={currentPassword}
+				required
+			/>
+		</label>
+		<label>
+			<span class={field.label}>New password</span>
+			<input
+				class={field.input}
+				type="password"
+				autocomplete="new-password"
+				name="new-password"
+				bind:value={newPassword}
+				required
+			/>
+		</label>
+		<label>
+			<span class={field.label}>Confirm new password</span>
+			<input
+				class={field.input}
+				type="password"
+				autocomplete="new-password"
+				name="confirm-password"
+				bind:value={confirmPassword}
+				required
+			/>
+		</label>
+		<div class="flex justify-end">
+			<button type="submit" class={button.ghost} disabled={busy} aria-busy={pending === 'password'}>
 				{#if pending === 'password'}<Spinner />{/if}
-				{pending === 'password' ? 'Saving…' : 'Change password'}
-			</button>
-		</form>
-
-		<div class="{card} flex items-center gap-4">
-			<div class="flex-1">
-				<div class="mb-0.5 text-md font-semibold">Delete account</div>
-				<div class="text-xs text-muted">Removes your login and everything you track</div>
-			</div>
-			<button type="button" class={button.danger} disabled={busy} onclick={openDelete}>
-				Delete account
+				{pending === 'password' ? 'Saving…' : 'Update password'}
 			</button>
 		</div>
+	</form>
+</section>
+
+<section>
+	<h2 class="{sectionHeading} mb-3">Danger zone</h2>
+	<div class="flex flex-wrap items-center gap-4 rounded-card border border-danger/40 p-4.5">
+		<div class="min-w-48 flex-1">
+			<div class="mb-0.5 text-md font-semibold">Delete account</div>
+			<div class="text-xs text-muted">Removes your login and everything you track</div>
+		</div>
+		<button type="button" class={button.danger} disabled={busy} onclick={openDelete}>
+			Delete account
+		</button>
 	</div>
 </section>
 
@@ -276,7 +273,7 @@
 	}}
 >
 	<label>
-		<span class={field.label}>Type <strong>{auth.email}</strong> to confirm</span>
+		<span class="{field.label} wrap-anywhere">Type <strong>{auth.email}</strong> to confirm</span>
 		<input
 			class={field.input}
 			type="email"

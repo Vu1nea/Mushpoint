@@ -178,16 +178,16 @@
 		</div>
 	{/if}
 
-	<div class="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
+	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[320px_1fr]">
 		<div
-			class="rounded-card border border-subtle bg-surface p-4.5 transition-[opacity,filter] duration-[var(--mp-duration-slow)] lg:sticky lg:top-0 {goal.status ===
+			class="min-w-0 rounded-card border border-subtle bg-surface p-4.5 transition-[opacity,filter] duration-[var(--mp-duration-slow)] lg:sticky lg:top-0 {goal.status ===
 			'archived'
 				? 'opacity-75 grayscale-[0.4]'
 				: ''}"
 		>
 			<div class="flex items-center justify-between gap-2">
 				<span
-					class="rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider uppercase"
+					class="min-w-0 truncate rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider uppercase"
 					style="color:{accent}"
 				>
 					{goal.category?.name ?? 'Uncategorized'}
@@ -212,7 +212,9 @@
 				</div>
 			</div>
 
-			<h1 class="mt-3.5 mb-2 flex items-center gap-2 font-display text-2xl leading-tight font-bold">
+			<h1
+				class="mt-3.5 mb-2 flex items-center gap-2 font-display text-2xl leading-tight font-bold wrap-anywhere"
+			>
 				{#if goal.fromIdea}
 					<span title="Promoted from an idea" class="shrink-0 text-muted">
 						<Icon name="idea" size={18} />
@@ -270,7 +272,7 @@
 			</div>
 		</div>
 
-		<div>
+		<div class="min-w-0">
 			<Tabs
 				id="goal-view"
 				label="Goal view"

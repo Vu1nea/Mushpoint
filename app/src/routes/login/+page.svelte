@@ -116,7 +116,7 @@
 		</button>
 	</form>
 
-	<div class="mt-5 flex justify-between text-sm">
+	<div class="mt-5 flex flex-wrap justify-between gap-x-4 gap-y-2 text-sm">
 		<a class="text-muted hover:text-content" href="/forgot-password">Forgot password?</a>
 		<a class="font-semibold text-accent" href="/signup">Create an account</a>
 	</div>

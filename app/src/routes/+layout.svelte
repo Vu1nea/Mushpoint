@@ -2,18 +2,23 @@
 	import './layout.css';
 	import { onMount, untrack } from 'svelte';
 
-	import { invalidateAll } from '$app/navigation';
+	import { afterNavigate, invalidateAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
 	import mushIcon from '$lib/assets/mush-icon.png';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import MadeByCredit from '$lib/components/MadeByCredit.svelte';
+	import MobileMenuSheet from '$lib/components/MobileMenuSheet.svelte';
+	import MobileTabBar from '$lib/components/MobileTabBar.svelte';
+	import MobileTopBar from '$lib/components/MobileTopBar.svelte';
 	import SidebarUser from '$lib/components/SidebarUser.svelte';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import ThemeSwitch from '$lib/components/ThemeSwitch.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
 	import { isPublicRoute } from '$lib/auth/routes';
-	import { THEME_LABELS, theme } from '$lib/theme/theme.svelte';
+	import { theme } from '$lib/theme/theme.svelte';
 
 	let { children, data } = $props();
 
@@ -22,14 +27,24 @@
 	 * Manager screen — see the Architectural Pivot note in
 	 * `docs/plans/goal_tracker_plan.md`.
 	 */
-	const NAV: { href: string; label: string; icon: IconName }[] = [
-		{ href: '/', label: 'Dashboard', icon: 'dashboard' },
-		{ href: '/goals', label: 'Goal Tracker', icon: 'goal' },
-		{ href: '/tasks', label: 'Task Manager', icon: 'task' },
-		{ href: '/ideas', label: 'Idea Vault', icon: 'idea' },
-		{ href: '/vision-board', label: 'Vision Board', icon: 'vision' },
-		{ href: '/settings', label: 'Settings', icon: 'settings' }
+	const NAV: { href: string; label: string; short: string; icon: IconName }[] = [
+		{ href: '/', label: 'Dashboard', short: 'Dashboard', icon: 'dashboard' },
+		{ href: '/goals', label: 'Goal Tracker', short: 'Goals', icon: 'goal' },
+		{ href: '/tasks', label: 'Task Manager', short: 'Tasks', icon: 'task' },
+		{ href: '/ideas', label: 'Idea Vault', short: 'Ideas', icon: 'idea' },
+		{ href: '/vision-board', label: 'Vision Board', short: 'Vision', icon: 'vision' },
+		{ href: '/settings', label: 'Settings', short: 'Settings', icon: 'settings' }
 	];
+
+	/** Settings has no nav entry of its own; the user row (your name) leads there. */
+	const MAIN_NAV = NAV.filter((item) => item.href !== '/settings');
+
+	/** The phone tab bar: every main screen. */
+	const TABS = MAIN_NAV.map((item) => ({
+		href: item.href,
+		label: item.short,
+		icon: item.icon
+	}));
 
 	const SIDEBAR_KEY = 'mushpoint:sidebar-open';
 
@@ -74,15 +89,22 @@
 	const isCurrent = (href: string) =>
 		href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
 
-	const otherTheme = $derived(theme.current === 'nocturne' ? 'coquette' : 'nocturne');
+	/** The phone top bar's title: the NAV entry for the current screen. */
+	const pageTitle = $derived(NAV.find((item) => isCurrent(item.href))?.label ?? 'Mushpoint');
 
-	async function flipTheme() {
-		try {
-			await theme.set(otherTheme);
-		} catch (error) {
-			console.error('could not save the theme', error);
-		}
+	let menuOpen = $state(false);
+	let menuButton = $state<HTMLButtonElement>();
+
+	function closeMenu(restoreFocus: boolean) {
+		if (!menuOpen) return;
+		menuOpen = false;
+		if (restoreFocus) menuButton?.focus();
 	}
+
+	// A route change (link, back button, redirect) always dismisses the menu.
+	afterNavigate(() => {
+		menuOpen = false;
+	});
 </script>
 
 <svelte:head><link rel="icon" href={mushIcon} /></svelte:head>
@@ -120,9 +142,10 @@
 		</div>
 	</main>
 {:else}
-	<div class="flex h-screen w-full overflow-hidden bg-background font-sans text-content">
+	<div class="flex h-dvh w-full overflow-hidden bg-background font-sans text-content">
+		<!-- Desktop only; phones get the top bar, tab bar and menu sheet instead. -->
 		<aside
-			class="duration-250ms flex shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] ease-out"
+			class="duration-250ms hidden shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] ease-out md:flex"
 			style="width:{sidebarOpen ? '236px' : '76px'}"
 		>
 			<div
@@ -153,7 +176,7 @@
 			{/if}
 
 			<nav class="flex flex-1 flex-col gap-px overflow-y-auto px-2.5 py-1">
-				{#each NAV as item (item.href)}
+				{#each MAIN_NAV as item (item.href)}
 					<a
 						href={item.href}
 						aria-current={isCurrent(item.href) ? 'page' : undefined}
@@ -170,54 +193,42 @@
 				{/each}
 			</nav>
 
-			<SidebarUser open={sidebarOpen} username={data.profile?.username ?? null} />
+			<SidebarUser
+				open={sidebarOpen}
+				username={data.profile?.username ?? null}
+				current={isCurrent('/settings')}
+			/>
 
 			<div class="flex flex-col gap-1 border-t border-subtle px-3.5 py-3">
-				<div class="flex items-center justify-between gap-2">
-					{#if sidebarOpen}
-						<span class="text-2xs tracking-[0.06em] text-muted uppercase">
-							{THEME_LABELS[theme.current]}
-						</span>
-					{/if}
-					<button
-						type="button"
-						class="relative h-5.5 w-10 shrink-0 rounded-full border border-subtle bg-background"
-						role="switch"
-						aria-checked={theme.current === 'coquette'}
-						aria-label="Switch to the {THEME_LABELS[otherTheme]} theme"
-						onclick={flipTheme}
-					>
-						<span
-							class="absolute top-px size-4.5 rounded-full bg-accent transition-[left] duration-200"
-							style="left:{theme.current === 'nocturne' ? '1px' : '19px'}"
-						></span>
-					</button>
-				</div>
+				<ThemeSwitch showLabel={sidebarOpen} />
 				{#if sidebarOpen}
-					<span class="flex items-center gap-1.5 text-2xs text-muted/60">
-						Made by
-						<a target="_blank" class="no-underline" href="https://github.com/Vu1nea" rel="external"
-							>Vu1nea</a
-						>
-						<svg
-							viewBox="0 0 24 24"
-							class="size-4 shrink-0 text-accent"
-							fill="currentColor"
-							aria-hidden="true"
-						>
-							<path
-								d="M15,24c-.553,0-1-.447-1-1v-1.398c0-1.505,.805-2.853,2.1-3.516,3.022-1.55,4.9-4.62,4.9-8.013,0-3.455-1.928-6.55-5.03-8.078l.03,6.005c0,2.206-1.794,4-4,4s-4-1.794-4-4V2.012C4.928,3.523,3,6.618,3,10.073c0,3.393,1.878,6.463,4.9,8.013,1.295,.663,2.1,2.011,2.1,3.516v1.398c0,.553-.447,1-1,1s-1-.447-1-1v-1.398c0-.739-.397-1.421-1.012-1.736-3.693-1.894-5.988-5.646-5.988-9.792C1,5.852,3.355,2.068,7.146,.2c.61-.3,1.321-.263,1.901,.101,.597,.371,.953,1.011,.953,1.711v5.988c0,1.103,.897,2,2,2s2-.897,2-2V2.012c0-.7,.356-1.34,.953-1.711,.581-.362,1.293-.399,1.9-.101,3.791,1.868,6.146,5.651,6.146,9.873,0,4.146-2.295,7.898-5.988,9.792-.614,.315-1.012,.997-1.012,1.736v1.398c0,.553-.447,1-1,1Z"
-							/>
-						</svg>
-					</span>
+					<MadeByCredit />
 				{/if}
 			</div>
 		</aside>
 
 		<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-			<main class="flex-1 overflow-y-auto px-11 pt-9 pb-15">
+			<MobileTopBar
+				title={pageTitle}
+				name={data.profile?.username ?? auth.email ?? ''}
+				{menuOpen}
+				onMenu={() => (menuOpen = true)}
+				bind:menuButton
+			/>
+			<!-- On phones the bottom padding clears the fixed tab bar (3.5rem) and the home indicator. -->
+			<main
+				class="flex-1 overflow-y-auto px-4 pt-5 pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:px-11 md:pt-9 md:pb-15"
+			>
 				{@render children()}
 			</main>
 		</div>
 	</div>
+
+	<MobileTabBar items={TABS} {isCurrent} />
+	<MobileMenuSheet
+		open={menuOpen}
+		username={data.profile?.username ?? null}
+		settingsCurrent={isCurrent('/settings')}
+		onClose={closeMenu}
+	/>
 {/if}

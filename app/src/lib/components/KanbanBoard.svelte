@@ -1,6 +1,8 @@
 <!-- app/src/lib/components/KanbanBoard.svelte -->
 <script lang="ts">
 	import { flip } from 'svelte/animate';
+	import { tick } from 'svelte';
+	import { MediaQuery } from 'svelte/reactivity';
 
 	import {
 		createTask,
@@ -18,6 +20,7 @@
 	import {
 		filterTasks,
 		groupByStatus,
+		moveTargets,
 		NO_FILTER,
 		PAGE_SIZE,
 		pageOf,
@@ -28,6 +31,8 @@
 	import { optimistic } from '$lib/optimistic';
 	import Icon from './Icon.svelte';
 	import Select from './Select.svelte';
+	import Tabs from './Tabs.svelte';
+	import { tabId, tabPanelId } from './tabIds';
 	import { button, field, sectionHeading } from './ui';
 
 	interface Props {
@@ -87,6 +92,48 @@
 	let goalFilter = $state('');
 	let pages = $state({ ...FIRST_PAGES });
 
+	/** Below md the board shows one column at a time, picked with tabs. */
+	const TABS_ID = 'kanban-column';
+	const phone = new MediaQuery('max-width: 47.98rem', false);
+	let activeStatus = $state<TaskStatus>('todo');
+
+	/** The card whose "Move to…" menu is open. */
+	let moveMenuFor = $state<number | null>(null);
+	let moveMenu = $state<HTMLElement>();
+	let moveMenuOpener: HTMLElement | undefined;
+
+	function openMoveMenu(event: MouseEvent, task: TaskSummary) {
+		if (moveMenuFor === task.id) return closeMoveMenu();
+		moveMenuOpener = event.currentTarget as HTMLElement;
+		moveMenuFor = task.id;
+		tick().then(() => moveMenu?.querySelector<HTMLElement>('[role="menuitem"]')?.focus());
+	}
+
+	function closeMoveMenu(refocus = true) {
+		moveMenuFor = null;
+		if (refocus) moveMenuOpener?.focus();
+	}
+
+	function moveMenuKeydown(event: KeyboardEvent) {
+		const items = [...(moveMenu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+		const index = items.indexOf(document.activeElement as HTMLElement);
+		if (event.key === 'Escape') {
+			event.preventDefault();
+			closeMoveMenu();
+		} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			const delta = event.key === 'ArrowDown' ? 1 : -1;
+			items[(index + delta + items.length) % items.length]?.focus();
+		} else if (event.key === 'Tab') {
+			closeMoveMenu(false);
+		}
+	}
+
+	function windowClick(event: MouseEvent) {
+		if (moveMenuFor === null) return;
+		if (!(event.target as Element | null)?.closest?.('[data-move-menu]')) closeMoveMenu(false);
+	}
+
 	const filtering = $derived(query.trim() !== '' || due !== 'all' || goalFilter !== '');
 	const goalOptions = $derived([
 		{ value: '', label: 'All goals' },
@@ -96,6 +143,12 @@
 		groupByStatus(
 			filterTasks(shown, { query, due, goalId: goalFilter ? Number(goalFilter) : null })
 		)
+	);
+	const tabs = $derived(
+		TASK_STATUSES.map((status) => ({
+			value: status,
+			label: `${TASK_STATUS_LABELS[status]} (${columns[status].length})`
+		}))
 	);
 	const paged = $derived({
 		todo: pageOf(columns.todo, pages.todo, PAGE_SIZE),
@@ -227,6 +280,8 @@
 	}
 </script>
 
+<svelte:window onclick={windowClick} />
+
 <div class="mb-3.5 flex flex-wrap items-center gap-2">
 	<input
 		class="{field.input} max-w-60 flex-1"
@@ -255,13 +310,27 @@
 	{/if}
 </div>
 
+<Tabs
+	class="mb-3.5 md:hidden"
+	id={TABS_ID}
+	label="Board column"
+	{tabs}
+	value={activeStatus}
+	onChange={(next) => (activeStatus = next)}
+/>
+
 <div class="grid gap-4 md:grid-cols-3">
 	{#each TASK_STATUSES as status (status)}
 		<section
-			class="flex min-h-50 flex-col gap-2.5 rounded-card border p-3.5 transition-colors {dragOverStatus ===
+			class="{status === activeStatus
+				? 'flex'
+				: 'hidden md:flex'} min-h-50 flex-col gap-2.5 rounded-card border p-3.5 transition-colors {dragOverStatus ===
 			status
 				? 'border-accent bg-accent/5'
 				: 'border-subtle bg-surface'}"
+			role={phone.current ? 'tabpanel' : undefined}
+			id={phone.current ? tabPanelId(TABS_ID, status) : undefined}
+			aria-labelledby={phone.current ? tabId(TABS_ID, status) : undefined}
 			ondragover={(event) => dragOver(event, status)}
 			ondragleave={() => dragLeave(status)}
 			ondrop={(event) => drop(event, status)}
@@ -274,8 +343,11 @@
 			{#each paged[status].items as task, index (task.id)}
 				{@const parent = parentLabel(task)}
 				{@const inert = busy || Boolean(task.recurrence && !task.expectedToday)}
+				{@const targets = moveTargets(task)}
 				<div
-					class="group rounded-card border p-3.5 transition-shadow {justMovedId === task.id
+					class="group rounded-card border p-3.5 transition-shadow {moveMenuFor === task.id
+						? 'relative z-10'
+						: ''} {justMovedId === task.id
 						? 'mp-pulse border-accent bg-background ring-3 ring-accent/30'
 						: 'mp-enter border-subtle bg-background'}"
 					style="--mp-delay:{stagger(index, 30)}"
@@ -295,14 +367,14 @@
 						</button>
 
 						<div
-							class="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+							class="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
 						>
-							<button type="button" class={button.bare} onclick={() => onEditTask(task)}>
+							<button type="button" class="{button.bare} mp-hit" onclick={() => onEditTask(task)}>
 								<Icon name="edit" size={13} label="Edit {task.title}" />
 							</button>
 							<button
 								type="button"
-								class={button.bare}
+								class="{button.bare} mp-hit"
 								disabled={busy}
 								onclick={() => onDeleteTask(task)}
 							>
@@ -360,7 +432,8 @@
 							: task.completedToday
 								? 'Undo today'
 								: 'Mark done for today'}
-						<div class="mt-2 flex justify-end">
+						<div class="mt-2 flex items-center justify-end gap-1">
+							{@render moveControl(task, targets)}
 							<button
 								type="button"
 								class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-semibold transition-colors disabled:opacity-50 {task.expectedToday &&
@@ -375,11 +448,12 @@
 							</button>
 						</div>
 					{:else}
-						<div class="mt-2 flex justify-end gap-1">
+						<div class="mt-2 flex items-center justify-end gap-1">
+							{@render moveControl(task, targets)}
 							{#if status !== 'todo'}
 								<button
 									type="button"
-									class={button.bare}
+									class="{button.bare} mp-hit"
 									disabled={inert}
 									onclick={() => step(task, -1)}
 								>
@@ -394,7 +468,7 @@
 							{#if status !== 'done'}
 								<button
 									type="button"
-									class={button.bare}
+									class="{button.bare} mp-hit"
 									disabled={inert}
 									onclick={() => step(task, 1)}
 								>
@@ -416,7 +490,7 @@
 				<div class="flex items-center justify-center gap-2 text-2xs text-muted">
 					<button
 						type="button"
-						class={button.bare}
+						class="{button.bare} mp-hit"
 						disabled={paged[status].page === 0}
 						onclick={() => (pages[status] = paged[status].page - 1)}
 					>
@@ -430,7 +504,7 @@
 					<span class="tabular-nums">{paged[status].page + 1} / {paged[status].pageCount}</span>
 					<button
 						type="button"
-						class={button.bare}
+						class="{button.bare} mp-hit"
 						disabled={paged[status].page === paged[status].pageCount - 1}
 						onclick={() => (pages[status] = paged[status].page + 1)}
 					>
@@ -454,3 +528,47 @@
 		</section>
 	{/each}
 </div>
+
+<!-- Non-drag way to change a card's column (touch has no HTML5 drag). Funnels
+     through `moveTask`, the same path a drop takes. -->
+{#snippet moveControl(task: TaskSummary, targets: TaskStatus[])}
+	{#if targets.length > 0}
+		<div class="relative mr-auto" data-move-menu>
+			<button
+				type="button"
+				class="{button.bare} mp-hit px-1.5 text-2xs font-semibold"
+				aria-haspopup="menu"
+				aria-expanded={moveMenuFor === task.id}
+				aria-label="Move {task.title} to…"
+				disabled={busy}
+				onclick={(event) => openMoveMenu(event, task)}
+			>
+				Move to…
+			</button>
+			{#if moveMenuFor === task.id}
+				<div
+					bind:this={moveMenu}
+					role="menu"
+					tabindex="-1"
+					aria-label="Move {task.title} to"
+					class="absolute top-full left-0 z-20 mt-1 flex min-w-36 flex-col rounded-control border border-subtle bg-surface p-1 shadow-[0_12px_30px_rgba(0,0,0,0.25)]"
+					onkeydown={moveMenuKeydown}
+				>
+					{#each targets as target (target)}
+						<button
+							type="button"
+							role="menuitem"
+							class="rounded-control px-2.5 py-2 text-left text-sm transition-colors hover:bg-accent/10 focus-visible:bg-accent/10 focus-visible:outline-none"
+							onclick={() => {
+								closeMoveMenu();
+								moveTask(task, target);
+							}}
+						>
+							{TASK_STATUS_LABELS[target]}
+						</button>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
+{/snippet}

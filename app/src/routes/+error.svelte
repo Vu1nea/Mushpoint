@@ -26,17 +26,17 @@
 		<p class="mb-2 font-display text-sm font-bold text-muted tabular-nums">
 			{page.status}
 		</p>
-		<h1 class="mb-3 font-display text-3xl font-bold text-balance">{title}</h1>
+		<h1 class="mb-3 font-display text-2xl font-bold text-balance sm:text-3xl">{title}</h1>
 
 		{#if notFound}
 			<p class="mb-8 text-md text-pretty text-muted">
 				There's nothing at <code
-					class="rounded-sm bg-surface-raised px-1.5 py-0.5 text-sm text-content"
+					class="rounded-sm bg-surface-raised px-1.5 py-0.5 text-sm wrap-anywhere text-content"
 					>{page.url.pathname}</code
 				>. The link may be old, or the page may have moved.
 			</p>
 		{:else}
-			<p class="mb-8 text-md text-pretty text-muted">
+			<p class="mb-8 text-md text-pretty wrap-anywhere text-muted">
 				{page.error?.message || 'An unexpected error stopped this page from loading.'}
 				Try again, or head back to your dashboard.
 			</p>
