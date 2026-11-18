@@ -36,7 +36,8 @@ is retired; its last state is tagged `desktop-sqlite-final`.
 
 - **Accounts**: email and password sign-up with email confirmation, sign-in,
   password reset and email change, all through Supabase using the PKCE flow.
-  New users pick a unique username on `/welcome`. The login and sign-up
+  New users pick a unique username on `/welcome`, and can upload a profile
+  picture in Settings (shown in place of their initial). The login and sign-up
   forms have a show/hide password toggle, and Settings offers permanent
   account deletion.
 - **Dashboard** (`/`): today's tasks, upcoming items, a goals panel, habit
@@ -391,6 +392,7 @@ Migrations:
 | `0002_policies_app_role_only.sql` | Re-creates the policies for `mushpoint_app` only, and revokes table access from Supabase's `anon` and `authenticated` roles if they exist. |
 | `0003_profiles.sql` | Adds `profiles` (one username per user, unique case-insensitively) with RLS. |
 | `0004_deleted_users.sql` | Adds the `deleted_users` tombstone table. It has no RLS, since the API checks any user id against it; `mushpoint_app` can only `SELECT` and `INSERT`. |
+| `0005_profile_avatar.sql` | Adds `profiles.avatar_path`, the profile picture's path in the image bucket. |
 
 Migrations only add. Apply them before deploying a server version that needs
 them; the previous server version keeps working on the migrated database.
@@ -412,7 +414,7 @@ upload (multipart). Every route except `healthz` and `readyz` needs
 | Ideas | `GET /ideas?tag=&includePromoted=`, `GET /ideas/:id`, `POST /ideas`, `PUT /ideas/:id`, `DELETE /ideas/:id`, `POST /ideas/:id/promote`, `GET /idea-tags` |
 | Vision board | `GET /vision-items`, `POST /vision-items`, `PUT /vision-items/order`, `PUT /vision-items/:id`, `DELETE /vision-items/:id`, `POST /vision-images` (multipart field `file`) |
 | Settings | `GET /settings`, `PUT /settings/theme`, `PUT /settings/streak-grace-days` |
-| Profile | `GET /profile`, `PUT /profile/username` |
+| Profile | `GET /profile`, `PUT /profile/username`, `PUT /profile/avatar` (multipart `file`), `DELETE /profile/avatar` |
 | Account | `DELETE /account` |
 
 The request and response types are defined once in

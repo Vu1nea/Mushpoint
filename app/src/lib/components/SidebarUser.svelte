@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { auth, signOut } from '$lib/auth/session.svelte';
+	import Avatar from './Avatar.svelte';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 
@@ -8,11 +9,12 @@
 		/** False in the collapsed rail: every entry shrinks to its icon. */
 		open: boolean;
 		username: string | null;
+		avatarUrl: string | null;
 		/** True on /settings: this row is the way into Settings. */
 		current?: boolean;
 	}
 
-	let { open, username, current = false }: Props = $props();
+	let { open, username, avatarUrl, current = false }: Props = $props();
 
 	const name = $derived(username ?? auth.email ?? 'Account');
 
@@ -44,7 +46,9 @@
 		aria-current={current ? 'page' : undefined}
 		title={open ? `${name} · Settings` : undefined}
 	>
-		<Icon name="user" size={16} label={open ? undefined : `Settings (${name})`} />
+		<!-- Same footprint as the row icons, so the collapsed rail stays aligned. -->
+		<Avatar {name} url={avatarUrl} class="-mx-0.5 size-5 text-[0.625rem]" />
+		{#if !open}<span class="sr-only">Settings ({name})</span>{/if}
 		{#if open}
 			<span class="min-w-0 flex-1 truncate text-sm font-semibold text-content">{name}</span>
 			<span class="sr-only">Settings</span>

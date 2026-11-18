@@ -34,6 +34,18 @@ export function sniffImageType(bytes: Uint8Array): ImageType | null {
   return null;
 }
 
+/** Checks a multer upload by its bytes; the declared type must agree with them. */
+export function checkedUpload(file: { buffer: Buffer; size: number; mimetype: string } | undefined): {
+  bytes: Uint8Array;
+  type: ImageType;
+} {
+  if (!file || file.size === 0) throw AppError.validation('choose an image to upload');
+  const bytes = new Uint8Array(file.buffer);
+  const type = sniffImageType(bytes);
+  if (type === null || type !== file.mimetype) throw AppError.validation('unsupported image');
+  return { bytes, type };
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** True only for `<userId>/<uuid>.<png|jpg|webp|gif>` — no traversal, no other owner. */

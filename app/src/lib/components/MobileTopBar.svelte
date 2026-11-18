@@ -1,20 +1,20 @@
 <script lang="ts">
 	import mushIcon from '$lib/assets/mush-icon.png';
+	import Avatar from './Avatar.svelte';
 
 	interface Props {
 		/** The current screen's name, shown in the middle of the bar. */
 		title: string;
 		/** Name the avatar's initial comes from (username, else email). */
 		name: string;
+		avatarUrl: string | null;
 		menuOpen: boolean;
 		onMenu: () => void;
 		/** The menu button, so the shell can hand focus back when the sheet closes. */
 		menuButton?: HTMLButtonElement;
 	}
 
-	let { title, name, menuOpen, onMenu, menuButton = $bindable() }: Props = $props();
-
-	const initial = $derived(name.trim().charAt(0) || '?');
+	let { title, name, avatarUrl, menuOpen, onMenu, menuButton = $bindable() }: Props = $props();
 </script>
 
 <!-- Phones only: the sidebar's stand-in at the top of the screen. -->
@@ -35,11 +35,6 @@
 		aria-controls="mobile-menu"
 		onclick={onMenu}
 	>
-		<span
-			class="flex size-8 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-contrast uppercase"
-			aria-hidden="true"
-		>
-			{initial}
-		</span>
+		<Avatar {name} url={avatarUrl} />
 	</button>
 </header>

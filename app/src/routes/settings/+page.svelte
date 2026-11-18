@@ -152,7 +152,10 @@
 
 	{#if tab === 'account'}
 		<div {...panel('account')}>
-			<AccountSettings username={data.profile?.username ?? null} />
+			<AccountSettings
+				username={data.profile?.username ?? null}
+				avatarUrl={data.profile?.avatarUrl ?? null}
+			/>
 		</div>
 	{:else if tab === 'appearance'}
 		<div {...panel('appearance')}>

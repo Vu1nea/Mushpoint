@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import { deleteAccount, setUsername } from '$lib/api/account';
+	import { deleteAccount, removeAvatar, setAvatar, setUsername } from '$lib/api/account';
 	import { AppError } from '$lib/api/error';
 	import { USERNAME_PATTERN } from '$lib/api/types';
 	import { auth, changeEmail, changePassword, signOut } from '$lib/auth/session.svelte';
+	import { ACCEPTED_IMAGE_TYPES } from '$lib/images';
+	import Avatar from './Avatar.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import ErrorBanner from './ErrorBanner.svelte';
 	import Spinner from './Spinner.svelte';
@@ -11,16 +13,17 @@
 
 	interface Props {
 		username: string | null;
+		avatarUrl: string | null;
 	}
 
-	let { username }: Props = $props();
+	let { username, avatarUrl }: Props = $props();
 
 	const MIN_PASSWORD = 8;
 
 	let error = $state<unknown>(null);
 	let notice = $state<string | null>(null);
 	/** The form whose request is in flight; every form is disabled while one runs. */
-	let pending = $state<'profile' | 'password' | null>(null);
+	let pending = $state<'avatar' | 'profile' | 'password' | null>(null);
 	const busy = $derived(pending !== null);
 
 	let nameDraft = $state('');
@@ -69,6 +72,30 @@
 		} finally {
 			pending = null;
 		}
+	}
+
+	let fileInput = $state<HTMLInputElement>();
+
+	async function pickAvatar(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		// Cleared so choosing the same file again still fires `change`.
+		input.value = '';
+		if (!file) return;
+		// The layout reloads the profile, so every avatar shows the new picture.
+		await run(
+			'avatar',
+			() => setAvatar(file).then(() => invalidateAll()),
+			'Profile picture updated.'
+		);
+	}
+
+	async function clearAvatar() {
+		await run(
+			'avatar',
+			() => removeAvatar().then(() => invalidateAll()),
+			'Profile picture removed.'
+		);
 	}
 
 	function resetProfile() {
@@ -152,6 +179,37 @@
 
 <section class="mb-8">
 	<h2 class="{sectionHeading} mb-3">Profile</h2>
+	<div class="mb-5 flex items-center gap-4">
+		<Avatar name={username ?? auth.email ?? ''} url={avatarUrl} class="size-16 text-2xl" />
+		<div class="flex min-w-0 flex-col gap-1.5">
+			<div class="flex flex-wrap gap-2">
+				<button
+					type="button"
+					class={button.ghost}
+					disabled={busy}
+					aria-busy={pending === 'avatar'}
+					onclick={() => fileInput?.click()}
+				>
+					{#if pending === 'avatar'}<Spinner />{/if}
+					{avatarUrl ? 'Change picture' : 'Upload picture'}
+				</button>
+				{#if avatarUrl}
+					<button type="button" class={button.ghost} disabled={busy} onclick={clearAvatar}>
+						Remove
+					</button>
+				{/if}
+			</div>
+			<p class="text-xs text-muted">PNG, JPEG, WebP or GIF, up to 5 MB.</p>
+		</div>
+		<input
+			bind:this={fileInput}
+			type="file"
+			accept={ACCEPTED_IMAGE_TYPES.join(',')}
+			class="hidden"
+			aria-label="Profile picture"
+			onchange={pickAvatar}
+		/>
+	</div>
 	<form class="flex flex-col gap-4" onsubmit={saveProfile}>
 		<label>
 			<span class={field.label}>Username</span>

@@ -220,9 +220,11 @@ export interface TaskSummary extends Task {
 	expectedToday: boolean;
 }
 
-/** A user's public identity; `username` is null until they pick one. */
+/** A user's public identity; `username` is null until they pick one.
+ * `avatarUrl` is a short-lived signed link, null when there is no picture. */
 export interface Profile {
 	username: string | null;
+	avatarUrl: string | null;
 }
 
 export const USERNAME_PATTERN = /^[a-z0-9_.]{3,30}$/i;

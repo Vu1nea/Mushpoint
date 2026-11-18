@@ -5,6 +5,7 @@
 	import { auth, signOut } from '$lib/auth/session.svelte';
 	import { motion } from '$lib/motion';
 	import { THEME_LABELS, theme } from '$lib/theme/theme.svelte';
+	import Avatar from './Avatar.svelte';
 	import Icon from './Icon.svelte';
 	import MadeByCredit from './MadeByCredit.svelte';
 	import Spinner from './Spinner.svelte';
@@ -13,6 +14,7 @@
 	interface Props {
 		open: boolean;
 		username: string | null;
+		avatarUrl: string | null;
 		settingsCurrent: boolean;
 		/**
 		 * `restoreFocus` is false when the sheet closes because the user followed a
@@ -21,7 +23,7 @@
 		onClose: (restoreFocus: boolean) => void;
 	}
 
-	let { open, username, settingsCurrent, onClose }: Props = $props();
+	let { open, username, avatarUrl, settingsCurrent, onClose }: Props = $props();
 
 	let panel = $state<HTMLElement>();
 
@@ -110,12 +112,7 @@
 		<div class="mx-auto mt-2 mb-1 h-1 w-10 rounded-full bg-subtle" aria-hidden="true"></div>
 
 		<div class="flex items-center gap-3 border-b border-subtle px-5 pt-2 pb-4">
-			<span
-				class="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-base font-bold text-accent-contrast uppercase"
-				aria-hidden="true"
-			>
-				{(username ?? auth.email ?? '?').charAt(0)}
-			</span>
+			<Avatar name={username ?? auth.email ?? ''} url={avatarUrl} class="size-10 text-base" />
 			<div class="min-w-0">
 				<p class="truncate text-base font-semibold">{username ?? 'Account'}</p>
 				{#if auth.email}

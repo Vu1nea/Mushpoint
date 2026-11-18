@@ -56,7 +56,7 @@ export function createApp({ pool, verify, images, authAdmin }: Deps): Express {
   api.use('/vision-items', visionItemsRouter(handle, images));
   api.use('/vision-images', visionImagesRouter(images));
   api.use('/settings', settingsRouter(handle));
-  api.use('/profile', profileRouter(handle));
+  api.use('/profile', profileRouter(handle, pool, images));
 
   api.use((_req, _res, next) => next(new AppError('not_found', 'no such route')));
 

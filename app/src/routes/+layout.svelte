@@ -196,6 +196,7 @@
 			<SidebarUser
 				open={sidebarOpen}
 				username={data.profile?.username ?? null}
+				avatarUrl={data.profile?.avatarUrl ?? null}
 				current={isCurrent('/settings')}
 			/>
 
@@ -211,6 +212,7 @@
 			<MobileTopBar
 				title={pageTitle}
 				name={data.profile?.username ?? auth.email ?? ''}
+				avatarUrl={data.profile?.avatarUrl ?? null}
 				{menuOpen}
 				onMenu={() => (menuOpen = true)}
 				bind:menuButton
@@ -228,6 +230,7 @@
 	<MobileMenuSheet
 		open={menuOpen}
 		username={data.profile?.username ?? null}
+		avatarUrl={data.profile?.avatarUrl ?? null}
 		settingsCurrent={isCurrent('/settings')}
 		onClose={closeMenu}
 	/>

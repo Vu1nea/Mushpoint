@@ -28,9 +28,10 @@ Copy `.env.example` to `.env` first. The defaults point at the compose database.
 ## Deploying
 
 Apply the migrations to the live database with `npm run migrate` **before**
-deploying a server version that needs them. This version needs `0003_profiles`
-and `0004_deleted_users`: without them every authenticated request fails,
-because each one checks `deleted_users` and the profile routes read `profiles`.
+deploying a server version that needs them. This version needs `0003_profiles`,
+`0004_deleted_users` and `0005_profile_avatar`: without them every
+authenticated request fails, because each one checks `deleted_users` and the
+profile routes read `profiles.avatar_path`.
 Migrations only add, so the previous server version keeps working on the
 migrated database.
 

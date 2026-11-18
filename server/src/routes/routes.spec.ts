@@ -356,14 +356,48 @@ describe('hostile input', () => {
 
 describe('profile', () => {
   it('reads and sets a unique username', async () => {
-    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: null });
-    expect((await a.put('/api/profile/username').send({ username: 'alpha_1' }).expect(200)).body).toEqual({ username: 'alpha_1' });
-    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: 'alpha_1' });
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: null, avatarUrl: null });
+    expect((await a.put('/api/profile/username').send({ username: 'alpha_1' }).expect(200)).body).toEqual({ username: 'alpha_1', avatarUrl: null });
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: 'alpha_1', avatarUrl: null });
     expect((await b.put('/api/profile/username').send({ username: 'ALPHA_1' }).expect(400)).body).toEqual({
       kind: 'validation',
       message: 'that username is taken'
     });
     await a.put('/api/profile/username').send({}).expect(400);
+  });
+
+  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+  const attachPng = (client: ReturnType<typeof clientFor>) =>
+    client.put('/api/profile/avatar').attach('file', Buffer.from(PNG), { filename: 'me.png', contentType: 'image/png' });
+  const avatarObjects = (user: string) =>
+    [...store.objects.keys()].filter((k) => k.startsWith(`${user}/`));
+
+  it('sets, replaces and removes a profile picture, deleting the old objects', async () => {
+    // A picked a username in the test above.
+    const before = avatarObjects(A);
+    const first = (await attachPng(a).expect(200)).body;
+    expect(first).toEqual({ username: 'alpha_1', avatarUrl: expect.any(String) });
+    expect((await a.get('/api/profile').expect(200)).body.avatarUrl).toEqual(expect.any(String));
+    const [firstPath] = avatarObjects(A).filter((k) => !before.includes(k));
+
+    await attachPng(a).expect(200);
+    expect(store.objects.has(firstPath)).toBe(false);
+    expect(avatarObjects(A)).toHaveLength(before.length + 1);
+
+    expect((await a.delete('/api/profile/avatar').expect(200)).body).toEqual({ username: 'alpha_1', avatarUrl: null });
+    expect(avatarObjects(A)).toEqual(before);
+  });
+
+  it('refuses a picture before a username, without leaving an object behind', async () => {
+    const before = avatarObjects(B);
+    expect((await attachPng(b).expect(400)).body).toEqual({ kind: 'validation', message: 'pick a username first' });
+    expect(avatarObjects(B)).toEqual(before);
+  });
+
+  it('rejects a non-image avatar and needs a token', async () => {
+    await a.put('/api/profile/avatar').attach('file', Buffer.from('<svg/>'), { filename: 'a.svg', contentType: 'image/svg+xml' }).expect(400);
+    await a.put('/api/profile/avatar').send({}).expect(400);
+    await request(app).put('/api/profile/avatar').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
   });
 });
 
@@ -402,7 +436,7 @@ describe('account deletion', () => {
     expect((await c.get('/api/goals').expect(401)).body).toEqual({ kind: 'unauthenticated', message: 'account deleted' });
     await c.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
     await c.delete('/api/account').expect(204);
-    expect((await d.put('/api/profile/username').send({ username }).expect(200)).body).toEqual({ username });
+    expect((await d.put('/api/profile/username').send({ username }).expect(200)).body).toEqual({ username, avatarUrl: null });
   });
 
   it('records the tombstone before anything else, so a failed deletion leaves the account locked and retryable', async () => {
