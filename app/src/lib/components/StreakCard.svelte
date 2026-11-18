@@ -20,7 +20,7 @@
 
 <div class="rounded-card border border-subtle bg-surface p-4.5">
 	<div class="mb-3 flex items-center gap-2.5">
-		<Icon name="flame" size={14} class="shrink-0 text-accent" />
+		<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
 		<span class="min-w-0 flex-1 truncate text-md font-semibold">{card.task.title}</span>
 		<b class="text-sm tabular-nums">{card.current}</b>
 		<span class="text-xs text-muted">best {card.longest}</span>

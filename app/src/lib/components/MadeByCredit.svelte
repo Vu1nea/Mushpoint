@@ -3,7 +3,7 @@
 	<a target="_blank" class="no-underline" href="https://github.com/Vu1nea" rel="external">Vu1nea</a>
 	<svg
 		viewBox="0 0 24 24"
-		class="size-4 shrink-0 text-accent"
+		class="size-4 shrink-0 text-accent-ink"
 		fill="currentColor"
 		aria-hidden="true"
 	>

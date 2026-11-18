@@ -23,7 +23,7 @@
 	/** Status feedback on the card itself — the "All" filter mixes every status together. */
 	const STATUS_CLASSES: Record<GoalStatus, string> = {
 		active: 'bg-accent-secondary/15 text-accent-secondary',
-		completed: 'bg-accent/15 text-accent',
+		completed: 'bg-accent/15 text-accent-ink',
 		archived: 'bg-background text-muted'
 	};
 

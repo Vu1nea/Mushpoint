@@ -62,6 +62,6 @@
 	{/if}
 
 	<p class="mt-5 text-sm">
-		<a class="font-semibold text-accent" href="/login">Back to sign in</a>
+		<a class="font-semibold text-accent-ink" href="/login">Back to sign in</a>
 	</p>
 </div>

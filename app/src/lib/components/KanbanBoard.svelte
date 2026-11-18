@@ -389,14 +389,14 @@
 								<a
 									href="/goals/{task.goalId}"
 									title={parent}
-									class="max-w-45 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent transition-colors hover:bg-accent/25"
+									class="max-w-45 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent-ink transition-colors hover:bg-accent/25"
 								>
 									{parent}
 								</a>
 							{:else}
 								<span
 									title={parent}
-									class="max-w-32 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent"
+									class="max-w-32 truncate rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent-ink"
 								>
 									{parent}
 								</span>

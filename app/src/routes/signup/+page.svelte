@@ -82,7 +82,7 @@
 			Resend email
 		</button>
 		<p class="mt-5 text-sm">
-			<a class="font-semibold text-accent" href="/login">Back to sign in</a>
+			<a class="font-semibold text-accent-ink" href="/login">Back to sign in</a>
 		</p>
 	{:else}
 		<h1 class="mb-1 font-display text-2xl font-bold">Create an account</h1>
@@ -120,7 +120,7 @@
 		</form>
 
 		<p class="mt-5 text-sm text-muted">
-			Already have an account? <a class="font-semibold text-accent" href="/login">Sign in</a>
+			Already have an account? <a class="font-semibold text-accent-ink" href="/login">Sign in</a>
 		</p>
 	{/if}
 </div>

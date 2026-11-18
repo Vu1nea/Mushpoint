@@ -163,7 +163,7 @@
 								<div class="mt-2 flex flex-wrap gap-1.5">
 									{#each idea.tags as tag (tag.id)}
 										<span
-											class="rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent"
+											class="rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent-ink"
 										>
 											{tag.name}
 										</span>

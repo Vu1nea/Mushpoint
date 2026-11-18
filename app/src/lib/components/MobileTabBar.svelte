@@ -23,7 +23,7 @@
 					href={item.href}
 					aria-current={current ? 'page' : undefined}
 					class="flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 text-2xs transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent
-					{current ? 'font-semibold text-accent' : 'font-medium text-muted hover:text-content'}"
+					{current ? 'font-semibold text-accent-ink' : 'font-medium text-muted hover:text-content'}"
 				>
 					<Icon name={item.icon} size={20} weight={current ? 2 : 1.8} />
 					<span>{item.label}</span>
