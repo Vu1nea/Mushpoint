@@ -122,10 +122,9 @@ accessibility, then ops.
       nocturne ink `#9c93d3`, button labels `#0b0c1a`. 17 `text-accent`
       uses switched (3 in the design package, 14 in the app). Local axe on
       the public screens: 0 violations, both themes, desktop + mobile.
-- [ ] Ship it: commit + push branch `fix/wcag-contrast` in
-      `../mushpoint-design`, merge, then bump the pinned commit in
-      `app/package.json`. Until then the app's `text-accent-ink` classes have
-      no color behind them.
+- [x] Shipped: mushpoint-design `053d50d` (tokens) + `cfb7538` (README on
+      which accent token to use), app pinned to `cfb7538`. Axe recheck on the
+      installed package: 0 violations on the public screens.
 - Original findings, for reference:
   - nocturne `--mp-accent` `#7b6fc4` is 3.59:1 on surface and 4.19:1 under
     `--mp-accent-contrast` text; `#8f85cd` gives 4.69 / 5.47
