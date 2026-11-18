@@ -362,11 +362,13 @@ describe('hostile input', () => {
 });
 
 describe('profile', () => {
+  // Unique per run: a crashed run skips cleanup, and a fixed name would then be taken.
+  const NAME = `alpha_${A.slice(0, 8)}`;
   it('reads and sets a unique username', async () => {
     expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: null, avatarUrl: null });
-    expect((await a.put('/api/profile/username').send({ username: 'alpha_1' }).expect(200)).body).toEqual({ username: 'alpha_1', avatarUrl: null });
-    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: 'alpha_1', avatarUrl: null });
-    expect((await b.put('/api/profile/username').send({ username: 'ALPHA_1' }).expect(400)).body).toEqual({
+    expect((await a.put('/api/profile/username').send({ username: NAME }).expect(200)).body).toEqual({ username: NAME, avatarUrl: null });
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: NAME, avatarUrl: null });
+    expect((await b.put('/api/profile/username').send({ username: NAME.toUpperCase() }).expect(400)).body).toEqual({
       kind: 'validation',
       message: 'that username is taken'
     });
@@ -383,7 +385,7 @@ describe('profile', () => {
     // A picked a username in the test above.
     const before = avatarObjects(A);
     const first = (await attachPng(a).expect(200)).body;
-    expect(first).toEqual({ username: 'alpha_1', avatarUrl: expect.any(String) });
+    expect(first).toEqual({ username: NAME, avatarUrl: expect.any(String) });
     expect((await a.get('/api/profile').expect(200)).body.avatarUrl).toEqual(expect.any(String));
     const [firstPath] = avatarObjects(A).filter((k) => !before.includes(k));
 
@@ -391,7 +393,7 @@ describe('profile', () => {
     expect(store.objects.has(firstPath)).toBe(false);
     expect(avatarObjects(A)).toHaveLength(before.length + 1);
 
-    expect((await a.delete('/api/profile/avatar').expect(200)).body).toEqual({ username: 'alpha_1', avatarUrl: null });
+    expect((await a.delete('/api/profile/avatar').expect(200)).body).toEqual({ username: NAME, avatarUrl: null });
     expect(avatarObjects(A)).toEqual(before);
   });
 
