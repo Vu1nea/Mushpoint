@@ -1,7 +1,7 @@
 # Graph Report - Mushpoint  (2026-11-18)
 
 ## Corpus Check
-- 239 files · ~103,570 words
+- 239 files · ~103,737 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 15 file(s) not represented in the graph (top: (none) 10, .example 2, .conf 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bd461066`
+- Built from commit: `dd9bdab6`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -452,7 +452,7 @@ Nodes (10): ascii(), createSupabaseImageStore(), EXTENSIONS, ImageType, sniffIma
 
 ### Community 65 - "App Runtime Dependencies"
 Cohesion: 0.20
-Nodes (10): dependencies, mushpoint-design@git+https://github.com/Vu1nea/mushpoi..., @supabase/supabase-js@^2.119.0, @axe-core/playwright@^4.14.0, name, private, type, version (+2 more)
+Nodes (10): dependencies, mushpoint-design@git+https://github.com/Vu1nea/Mushpoi..., @supabase/supabase-js@^2.119.0, @axe-core/playwright@^4.14.0, name, private, type, version (+2 more)
 
 ### Community 66 - "CI Concurrency"
 Cohesion: 0.18
@@ -563,7 +563,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `API Route & IDOR Tests` be split into smaller, more focused modules?**
   _Cohesion score 0.06349206349206349 - nodes in this community are weakly interconnected._
 - **Why does `@playwright/test` connect `E2E & A11y Tests` to `App Runtime Dependencies`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
 - **Should `Repo Row Mapping` be split into smaller, more focused modules?**
   _Cohesion score 0.11137254901960784 - nodes in this community are weakly interconnected._
 - **Why does `AppError` connect `Web Error Model` to `Date Picker Calendar`, `Auth Session & Callback`, `Web Page Loaders & API Client`, `Account Settings`, `Auth Init & Profile`, `Web API Types`, `Runtime Config`, `Welcome & Brand`?**
