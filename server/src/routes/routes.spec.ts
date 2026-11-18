@@ -269,6 +269,13 @@ describe('vision images', () => {
     expect(res.body.kind).toBe('validation');
   });
 
+  it("rejects another user's image path as a goal motivation image", async () => {
+    await a.post('/api/goals').send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+    await a.post('/api/goals').send({ ...goalBody, motivationImagePath: 'https://evil.com/x.png' }).expect(400);
+    const own = (await a.post('/api/goals').send({ ...goalBody, motivationImagePath: `${A}/${randomUUID()}.png` }).expect(200)).body;
+    await a.put(`/api/goals/${own.id}`).send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+  });
+
   it("rejects another user's image path on a vision item", async () => {
     await a.post('/api/vision-items').send({ imagePath: `${B}/${randomUUID()}.png`, quoteText: null }).expect(400);
     await a.post('/api/vision-items').send({ imagePath: `${A}/../${B}/${randomUUID()}.png`, quoteText: null }).expect(400);

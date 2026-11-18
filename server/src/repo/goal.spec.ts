@@ -69,6 +69,16 @@ describe('goal', () => {
 		expect(updated.repoUrl).toBeNull();
 	});
 
+	it('rejects a repo URL that is not http or https', async () => {
+		await expect(
+			goal.create(driver, { ...input('Ship v1'), repoUrl: 'javascript:alert(1)' })
+		).rejects.toMatchObject({ kind: 'validation' });
+		const created = await goal.create(driver, input('Ship v1'));
+		await expect(
+			goal.update(driver, created.id, { ...input('Ship v1'), repoUrl: 'javascript:alert(1)' })
+		).rejects.toMatchObject({ kind: 'validation' });
+	});
+
 	it('rejects a blank title or missing category', async () => {
 		await expect(goal.create(driver, input('  '))).rejects.toMatchObject({ kind: 'validation' });
 		await expect(

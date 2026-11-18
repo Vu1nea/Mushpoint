@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Goal, GoalDetail, GoalInput, GoalStatus, GoalSummary } from '../types';
-import { now, optionalText, requiredText } from './helpers';
+import { now, optionalText, optionalUrl, requiredText } from './helpers';
 import * as category from './category';
 import * as subgoal from './subgoal';
 import * as task from './task';
@@ -141,7 +141,7 @@ export async function create(driver: SqlDriver, input: GoalInput): Promise<Goal>
 			optionalText(input.dueDate),
 			optionalText(input.motivationText),
 			optionalText(input.motivationImagePath),
-			optionalText(input.repoUrl),
+			optionalUrl(input.repoUrl),
 			timestamp
 		]
 	);
@@ -168,7 +168,7 @@ export async function update(driver: SqlDriver, id: number, input: GoalInput): P
 			optionalText(input.dueDate),
 			optionalText(input.motivationText),
 			optionalText(input.motivationImagePath),
-			optionalText(input.repoUrl),
+			optionalUrl(input.repoUrl),
 			now(),
 			id
 		]

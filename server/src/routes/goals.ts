@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { AppError } from '../error';
-import type { Handle } from '../http';
+import type { Ctx, Handle } from '../http';
+import { isOwnImagePath } from '../images';
 import * as goal from '../repo/goal';
 import type { GoalInput, GoalStatus } from '../types';
 
@@ -13,6 +14,18 @@ function parseStatus(raw: unknown): GoalStatus {
   return raw as GoalStatus;
 }
 
+/** The body as a goal, refusing a motivation image that is not one of the caller's uploads. */
+function ownInput(c: Ctx): GoalInput {
+  const input = c.body<GoalInput>();
+  const path: unknown = input.motivationImagePath;
+  if (path !== null && path !== undefined && !(typeof path === 'string' && path.trim() === '')) {
+    if (typeof path !== 'string' || !isOwnImagePath(c.userId, path.trim())) {
+      throw AppError.validation('invalid image path');
+    }
+  }
+  return input;
+}
+
 export function goalsRouter(handle: Handle): Router {
   const r = Router();
   r.get('/', handle((db, c) => {
@@ -20,8 +33,8 @@ export function goalsRouter(handle: Handle): Router {
     return goal.list(db, status, c.tz);
   }));
   r.get('/:id', handle((db, c) => goal.getDetail(db, c.id(), c.tz)));
-  r.post('/', handle((db, c) => goal.create(db, c.body<GoalInput>())));
-  r.put('/:id', handle((db, c) => goal.update(db, c.id(), c.body<GoalInput>())));
+  r.post('/', handle((db, c) => goal.create(db, ownInput(c))));
+  r.put('/:id', handle((db, c) => goal.update(db, c.id(), ownInput(c))));
   r.put('/:id/status', handle((db, c) =>
     goal.setStatus(db, c.id(), parseStatus(c.body<{ status: unknown }>().status))
   ));
