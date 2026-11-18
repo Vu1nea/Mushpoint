@@ -1,10 +1,12 @@
 <script lang="ts">
-	import { createGoal, createIdea, createTask } from '$lib/api';
+	import { createIdea, createTask } from '$lib/api';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
 	import { button, field, segment } from './ui';
 
-	type QuickAddKind = 'idea' | 'task' | 'goal';
+	/** No goals here: a goal-sized thought starts as an idea and is promoted
+	 * once its timeframe, category and motivation are worked out. */
+	type QuickAddKind = 'idea' | 'task';
 
 	interface Props {
 		onAdded: () => Promise<void> | void;
@@ -14,10 +16,9 @@
 
 	let { onAdded, onError, class: className = '' }: Props = $props();
 
-	const KINDS: { value: QuickAddKind; label: string; icon: 'idea' | 'task' | 'goal' }[] = [
+	const KINDS: { value: QuickAddKind; label: string; icon: QuickAddKind }[] = [
 		{ value: 'idea', label: 'Idea', icon: 'idea' },
-		{ value: 'task', label: 'Task', icon: 'task' },
-		{ value: 'goal', label: 'Goal', icon: 'goal' }
+		{ value: 'task', label: 'Task', icon: 'task' }
 	];
 
 	let kind = $state<QuickAddKind>('idea');
@@ -33,24 +34,13 @@
 		try {
 			if (kind === 'idea') {
 				await createIdea({ title: value, note: null, tagNames: [] });
-			} else if (kind === 'task') {
+			} else {
 				await createTask({
 					title: value,
 					dueDate: null,
 					goalId: null,
 					subgoalId: null,
 					recurrence: null
-				});
-			} else {
-				await createGoal({
-					categoryId: null,
-					title: value,
-					description: null,
-					timeframe: 'short',
-					dueDate: null,
-					motivationText: null,
-					motivationImagePath: null,
-					repoUrl: null
 				});
 			}
 			title = '';
@@ -86,7 +76,7 @@
 	<input
 		type="text"
 		bind:value={title}
-		placeholder="Quick-add a {kind}…"
+		placeholder={kind === 'idea' ? 'Quick-add an idea…' : 'Quick-add a task…'}
 		aria-label="Quick-add title"
 		disabled={submitting}
 		class={field.input}

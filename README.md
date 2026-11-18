@@ -41,7 +41,8 @@ is retired; its last state is tagged `desktop-sqlite-final`.
   forms have a show/hide password toggle, and Settings offers permanent
   account deletion.
 - **Dashboard** (`/`): today's tasks, upcoming items, a goals panel, habit
-  streaks, a vision board preview and quick add.
+  streaks, a vision board preview and quick add (ideas and tasks; goals start
+  as ideas and are promoted).
 - **Goals** (`/goals`, `/goals/:id`): short, mid or long term goals with a
   category, due date, motivation text, an optional repository URL and a status
   (`active`, `completed`, `archived`). The detail page has List, Kanban and
