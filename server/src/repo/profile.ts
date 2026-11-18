@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import { USERNAME_PATTERN } from '../types';
-import { now } from './helpers';
+import { nowIso } from './helpers';
 
 /** The profile as stored; routes swap `avatarPath` for a signed `avatarUrl`. */
 export interface StoredProfile {
@@ -34,7 +34,7 @@ export async function setUsername(driver: SqlDriver, raw: string): Promise<Store
       `INSERT INTO profiles (username, updated_at) VALUES (?1, ?2)
        ON CONFLICT (user_id) DO UPDATE SET username = EXCLUDED.username, updated_at = EXCLUDED.updated_at
        RETURNING username, avatar_path`,
-      [username, now()]
+      [username, nowIso()]
     );
     return map(rows[0]);
   } catch (err) {
@@ -55,7 +55,7 @@ export async function setAvatar(
   if (!before[0]) throw AppError.validation('pick a username first');
   const rows = await driver.select<ProfileRow>(
     `UPDATE profiles SET avatar_path = ?1, updated_at = ?2 RETURNING username, avatar_path`,
-    [avatarPath, now()]
+    [avatarPath, nowIso()]
   );
   const old = before[0].avatar_path;
   return { profile: map(rows[0]), replaced: old !== null && old !== avatarPath ? old : null };

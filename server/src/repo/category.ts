@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Category, CategoryInput } from '../types';
-import { now, optionalText, requiredText } from './helpers';
+import { nowIso, optionalText, requiredText } from './helpers';
 
 const COLUMNS = 'id, name, color_token, is_default, created_at';
 
@@ -45,7 +45,7 @@ export async function create(driver: SqlDriver, input: CategoryInput): Promise<C
 	try {
 		result = await driver.execute(
 			'INSERT INTO categories (name, color_token, is_default, created_at) VALUES (?1, ?2, 0, ?3) RETURNING id',
-			[name, optionalText(input.colorToken), now()]
+			[name, optionalText(input.colorToken), nowIso()]
 		);
 	} catch (err) {
 		throw duplicateNameAsValidation(err);

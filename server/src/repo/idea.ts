@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Goal, GoalInput, Idea, IdeaInput, Tag } from '../types';
-import { now, optionalText, requiredText } from './helpers';
+import { nowIso, optionalText, requiredText } from './helpers';
 import * as goal from './goal';
 
 const COLUMNS = 'i.id, i.title, i.note, i.promoted_goal_id, i.created_at, i.updated_at';
@@ -58,7 +58,7 @@ async function resolveTagId(driver: SqlDriver, name: string): Promise<number> {
 
 	const result = await driver.execute('INSERT INTO idea_tags (name, created_at) VALUES (?1, ?2) RETURNING id', [
 		name,
-		now()
+		nowIso()
 	]);
 	return result.lastInsertId;
 }
@@ -122,7 +122,7 @@ export async function get(driver: SqlDriver, id: number): Promise<Idea> {
 
 export async function create(driver: SqlDriver, input: IdeaInput): Promise<Idea> {
 	const title = requiredText('idea title', input.title);
-	const timestamp = now();
+	const timestamp = nowIso();
 
 	const result = await driver.execute(
 		'INSERT INTO ideas (title, note, promoted_goal_id, created_at, updated_at) VALUES (?1, ?2, NULL, ?3, ?3) RETURNING id',
@@ -138,7 +138,7 @@ export async function update(driver: SqlDriver, id: number, input: IdeaInput): P
 
 	const result = await driver.execute(
 		'UPDATE ideas SET title = ?1, note = ?2, updated_at = ?3 WHERE id = ?4',
-		[title, optionalText(input.note), now(), id]
+		[title, optionalText(input.note), nowIso(), id]
 	);
 	if (result.rowsAffected === 0) throw AppError.notFound('idea', id);
 
@@ -159,7 +159,7 @@ export async function promote(driver: SqlDriver, id: number, goalId: number): Pr
 	await goal.ensureExists(driver, goalId);
 	const result = await driver.execute(
 		'UPDATE ideas SET promoted_goal_id = ?1, updated_at = ?2 WHERE id = ?3 AND promoted_goal_id IS NULL',
-		[goalId, now(), id]
+		[goalId, nowIso(), id]
 	);
 	if (result.rowsAffected === 0) {
 		await get(driver, id); // throws not_found when the idea is missing

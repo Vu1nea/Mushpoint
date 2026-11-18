@@ -2,7 +2,7 @@ import { AppError } from '../error';
 
 /** Timestamps are stored as RFC 3339 strings — sortable as text, unambiguous
  * once read back. */
-export function now(): string {
+export function nowIso(): string {
   return new Date().toISOString();
 }
 

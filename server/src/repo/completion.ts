@@ -1,5 +1,5 @@
 import type { SqlDriver } from '../db/driver';
-import { now } from './helpers';
+import { nowIso } from './helpers';
 
 /** The completion log — one row per day a recurring task was done. This is the
  * source of truth; streak counters are always derived from it, never stored. */
@@ -17,7 +17,7 @@ export async function set(
 			`INSERT INTO task_completions (task_id, completed_on, created_at)
              VALUES (?1, ?2, ?3)
              ON CONFLICT (task_id, completed_on) DO NOTHING`,
-			[taskId, on, now()]
+			[taskId, on, nowIso()]
 		);
 	} else {
 		await driver.execute(

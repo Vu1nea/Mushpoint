@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Goal, GoalDetail, GoalInput, GoalStatus, GoalSummary } from '../types';
-import { now, optionalText, optionalUrl, requiredText } from './helpers';
+import { nowIso, optionalText, optionalUrl, requiredText } from './helpers';
 import * as category from './category';
 import * as subgoal from './subgoal';
 import * as task from './task';
@@ -126,7 +126,7 @@ export async function create(driver: SqlDriver, input: GoalInput): Promise<Goal>
 	if (input.categoryId !== null) {
 		await category.get(driver, input.categoryId);
 	}
-	const timestamp = now();
+	const timestamp = nowIso();
 
 	const result = await driver.execute(
 		`INSERT INTO goals (category_id, title, description, timeframe, status, due_date,
@@ -169,7 +169,7 @@ export async function update(driver: SqlDriver, id: number, input: GoalInput): P
 			optionalText(input.motivationText),
 			optionalText(input.motivationImagePath),
 			optionalUrl(input.repoUrl),
-			now(),
+			nowIso(),
 			id
 		]
 	);
@@ -183,7 +183,7 @@ export async function update(driver: SqlDriver, id: number, input: GoalInput): P
 export async function setStatus(driver: SqlDriver, id: number, status: GoalStatus): Promise<Goal> {
 	const result = await driver.execute('UPDATE goals SET status = ?1, updated_at = ?2 WHERE id = ?3', [
 		status,
-		now(),
+		nowIso(),
 		id
 	]);
 	if (result.rowsAffected === 0) throw AppError.notFound('goal', id);
