@@ -5,6 +5,7 @@ import type { AuthAdmin } from './authAdmin';
 import { AppError } from './error';
 import { authenticate, errorHandler, makeHandle } from './http';
 import type { ImageStore } from './images';
+import { log, requestLogger, type Logger } from './logger';
 import { createLimiters, DEFAULT_LIMITS, type Limits } from './rateLimit';
 import * as idea from './repo/idea';
 import { deleteAccount } from './routes/account';
@@ -28,13 +29,15 @@ export interface Deps {
   /** Express `trust proxy` setting: hops of reverse proxy in front of the API,
    * so the per-IP limit sees the client address rather than the proxy's. */
   trustProxy?: number;
+  logger?: Logger;
 }
 
-export function createApp({ pool, verify, images, authAdmin, limits = DEFAULT_LIMITS, trustProxy = 0 }: Deps): Express {
+export function createApp({ pool, verify, images, authAdmin, limits = DEFAULT_LIMITS, trustProxy = 0, logger = log }: Deps): Express {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', trustProxy);
   const limit = createLimiters(limits);
+  app.use(requestLogger(logger));
   // The API only ever answers JSON to authenticated fetches: nothing may render,
   // frame or cache it. Headers for the SPA itself belong to its static server.
   app.use((_req, res, next) => {

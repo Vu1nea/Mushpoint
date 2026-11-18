@@ -1,3 +1,4 @@
+import { log } from './logger';
 import { AppError } from './error';
 
 export interface AuthAdmin {
@@ -24,11 +25,11 @@ export function createSupabaseAuthAdmin(opts: {
           headers: { apikey: opts.serviceKey, Authorization: `Bearer ${opts.serviceKey}` }
         });
       } catch (err) {
-        console.error('auth admin request failed', err);
+        log.error({ err }, 'auth admin request failed');
         throw unavailable();
       }
       if (res.ok || res.status === 404) return;
-      console.error('auth admin answered', res.status, await res.text().catch(() => ''));
+      log.error({ status: res.status, body: await res.text().catch(() => '') }, 'auth admin request rejected');
       throw unavailable();
     }
   };

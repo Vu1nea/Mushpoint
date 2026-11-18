@@ -1,3 +1,4 @@
+import { log } from './logger';
 import { randomUUID } from 'node:crypto';
 import { AppError } from './error';
 
@@ -77,11 +78,11 @@ export function createSupabaseImageStore(opts: {
     try {
       res = await doFetch(`${base}${path}`, init);
     } catch (err) {
-      console.error('image storage request failed', err);
+      log.error({ err }, 'image storage request failed');
       throw unavailable();
     }
     if (!res.ok) {
-      console.error('image storage answered', res.status, await res.text().catch(() => ''));
+      log.error({ status: res.status, body: await res.text().catch(() => '') }, 'image storage request rejected');
       throw unavailable();
     }
     return res;

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Pool } from 'pg';
 import { withUser } from '../db/scope';
 import { AppError } from '../error';
-import type { Handle } from '../http';
+import { logFor, type Handle } from '../http';
 import { checkedUpload, type ImageStore } from '../images';
 import * as profile from '../repo/profile';
 import type { Profile } from '../types';
@@ -38,10 +38,10 @@ export function profileRouter(handle: Handle, pool: Pool, images: ImageStore): R
     try {
       result = await withUser(pool, userId, (db) => profile.setAvatar(db, path));
     } catch (err) {
-      await removeObject(path).catch((e) => console.error('could not remove unused avatar', e));
+      await removeObject(path).catch((err) => logFor(res).error({ err }, 'could not remove unused avatar'));
       throw err;
     }
-    await removeObject(result.replaced).catch((e) => console.error('could not remove old avatar', e));
+    await removeObject(result.replaced).catch((err) => logFor(res).error({ err }, 'could not remove old avatar'));
     res.json(await present(result.profile));
   });
   r.delete('/avatar', handle((db) => profile.setAvatar(db, null), {

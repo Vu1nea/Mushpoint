@@ -5,6 +5,7 @@ import type { Verifier } from './auth';
 import type { SqlDriver } from './db/driver';
 import { withUser } from './db/scope';
 import { AppError, type ErrorKind } from './error';
+import { log, type Logger } from './logger';
 import { parseTimezone } from './repo/helpers';
 
 export interface Ctx {
@@ -68,7 +69,7 @@ export function makeHandle(pool: Pool): Handle {
       };
       const result = await withUser(pool, userId, (driver) => fn(driver, ctx));
       if (afterCommit) {
-        await afterCommit(result).catch((err) => console.error('afterCommit failed', err));
+        await afterCommit(result).catch((err) => logFor(res).error({ err }, 'afterCommit failed'));
       }
       if (status === 204) res.status(204).end();
       else res.status(status).json(present ? await present(result) : result);
@@ -86,11 +87,16 @@ const STATUS: Record<ErrorKind, number> = {
 
 const INTERNAL = { kind: 'internal', message: 'internal error' } as const;
 
+/** The request's child logger (carries the request id), or the process logger. */
+export function logFor(res: { locals: Record<string, unknown> }): Logger {
+  return (res.locals.log as Logger | undefined) ?? log;
+}
+
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     const status = STATUS[err.kind] ?? 500;
     if (err.kind === 'database' || err.kind === 'internal') {
-      console.error(err);
+      logFor(res).error({ err }, 'request failed');
       res.status(status).json({ kind: err.kind, message: 'internal error' });
     } else {
       res.status(status).json({ kind: err.kind, message: err.message });
@@ -124,6 +130,6 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     }
   }
 
-  console.error(err);
+  logFor(res).error({ err }, 'request failed');
   res.status(500).json(INTERNAL);
 };
