@@ -19,7 +19,10 @@
 	<div class="mb-3 flex items-center justify-between gap-2">
 		<h2 class={sectionHeading}>Streaks</h2>
 		{#if streaks.length > top.length}
-			<a href="/tasks" class="flex items-center gap-0.5 text-xs font-semibold text-muted hover:text-content">
+			<a
+				href="/tasks"
+				class="flex items-center gap-0.5 text-xs font-semibold text-muted hover:text-content"
+			>
 				View all
 				<Icon name="chevron-right" size={12} />
 			</a>

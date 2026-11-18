@@ -3,7 +3,13 @@
 import type { CellState, DayCell } from '$lib/api/types';
 import { daysUntil, formatDate } from 'mushpoint-design/utils/format';
 
-export { percent, parseDate, formatDate, daysUntil, isOverdue } from 'mushpoint-design/utils/format';
+export {
+	percent,
+	parseDate,
+	formatDate,
+	daysUntil,
+	isOverdue
+} from 'mushpoint-design/utils/format';
 
 /**
  * How loudly a due date should read. The design colors overdue dates with the

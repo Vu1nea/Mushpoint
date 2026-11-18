@@ -11,3 +11,6 @@ bun.lockb
 # Build output and generated files
 /build/
 /.svelte-kit/
+
+# Local design-tool cache
+.impeccable/

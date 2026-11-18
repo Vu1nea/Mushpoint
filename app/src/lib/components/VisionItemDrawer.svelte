@@ -103,7 +103,10 @@
 		<span class={field.label}>Image (optional)</span>
 		{#if form.imagePath}
 			<div class="mb-2 overflow-hidden rounded-control border border-subtle">
-				<VisionImage src={previewUrl} class="h-40 w-full bg-surface-raised object-contain object-center" />
+				<VisionImage
+					src={previewUrl}
+					class="h-40 w-full bg-surface-raised object-contain object-center"
+				/>
 			</div>
 		{/if}
 		<input

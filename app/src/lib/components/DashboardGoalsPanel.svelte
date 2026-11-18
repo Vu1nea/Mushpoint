@@ -42,7 +42,9 @@
 	});
 </script>
 
-<section class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-3.5 {className}">
+<section
+	class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-3.5 {className}"
+>
 	<div class="mb-3 flex items-center justify-between gap-2">
 		<h2 class={sectionHeading}>Active goals</h2>
 		<a href="/goals" class="text-xs font-semibold text-muted transition-colors hover:text-content">
@@ -56,7 +58,8 @@
 		{#each grouped as [categoryName, group] (categoryName)}
 			<div class="mb-3 last:mb-0">
 				<div class="mb-1.5 flex items-center gap-2">
-					<span class="size-2 rounded-full" style="background:{group.color}" aria-hidden="true"></span>
+					<span class="size-2 rounded-full" style="background:{group.color}" aria-hidden="true"
+					></span>
 					<p class="text-xs font-semibold text-muted">{categoryName}</p>
 				</div>
 				<ul class="flex flex-col gap-1.5">
@@ -68,13 +71,17 @@
 								class="flex flex-col gap-1 rounded-control px-1 py-1 transition-transform duration-150 hover:-translate-y-px"
 							>
 								<span class="flex items-center justify-between gap-2">
-									<span class="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-semibold">
+									<span
+										class="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-semibold"
+									>
 										{#if goal.fromIdea}
 											<Icon name="idea" size={12} label="Promoted from an idea" />
 										{/if}
 										<span class="truncate">{goal.title}</span>
 									</span>
-									<span class="shrink-0 text-xs text-muted tabular-nums">{percent(goal.progress)}</span>
+									<span class="shrink-0 text-xs text-muted tabular-nums"
+										>{percent(goal.progress)}</span
+									>
 								</span>
 								<ProgressBar
 									value={goal.progress}

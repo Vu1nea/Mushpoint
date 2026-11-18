@@ -79,7 +79,12 @@ describe('tasksByDay', () => {
 	});
 
 	it('does not expand a daily habit onto days before it was created', () => {
-		const habit = task({ id: 8, recurrence: 'daily', dueDate: null, createdAt: WED + 'T12:00:00Z' });
+		const habit = task({
+			id: 8,
+			recurrence: 'daily',
+			dueDate: null,
+			createdAt: WED + 'T12:00:00Z'
+		});
 		const result = tasksByDay([habit], DAYS);
 
 		expect(result.get(MON)).toEqual([]);
