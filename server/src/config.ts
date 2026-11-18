@@ -4,6 +4,8 @@ export interface Config {
   supabaseServiceKey: string;
   port: number;
   imageBucket: string;
+  /** Reverse-proxy hops in front of the API (Express `trust proxy`). */
+  trustProxy: number;
 }
 
 const REQUIRED = ['DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_SERVICE_KEY'] as const;
@@ -19,11 +21,17 @@ export function loadConfig(env: NodeJS.ProcessEnv): Config {
     throw new Error(`PORT must be an integer from 1 to 65535, got ${rawPort}`);
   }
 
+  const rawTrust = env.TRUST_PROXY ?? '0';
+  if (!/^\d+$/.test(rawTrust)) {
+    throw new Error(`TRUST_PROXY must be a whole number of proxy hops, got ${rawTrust}`);
+  }
+
   return {
     databaseUrl: env.DATABASE_URL!,
     supabaseUrl: env.SUPABASE_URL!.replace(/\/+$/, ''),
     supabaseServiceKey: env.SUPABASE_SERVICE_KEY!,
     port,
-    imageBucket: env.IMAGE_BUCKET || 'vision'
+    imageBucket: env.IMAGE_BUCKET || 'vision',
+    trustProxy: Number(rawTrust)
   };
 }

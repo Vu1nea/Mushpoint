@@ -26,6 +26,17 @@ describe('app skeleton', () => {
 
   const auth = (req: request.Test) => req.set('Authorization', `Bearer ${token}`);
 
+  it('sends security headers on every response', async () => {
+    for (const path of ['/api/healthz', '/api/no-such-route']) {
+      const res = await request(app).get(path);
+      expect(res.headers['x-content-type-options']).toBe('nosniff');
+      expect(res.headers['x-frame-options']).toBe('DENY');
+      expect(res.headers['referrer-policy']).toBe('no-referrer');
+      expect(res.headers['content-security-policy']).toBe("default-src 'none'; frame-ancestors 'none'");
+      expect(res.headers['cache-control']).toBe('no-store');
+    }
+  });
+
   it('serves healthz without a token or a database connection', async () => {
     const connect = vi.spyOn(pool, 'connect');
     const res = await request(app).get('/api/healthz').expect(200);

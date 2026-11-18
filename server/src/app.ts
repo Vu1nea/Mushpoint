@@ -5,6 +5,7 @@ import type { AuthAdmin } from './authAdmin';
 import { AppError } from './error';
 import { authenticate, errorHandler, makeHandle } from './http';
 import type { ImageStore } from './images';
+import { createLimiters, DEFAULT_LIMITS, type Limits } from './rateLimit';
 import * as idea from './repo/idea';
 import { deleteAccount } from './routes/account';
 import { categoriesRouter } from './routes/categories';
@@ -23,11 +24,29 @@ export interface Deps {
   verify: Verifier;
   images: ImageStore;
   authAdmin: AuthAdmin;
+  limits?: Limits;
+  /** Express `trust proxy` setting: hops of reverse proxy in front of the API,
+   * so the per-IP limit sees the client address rather than the proxy's. */
+  trustProxy?: number;
 }
 
-export function createApp({ pool, verify, images, authAdmin }: Deps): Express {
+export function createApp({ pool, verify, images, authAdmin, limits = DEFAULT_LIMITS, trustProxy = 0 }: Deps): Express {
   const app = express();
   app.disable('x-powered-by');
+  app.set('trust proxy', trustProxy);
+  const limit = createLimiters(limits);
+  // The API only ever answers JSON to authenticated fetches: nothing may render,
+  // frame or cache it. Headers for the SPA itself belong to its static server.
+  app.use((_req, res, next) => {
+    res.set({
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'no-referrer',
+      'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+      'Cache-Control': 'no-store'
+    });
+    next();
+  });
 
   const api = Router();
   api.get('/healthz', (_req, res) => {
@@ -38,12 +57,17 @@ export function createApp({ pool, verify, images, authAdmin }: Deps): Express {
     await pool.query('SELECT 1');
     res.json({ status: 'ready' });
   });
+  // After the probes, so liveness and readiness checks are never limited.
+  api.use(limit.perIp);
   api.use(express.json({ limit: '1mb' }));
   // Before the tombstone check, so a deletion that failed partway can be retried.
-  api.delete('/account', authenticate(verify), deleteAccount(pool, images, authAdmin));
+  api.delete('/account', authenticate(verify), limit.accountDeletes, deleteAccount(pool, images, authAdmin));
   const isDeleted = async (userId: string) =>
     (await pool.query('SELECT 1 FROM deleted_users WHERE user_id = $1', [userId])).rowCount !== 0;
   api.use(authenticate(verify, isDeleted));
+
+  api.post('/vision-images', limit.uploads);
+  api.put('/profile/avatar', limit.uploads);
 
   const handle = makeHandle(pool);
   api.use('/categories', categoriesRouter(handle));

@@ -21,7 +21,7 @@ const images = createSupabaseImageStore({
 
 const authAdmin = createSupabaseAuthAdmin({ url: config.supabaseUrl, serviceKey: config.supabaseServiceKey });
 
-const server = createApp({ pool, verify, images, authAdmin }).listen(config.port, () => {
+const server = createApp({ pool, verify, images, authAdmin, trustProxy: config.trustProxy }).listen(config.port, () => {
   console.log(`api listening on ${config.port}`);
 });
 

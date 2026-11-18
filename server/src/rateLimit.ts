@@ -1,0 +1,40 @@
+import type { RequestHandler } from 'express';
+import { rateLimit } from 'express-rate-limit';
+
+/** Requests allowed per window. Counters live in process memory, so with N
+ * replicas the effective limit is up to N times higher; the ingress limit is
+ * the shared backstop. */
+export interface Limits {
+  /** Any /api request from one client address, per minute. */
+  perIp: number;
+  /** Image uploads (vision board and avatar) by one user, per 15 minutes. */
+  uploads: number;
+  /** `DELETE /account` attempts by one user, per hour. */
+  accountDeletes: number;
+}
+
+export const DEFAULT_LIMITS: Limits = { perIp: 600, uploads: 30, accountDeletes: 5 };
+
+const MINUTE = 60_000;
+
+function limiter(limit: number, windowMs: number, key?: 'user'): RequestHandler {
+  return rateLimit({
+    windowMs,
+    limit,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    // Per-user limiters run after `authenticate`, so the verified id is set.
+    ...(key === 'user' ? { keyGenerator: (_req, res) => res.locals.userId as string } : {}),
+    handler: (_req, res) => {
+      res.status(429).json({ kind: 'unavailable', message: 'too many requests, try again shortly' });
+    }
+  });
+}
+
+export function createLimiters(limits: Limits) {
+  return {
+    perIp: limiter(limits.perIp, MINUTE),
+    uploads: limiter(limits.uploads, 15 * MINUTE, 'user'),
+    accountDeletes: limiter(limits.accountDeletes, 60 * MINUTE, 'user')
+  };
+}
