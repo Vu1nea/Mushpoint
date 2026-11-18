@@ -8,6 +8,7 @@ import {
 	isOverdue,
 	parseDate,
 	percent,
+	safeHref,
 	weeklyAnchorLabel
 } from './format';
 
@@ -115,5 +116,23 @@ describe('dueLabel', () => {
 	it('falls back to a date once it is more than a week out', () => {
 		expect(dueLabel('2026-09-15', NOW)).toMatch(/^Due /);
 		expect(dueLabel('2026-09-15', NOW)).not.toMatch(/days/);
+	});
+});
+
+describe('safeHref', () => {
+	it('passes http and https URLs through', () => {
+		expect(safeHref('https://github.com/acme/widget')).toBe('https://github.com/acme/widget');
+		expect(safeHref('http://example.com')).toBe('http://example.com');
+	});
+
+	it.each([
+		null,
+		'',
+		'javascript:alert(1)',
+		' JavaScript:alert(1)',
+		'data:text/html,x',
+		'not a url'
+	])('refuses %s', (raw) => {
+		expect(safeHref(raw)).toBeNull();
 	});
 });

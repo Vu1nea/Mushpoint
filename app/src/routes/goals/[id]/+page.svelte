@@ -30,7 +30,7 @@
 	import { tabId, tabPanelId } from '$lib/components/tabIds';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import { button, field, sectionHeading } from '$lib/components/ui';
-	import { dueLabel, dueTone, percent } from '$lib/format';
+	import { dueLabel, dueTone, percent, safeHref } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
 
@@ -193,8 +193,13 @@
 					{goal.category?.name ?? 'Uncategorized'}
 				</span>
 				<div class="flex shrink-0 gap-1">
-					{#if goal.repoUrl}
-						<a href={goal.repoUrl} target="_blank" rel="noopener noreferrer" class={button.icon}>
+					{#if safeHref(goal.repoUrl)}
+						<a
+							href={safeHref(goal.repoUrl)}
+							target="_blank"
+							rel="noopener noreferrer"
+							class={button.icon}
+						>
 							<Icon name="github" size={14} label="Open repository" />
 						</a>
 					{/if}
