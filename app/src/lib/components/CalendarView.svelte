@@ -9,8 +9,16 @@
 		type SubgoalDetail,
 		type TaskSummary
 	} from '$lib/api';
-	import { tasksByDay } from '$lib/calendar';
-	import { monthGrid, monthLabel, shiftMonth, todayIso } from '$lib/calendarGrid';
+	import { shiftYear, tasksByDay } from '$lib/calendar';
+	import {
+		dayDots,
+		defaultSelectedDay,
+		monthGrid,
+		monthLabel,
+		shiftMonth,
+		todayIso,
+		type DotTone
+	} from '$lib/calendarGrid';
 	import { dueTone } from '$lib/format';
 	import { motion } from '$lib/motion';
 	import { portal } from '$lib/popover.svelte';
@@ -34,6 +42,15 @@
 
 	const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 	const CHIPS_SHOWN = 3;
+	const DOT_CLASSES: Record<DotTone, string> = {
+		task: 'bg-accent',
+		habit: 'bg-accent-secondary',
+		overdue: 'bg-warn',
+		done: 'bg-muted/50'
+	};
+	/** Month-nav icon buttons: a 40px tap target on phones, the compact size from md up. */
+	const NAV_BUTTON =
+		'flex size-10 shrink-0 items-center justify-center rounded-control text-muted transition-colors hover:text-content md:size-auto md:p-1';
 
 	const [initialYear, initialMonth] = todayIso().split('-').map(Number);
 	let viewYear = $state(initialYear);
@@ -50,6 +67,20 @@
 			grid.map((cell) => cell.iso)
 		)
 	);
+
+	/**
+	 * Phones only: the day whose tasks list under the grid. Tapping a cell picks
+	 * it; until then (and after the month changes) it falls back to today if on
+	 * view, else the month's first day. From md up, cells show their chips and a
+	 * tap opens the new-task flow instead, so this goes unused there.
+	 */
+	let pickedDay = $state<string | null>(null);
+	const selectedDay = $derived(
+		pickedDay && grid.some((cell) => cell.iso === pickedDay)
+			? pickedDay
+			: defaultSelectedDay(grid, todayIso())
+	);
+	const selectedTasks = $derived(selectedDay ? (byDay.get(selectedDay) ?? []) : []);
 
 	const DAY_PANEL_WIDTH = 256;
 	const VIEWPORT_MARGIN = 8;
@@ -91,6 +122,21 @@
 		if (openDay && event.key === 'Escape') closeDay();
 	}
 
+	function longDayLabel(iso: string) {
+		return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+			weekday: 'long',
+			month: 'long',
+			day: 'numeric'
+		});
+	}
+
+	function shortDayLabel(iso: string) {
+		return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+			month: 'short',
+			day: 'numeric'
+		});
+	}
+
 	function weekdayLabel(iso: string) {
 		return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short' });
 	}
@@ -111,12 +157,21 @@
 		const next = shiftMonth(viewYear, viewMonth, delta);
 		viewYear = next.year;
 		viewMonth = next.month;
+		pickedDay = null;
+	}
+
+	function changeYear(delta: 1 | -1) {
+		const next = shiftYear(viewYear, viewMonth, delta);
+		viewYear = next.year;
+		viewMonth = next.month;
+		pickedDay = null;
 	}
 
 	function goToday() {
 		const [year, month] = todayIso().split('-').map(Number);
 		viewYear = year;
 		viewMonth = month - 1;
+		pickedDay = null;
 	}
 
 	function dragStart(event: DragEvent, task: TaskSummary) {
@@ -161,26 +216,50 @@
 <svelte:window onkeydown={handleKeydown} onresize={() => (openDay = null)} />
 
 <div class="mb-3.5 flex items-center justify-between gap-2">
-	<div class="flex items-center gap-1">
+	<div class="flex min-w-0 flex-1 items-center md:flex-none md:gap-1">
 		<button
 			type="button"
-			class="rounded-control p-1 text-muted transition-colors hover:text-content"
+			class={NAV_BUTTON}
+			aria-label="Previous year"
+			title="Previous year"
+			onclick={() => changeYear(-1)}
+		>
+			<Icon name="chevrons-right" size={14} weight={2.2} class="rotate-180" />
+		</button>
+		<button
+			type="button"
+			class={NAV_BUTTON}
 			aria-label="Previous month"
+			title="Previous month"
 			onclick={() => changeMonth(-1)}
 		>
 			<Icon name="chevron-right" size={14} weight={2.2} class="rotate-180" />
 		</button>
-		<h2 class="w-40 text-center text-sm font-semibold">{heading}</h2>
+		<h2 class="min-w-0 flex-1 truncate text-center text-sm font-semibold md:w-40 md:flex-none">
+			{heading}
+		</h2>
 		<button
 			type="button"
-			class="rounded-control p-1 text-muted transition-colors hover:text-content"
+			class={NAV_BUTTON}
 			aria-label="Next month"
+			title="Next month"
 			onclick={() => changeMonth(1)}
 		>
 			<Icon name="chevron-right" size={14} weight={2.2} />
 		</button>
+		<button
+			type="button"
+			class={NAV_BUTTON}
+			aria-label="Next year"
+			title="Next year"
+			onclick={() => changeYear(1)}
+		>
+			<Icon name="chevrons-right" size={14} weight={2.2} />
+		</button>
 	</div>
-	<button type="button" class={button.ghost} onclick={goToday}>Today</button>
+	<button type="button" class="{button.ghost} h-10 shrink-0 md:h-auto" onclick={goToday}>
+		Today
+	</button>
 </div>
 
 <div class="grid grid-cols-7 gap-y-1 text-center">
@@ -194,10 +273,15 @@
 		{@const dayTasks = byDay.get(cell.iso) ?? []}
 		{@const shown = dayTasks.slice(0, CHIPS_SHOWN)}
 		{@const extra = dayTasks.length - shown.length}
+		{@const dots = dayDots(dayTasks, todayIso())}
+		{@const selected = selectedDay === cell.iso}
 		<div
-			class="relative flex min-h-24 flex-col gap-1 p-1.5 transition-colors {dragOverIso === cell.iso
+			class="relative flex min-h-13 flex-col items-center gap-1 p-1 transition-colors md:min-h-24 md:items-stretch md:p-1.5 {dragOverIso ===
+			cell.iso
 				? 'bg-accent/5'
-				: 'bg-surface'}"
+				: selected
+					? 'bg-accent/10 md:bg-surface'
+					: 'bg-surface'}"
 			ondragover={(event) => dragOver(event, cell.iso)}
 			ondragleave={() => dragLeave(cell.iso)}
 			ondrop={(event) => drop(event, cell.iso)}
@@ -206,37 +290,104 @@
 			     buttons can't nest. Chips sit above it, so they keep their own clicks. -->
 			<button
 				type="button"
-				class="absolute inset-0"
+				class="absolute inset-0 hidden md:block"
 				aria-label="New task on {cell.iso}"
 				onclick={() => onCreateTask(cell.iso)}
 			></button>
+			<!-- Phones: a tap selects the day; its tasks list under the grid. -->
+			<button
+				type="button"
+				class="absolute inset-0 md:hidden"
+				aria-label="{longDayLabel(cell.iso)}, {dayTasks.length} {dayTasks.length === 1
+					? 'task'
+					: 'tasks'}"
+				aria-pressed={selected}
+				onclick={() => (pickedDay = cell.iso)}
+			></button>
 
 			<span
-				class="flex size-5.5 shrink-0 items-center justify-center self-start rounded-full text-2xs font-semibold {cell.inCurrentMonth
+				class="flex size-5.5 shrink-0 items-center justify-center rounded-full text-2xs font-semibold md:self-start {cell.inCurrentMonth
 					? 'text-content'
 					: 'text-muted/50'} {cell.isToday ? 'ring-2 ring-accent' : ''}"
 			>
 				{cell.day}
 			</span>
 
-			{#each shown as task (task.id)}
-				{@render taskChip(task, !task.recurrence)}
-			{/each}
-
-			{#if extra > 0}
-				<button
-					type="button"
-					class="relative self-start rounded-control px-1.5 text-2xs font-semibold text-muted transition-colors hover:text-content"
-					aria-haspopup="dialog"
-					aria-expanded={openDay === cell.iso}
-					onclick={(event) => showDay(event, cell.iso)}
-				>
-					+{extra} more
-				</button>
+			{#if dots.tones.length > 0}
+				<span class="flex items-center gap-0.5 md:hidden" aria-hidden="true">
+					{#each dots.tones as tone, index (index)}
+						<span class="size-1.5 rounded-full {DOT_CLASSES[tone]}"></span>
+					{/each}
+					{#if dots.extra > 0}
+						<span class="text-[0.5625rem] leading-none font-semibold text-muted">+{dots.extra}</span
+						>
+					{/if}
+				</span>
 			{/if}
+
+			<!-- md+: task chips and the "+N more" popup. -->
+			<div class="hidden md:contents">
+				{#each shown as task (task.id)}
+					{@render taskChip(task, !task.recurrence)}
+				{/each}
+
+				{#if extra > 0}
+					<button
+						type="button"
+						class="relative self-start rounded-control px-1.5 text-2xs font-semibold text-muted transition-colors hover:text-content"
+						aria-haspopup="dialog"
+						aria-expanded={openDay === cell.iso}
+						onclick={(event) => showDay(event, cell.iso)}
+					>
+						+{extra} more
+					</button>
+				{/if}
+			</div>
 		</div>
 	{/each}
 </div>
+
+{#if selectedDay}
+	{@const day = selectedDay}
+	<section class="mt-4 md:hidden" aria-label="Tasks on {longDayLabel(day)}">
+		<h3 class="mb-2 text-sm font-semibold">{longDayLabel(day)}</h3>
+		{#if selectedTasks.length > 0}
+			<ul class="mb-2.5 flex flex-col gap-1.5">
+				{#each selectedTasks as task (task.id)}
+					<li>
+						<button
+							type="button"
+							class="flex min-h-11 w-full items-center gap-2 rounded-control border border-subtle bg-surface px-3 py-2 text-left text-sm transition-colors hover:bg-accent/10 {DUE_CLASSES[
+								dueTone(task.dueDate)
+							]}"
+							onclick={() => onEditTask(task)}
+						>
+							{#if task.recurrence}
+								<Icon
+									name="flame"
+									size={14}
+									class="shrink-0 text-accent-secondary"
+									label={RECURRENCE_LABELS[task.recurrence]}
+								/>
+							{/if}
+							<span
+								class="min-w-0 flex-1 truncate {!task.recurrence && task.status === 'done'
+									? 'text-muted line-through'
+									: ''}">{task.title}</span
+							>
+						</button>
+					</li>
+				{/each}
+			</ul>
+		{:else}
+			<p class="mb-2.5 text-xs text-muted">Nothing on this day.</p>
+		{/if}
+		<button type="button" class="{button.ghost} h-10 w-full" onclick={() => onCreateTask(day)}>
+			<Icon name="plus" size={14} />
+			New task on {shortDayLabel(day)}
+		</button>
+	</section>
+{/if}
 
 {#snippet taskChip(task: TaskSummary, draggable: boolean)}
 	<button
@@ -284,7 +435,7 @@
 			<button
 				bind:this={dayPanelClose}
 				type="button"
-				class="{button.bare} absolute top-2.5 right-2.5"
+				class="{button.bare} mp-hit absolute top-2.5 right-2.5"
 				onclick={closeDay}
 			>
 				<Icon name="close" size={15} weight={2} label="Close" />

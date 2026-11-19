@@ -1,17 +1,17 @@
 <!-- app/src/lib/components/VisionBoard.svelte -->
 <script lang="ts">
-	import type { VisionItem } from '$lib/api';
+	import type { VisionItemView } from '$lib/api';
 	import { stagger } from '$lib/motion';
 	import Icon from './Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
 	import { button } from './ui';
 
 	interface Props {
-		items: VisionItem[];
+		items: VisionItemView[];
 		busy: boolean;
 		onReorder: (orderedIds: number[]) => Promise<void> | void;
-		onEdit: (item: VisionItem) => void;
-		onDelete: (item: VisionItem) => void;
+		onEdit: (item: VisionItemView) => void;
+		onDelete: (item: VisionItemView) => void;
 		onAddNew: () => void;
 	}
 
@@ -20,21 +20,21 @@
 	let dragId = $state<number | null>(null);
 	let dragOverId = $state<number | null>(null);
 
-	function dragStart(event: DragEvent, item: VisionItem) {
+	function dragStart(event: DragEvent, item: VisionItemView) {
 		dragId = item.id;
 		event.dataTransfer?.setData('text/plain', String(item.id));
 	}
 
-	function dragOver(event: DragEvent, item: VisionItem) {
+	function dragOver(event: DragEvent, item: VisionItemView) {
 		event.preventDefault();
 		if (item.id !== dragId) dragOverId = item.id;
 	}
 
-	function dragLeave(item: VisionItem) {
+	function dragLeave(item: VisionItemView) {
 		if (dragOverId === item.id) dragOverId = null;
 	}
 
-	function drop(event: DragEvent, target: VisionItem) {
+	function drop(event: DragEvent, target: VisionItemView) {
 		event.preventDefault();
 		dragOverId = null;
 		const sourceId = Number(event.dataTransfer?.getData('text/plain'));
@@ -85,20 +85,23 @@
 				ondragend={() => (dragId = null)}
 				ondrop={(event) => drop(event, item)}
 			>
-				{#if item.imagePath}
-					<VisionImage path={item.imagePath} class="mb-2 w-full rounded-control object-cover" />
-				{/if}
+				<VisionImage src={item.imageUrl} class="mb-2 w-full rounded-control object-cover" />
 				{#if item.quoteText}
 					<p class="text-sm leading-relaxed text-content">{item.quoteText}</p>
 				{/if}
 
 				<div
-					class="mt-2 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+					class="mt-2 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
 				>
-					<button type="button" class={button.bare} onclick={() => onEdit(item)}>
+					<button type="button" class="{button.bare} mp-hit" onclick={() => onEdit(item)}>
 						<Icon name="edit" size={13} label="Edit vision item" />
 					</button>
-					<button type="button" class={button.bare} disabled={busy} onclick={() => onDelete(item)}>
+					<button
+						type="button"
+						class="{button.bare} mp-hit"
+						disabled={busy}
+						onclick={() => onDelete(item)}
+					>
 						<Icon name="trash" size={13} label="Delete vision item" />
 					</button>
 				</div>

@@ -20,7 +20,7 @@
 <svelte:head><title>Dashboard · Mushpoint</title></svelte:head>
 
 <header class="mb-6">
-	<h1 class="mb-1 font-display text-3xl font-bold">Dashboard</h1>
+	<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Dashboard</h1>
 	<p class="text-sm text-muted">Where everything stands right now.</p>
 </header>
 

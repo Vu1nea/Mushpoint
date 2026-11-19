@@ -18,7 +18,9 @@
 	const upcoming = $derived(buildUpcomingFeed(goals, subgoals, tasks).slice(0, 8));
 </script>
 
-<section class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}">
+<section
+	class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}"
+>
 	<h2 class="{sectionHeading} mb-3">Upcoming</h2>
 
 	{#if upcoming.length === 0}

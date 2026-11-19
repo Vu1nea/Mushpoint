@@ -173,11 +173,7 @@
 
 	<div>
 		<label class={field.label} for="task-recurrence">Repeats</label>
-		<Select
-			id="task-recurrence"
-			bind:value={form.recurrence}
-			options={RECURRENCE_OPTIONS}
-		/>
+		<Select id="task-recurrence" bind:value={form.recurrence} options={RECURRENCE_OPTIONS} />
 		{#if anchorNote}
 			<p class="mt-1.5 text-xs text-muted">{anchorNote}</p>
 		{/if}

@@ -13,19 +13,17 @@
 		"lint": "prettier --check .",
 		"format": "prettier --write .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run && npm run test:rust && npm run test:e2e",
-		"test:e2e": "playwright test",
-		"test:rust": "cargo test --manifest-path src-tauri/Cargo.toml",
-		"tauri": "tauri"
+		"test": "npm run test:unit -- --run",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.14.0",
 		"@playwright/test": "^1.59.1",
 		"@sveltejs/adapter-auto": "^7.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.57.0",
 		"@sveltejs/vite-plugin-svelte": "^7.0.0",
 		"@tailwindcss/vite": "^4.2.2",
-		"@tauri-apps/cli": "^2.11.4",
 		"@types/node": "^24.13.3",
 		"prettier": "^3.8.1",
 		"prettier-plugin-svelte": "^3.5.1",
@@ -38,11 +36,7 @@
 		"vitest": "^4.1.3"
 	},
 	"dependencies": {
-		"mushpoint-design": "git+https://github.com/Vu1nea/mushpoint-design.git#0b69ae9e50a1702c0ef7d87de11b3d40104fac3e",
-		"@tauri-apps/api": "^2.11.1",
-		"@tauri-apps/plugin-dialog": "^2.7.2",
-		"@tauri-apps/plugin-fs": "^2.5.1",
-		"@tauri-apps/plugin-opener": "^2.5.4",
-		"@tauri-apps/plugin-sql": "^2.4.0"
+		"@supabase/supabase-js": "^2.119.0",
+		"mushpoint-design": "git+https://github.com/Vu1nea/Mushpoint-Design.git#cfb7538a7ef8f0966788d3adc0eb96d3cf099ee4"
 	}
 }

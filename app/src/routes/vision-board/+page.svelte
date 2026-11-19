@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { deleteVisionItem, reorderVisionItems, type VisionItem } from '$lib/api';
+	import { deleteVisionItem, reorderVisionItems, type VisionItemView } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import VisionBoard from '$lib/components/VisionBoard.svelte';
 	import VisionItemDrawer from '$lib/components/VisionItemDrawer.svelte';
+	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();
 
@@ -12,8 +13,8 @@
 	let actionError = $state<unknown>(null);
 
 	let drawerOpen = $state(false);
-	let editingItem = $state<VisionItem | null>(null);
-	let deletingItem = $state<VisionItem | null>(null);
+	let editingItem = $state<VisionItemView | null>(null);
+	let deletingItem = $state<VisionItemView | null>(null);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -33,7 +34,7 @@
 		drawerOpen = true;
 	}
 
-	function edit(item: VisionItem) {
+	function edit(item: VisionItemView) {
 		editingItem = item;
 		drawerOpen = true;
 	}
@@ -45,15 +46,35 @@
 		await run(() => deleteVisionItem(item.id));
 	}
 
+	/** The order the user just chose, shown until fresh data arrives. */
+	let pendingOrder = $state<number[] | null>(null);
+	const items = $derived.by(() => {
+		const order = pendingOrder;
+		if (!order) return data.items;
+		const byId = new Map(data.items.map((item) => [item.id, item]));
+		const ordered = order.flatMap((id) => byId.get(id) ?? []);
+		const missing = data.items.filter((item) => !order.includes(item.id));
+		return [...ordered, ...missing];
+	});
+
 	function reorder(orderedIds: number[]) {
-		return run(() => reorderVisionItems(orderedIds));
+		actionError = null;
+		return optimistic({
+			key: 'vision-order',
+			apply: () => (pendingOrder = orderedIds),
+			revert: () => (pendingOrder = null),
+			call: () => reorderVisionItems(orderedIds),
+			refresh: invalidateAll,
+			onError: (error) => (actionError = error),
+			settle: () => (pendingOrder = null)
+		});
 	}
 </script>
 
 <svelte:head><title>Vision Board · Mushpoint</title></svelte:head>
 
 <header class="mb-6">
-	<h1 class="mb-1 font-display text-3xl font-bold">Vision Board</h1>
+	<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Vision Board</h1>
 	<p class="text-sm text-muted">Images and quotes worth seeing every day</p>
 </header>
 
@@ -65,7 +86,7 @@
 {/if}
 
 <VisionBoard
-	items={data.items}
+	{items}
 	{busy}
 	onReorder={reorder}
 	onEdit={edit}

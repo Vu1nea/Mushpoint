@@ -1,1 +1,0 @@
-ALTER TABLE goals ADD COLUMN repo_url TEXT;

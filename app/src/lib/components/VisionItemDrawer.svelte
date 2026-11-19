@@ -1,7 +1,7 @@
 <!-- app/src/lib/components/VisionItemDrawer.svelte -->
 <script lang="ts">
-	import { createVisionItem, updateVisionItem, type VisionItem } from '$lib/api';
-	import { pickAndCopyImage } from '$lib/images';
+	import { createVisionItem, updateVisionItem, type VisionItemView } from '$lib/api';
+	import { uploadImage } from '$lib/images';
 	import FormModal from './FormModal.svelte';
 	import Icon from './Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
@@ -10,7 +10,7 @@
 	interface Props {
 		open: boolean;
 		/** Null creates an item; an item edits it in place. */
-		item?: VisionItem | null;
+		item?: VisionItemView | null;
 		onClose: () => void;
 		onSaved: () => Promise<void> | void;
 	}
@@ -24,6 +24,9 @@
 	let shake = $state(false);
 
 	let form = $state({ imagePath: null as string | null, quoteText: '' });
+	/** Signed URL for the image in `form.imagePath`, shown as its preview. */
+	let previewUrl = $state<string | null>(null);
+	let fileInput = $state<HTMLInputElement>();
 
 	// Each opening starts from the record being edited, or from a blank item.
 	$effect(() => {
@@ -34,21 +37,33 @@
 			imagePath: item?.imagePath ?? null,
 			quoteText: item?.quoteText ?? ''
 		};
+		previewUrl = item?.imageUrl ?? null;
 	});
 
-	async function pickImage() {
+	async function pickImage(event: Event) {
+		const input = event.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		// Cleared so choosing the same file again still fires `change`.
+		input.value = '';
+		if (!file) return;
+
 		picking = true;
+		error = null;
 		try {
-			const picked = await pickAndCopyImage();
-			if (picked) {
-				form.imagePath = picked;
-				contentMissing = false;
-			}
+			const uploaded = await uploadImage(file);
+			form.imagePath = uploaded.imagePath;
+			previewUrl = uploaded.imageUrl;
+			contentMissing = false;
 		} catch (failure) {
 			error = failure;
 		} finally {
 			picking = false;
 		}
+	}
+
+	function removeImage() {
+		form.imagePath = null;
+		previewUrl = null;
 	}
 
 	async function submit() {
@@ -88,20 +103,33 @@
 		<span class={field.label}>Image (optional)</span>
 		{#if form.imagePath}
 			<div class="mb-2 overflow-hidden rounded-control border border-subtle">
-				<VisionImage path={form.imagePath} class="h-40 w-full object-cover" />
+				<VisionImage
+					src={previewUrl}
+					class="h-40 w-full bg-surface-raised object-contain object-center"
+				/>
 			</div>
 		{/if}
+		<input
+			bind:this={fileInput}
+			type="file"
+			accept="image/png,image/jpeg,image/webp,image/gif"
+			class="hidden"
+			onchange={pickImage}
+		/>
 		<div class="flex gap-2">
-			<button type="button" class={button.ghost} disabled={picking} onclick={pickImage}>
+			<button
+				type="button"
+				class={button.ghost}
+				disabled={picking}
+				onclick={() => fileInput?.click()}
+			>
 				{#if picking}
 					<Icon name="spinner" size={14} weight={2.5} class="mp-spin" />
 				{/if}
 				{form.imagePath ? 'Replace image' : 'Choose image…'}
 			</button>
 			{#if form.imagePath}
-				<button type="button" class={button.ghost} onclick={() => (form.imagePath = null)}>
-					Remove image
-				</button>
+				<button type="button" class={button.ghost} onclick={removeImage}> Remove image </button>
 			{/if}
 		</div>
 	</div>

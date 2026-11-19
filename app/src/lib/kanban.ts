@@ -71,3 +71,17 @@ export function groupByStatus(tasks: TaskSummary[]): Record<TaskStatus, TaskSumm
 
 	return grouped;
 }
+
+/**
+ * The columns a card can be moved to from where it shows now — the "Move to…"
+ * menu's options, in board order. A habit only moves between To do and Done
+ * (it has no in-progress state), and not at all on a day it isn't expected.
+ */
+export function moveTargets(task: TaskSummary): TaskStatus[] {
+	const current = taskColumn(task);
+	if (task.recurrence) {
+		if (!task.expectedToday) return [];
+		return TASK_STATUSES.filter((status) => status !== 'in_progress' && status !== current);
+	}
+	return TASK_STATUSES.filter((status) => status !== current);
+}

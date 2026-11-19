@@ -1,19 +1,17 @@
 <script lang="ts">
-	import type { VisionItem } from '$lib/api';
+	import type { VisionItemView } from '$lib/api';
 	import Icon from './Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
 	import { button, sectionHeading } from './ui';
 
 	interface Props {
-		items: VisionItem[];
+		items: VisionItemView[];
 		class?: string;
 	}
 
 	let { items, class: className = '' }: Props = $props();
 
-	const preview = $derived(
-		items.filter((item): item is VisionItem & { imagePath: string } => item.imagePath !== null).slice(0, 4)
-	);
+	const preview = $derived(items.filter((item) => item.imageUrl !== null).slice(0, 4));
 
 	/** Grid dims by item count so a partial preview (1-3 images) fills the
 	 * available cells instead of leaving empty tracks. */
@@ -44,7 +42,11 @@
 	{:else}
 		<div class="grid aspect-[16/10] min-h-0 gap-1.5 overflow-hidden rounded-control {gridClass}">
 			{#each preview as item (item.id)}
-				<VisionImage path={item.imagePath} alt="" class="h-full min-h-0 w-full min-w-0 object-cover" />
+				<VisionImage
+					src={item.imageUrl}
+					alt=""
+					class="h-full min-h-0 w-full min-w-0 bg-surface-raised object-contain object-center"
+				/>
 			{/each}
 		</div>
 	{/if}

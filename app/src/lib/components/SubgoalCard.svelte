@@ -11,6 +11,7 @@
 	} from '$lib/api';
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { motion } from '$lib/motion';
+	import { optimistic } from '$lib/optimistic';
 	import Checkbox from './Checkbox.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
 	import Icon from './Icon.svelte';
@@ -47,6 +48,23 @@
 		}
 	}
 
+	/** The tick as the user just set it, shown until fresh data arrives. */
+	let pendingComplete = $state<boolean | null>(null);
+
+	function toggleComplete(checked: boolean) {
+		return optimistic({
+			key: `subgoal:${subgoal.id}`,
+			apply: () => (pendingComplete = checked),
+			revert: () => (pendingComplete = null),
+			call: () => setSubgoalComplete(subgoal.id, checked),
+			refresh: async () => {
+				await onMutated();
+			},
+			onError,
+			settle: () => (pendingComplete = null)
+		});
+	}
+
 	async function removeSubgoal() {
 		confirmingDelete = false;
 		await run(() => deleteSubgoal(subgoal.id));
@@ -72,10 +90,10 @@
 </script>
 
 <article class="overflow-hidden rounded-card border border-subtle bg-surface">
-	<div class="group flex items-center gap-3.5 px-4 py-3.5">
+	<div class="group flex items-center gap-2.5 px-4 py-3.5 sm:gap-3.5">
 		<button
 			type="button"
-			class="flex min-w-0 flex-1 items-center gap-3.5 text-left"
+			class="flex min-w-0 flex-1 items-center gap-2.5 text-left sm:gap-3.5"
 			aria-expanded={expanded}
 			onclick={() => (expanded = !expanded)}
 		>
@@ -100,8 +118,7 @@
 			</div>
 			<span class="shrink-0 text-xs text-muted tabular-nums">{percent(subgoal.progress)}</span>
 			<span
-				class="min-w-[70px] shrink-0 text-right text-2xs {dueTone(subgoal.dueDate) ===
-				'overdue'
+				class="shrink-0 text-right text-2xs sm:min-w-[70px] {dueTone(subgoal.dueDate) === 'overdue'
 					? 'text-warn'
 					: 'text-muted'}"
 			>
@@ -111,14 +128,14 @@
 
 		<button
 			type="button"
-			class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+			class="{button.bare} mp-hit opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
 			onclick={onEdit}
 		>
 			<Icon name="edit" size={14} label="Edit {subgoal.title}" />
 		</button>
 		<button
 			type="button"
-			class="{button.bare} opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+			class="{button.bare} mp-hit opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
 			disabled={busy}
 			onclick={() => (confirmingDelete = true)}
 		>
@@ -130,14 +147,14 @@
 		open={confirmingDelete}
 		title="Delete “{subgoal.title}”?"
 		body="Its tasks stay, moved to the goal directly. This cannot be undone."
-		busy={busy}
+		{busy}
 		onConfirm={removeSubgoal}
 		onCancel={() => (confirmingDelete = false)}
 	/>
 
 	{#if expanded}
 		<div
-			class="flex flex-col gap-2 pt-0 pr-4 pb-4 pl-11"
+			class="flex flex-col gap-2 pt-0 pr-4 pb-4 pl-4 sm:pl-11"
 			transition:slide={{ duration: motion(180) }}
 		>
 			{#if subgoal.tasks.length > 0}
@@ -152,11 +169,10 @@
 				     is null); habits are excluded. With no such task, there is nothing to
 				     average, so the subgoal's own checkbox is its progress instead. -->
 				<Checkbox
-					checked={subgoal.isComplete}
+					checked={pendingComplete ?? subgoal.isComplete}
 					label="Mark {subgoal.title} complete"
 					showLabel
-					disabled={busy}
-					onchange={(checked) => run(() => setSubgoalComplete(subgoal.id, checked))}
+					onchange={toggleComplete}
 				/>
 			{/if}
 

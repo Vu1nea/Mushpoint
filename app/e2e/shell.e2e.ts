@@ -1,21 +1,19 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 /*
- * These run against the plain web build, where no Tauri backend exists. That
- * limits them to the app shell and the "backend missing" path — they do not
- * exercise CRUD flows, SQL, or the real @tauri-apps/plugin-sql connection at
- * all. CRUD/repo logic is covered by vitest against an in-memory node:sqlite
- * database (src/lib/db/repo/*.spec.ts), which is not the same thing as the
- * real plugin-sql path — that only runs inside an actual `npm run tauri dev`
- * or built app. A Tauri-driven e2e harness that exercises the real backend
- * has not landed yet (see plans/playwright-test-plan.md).
+ * App-shell checks against the real build and API. Each test signs in as the
+ * throwaway user B first; the CRUD flow lives in web.e2e.ts.
  */
 
-test('the root route lands on Goals', async ({ page }) => {
+test.beforeEach(async ({ page, signIn }) => {
+	await signIn(page, 'b');
+});
+
+test('the root route lands on the Dashboard', async ({ page }) => {
 	await page.goto('/');
 
-	await expect(page).toHaveURL(/\/goals/);
-	await expect(page.getByRole('heading', { name: 'Goals' })).toBeVisible();
+	await expect(page).toHaveURL(/\/$/);
+	await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
 
 test('the sidebar links to every built screen', async ({ page }) => {
@@ -29,7 +27,7 @@ test('the sidebar links to every built screen', async ({ page }) => {
 
 	await page.getByRole('link', { name: 'Settings' }).click();
 	await expect(page).toHaveURL(/\/settings/);
-	await expect(page.getByRole('heading', { name: 'Theme' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 });
 
 test('the task board shows all three columns', async ({ page }) => {
@@ -42,7 +40,7 @@ test('the task board shows all three columns', async ({ page }) => {
 
 test('the sidebar collapses to an icon rail', async ({ page }) => {
 	await page.goto('/goals');
-	const wordmark = page.getByText('Mushpoint');
+	const wordmark = page.getByText('Mushpoint', { exact: true });
 	await expect(wordmark).toBeVisible();
 
 	await page.getByRole('button', { name: 'Toggle sidebar' }).click();
@@ -51,36 +49,39 @@ test('the sidebar collapses to an icon rail', async ({ page }) => {
 	await expect(page.getByRole('link', { name: 'Goal Tracker' })).toBeVisible();
 });
 
-test('a missing backend is reported instead of failing silently', async ({ page }) => {
-	await page.goto('/goals');
-
-	const alert = page.getByRole('alert');
-	await expect(alert).toContainText('Backend not running');
-	await expect(alert).toContainText('npm run tauri dev');
-});
-
 test('the theme picker offers both shipped themes', async ({ page }) => {
 	await page.goto('/settings');
+	await page.getByRole('tab', { name: 'Appearance' }).click();
+	await expect(page).toHaveURL(/tab=appearance/);
 
 	await expect(page.getByRole('button', { name: /Nocturne/ })).toBeVisible();
 	await expect(page.getByRole('button', { name: /Coquette/ })).toBeVisible();
 });
 
 test('the settings screen offers the streak grace period', async ({ page }) => {
-	await page.goto('/settings');
+	await page.goto('/settings?tab=tracking');
 
 	await expect(page.getByRole('heading', { name: 'Streaks' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Increase grace period' })).toBeVisible();
 	await expect(page.getByRole('button', { name: 'Decrease grace period' })).toBeVisible();
 });
 
+test('the settings screen starts with the account section', async ({ page }) => {
+	await page.goto('/settings');
+
+	await expect(page.getByRole('tab', { name: 'Account' })).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByRole('heading', { name: 'Profile' })).toBeVisible();
+	await expect(page.getByLabel('Username')).toBeVisible();
+	await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Delete account' })).toBeVisible();
+});
+
 test('the task drawer offers every cadence', async ({ page }) => {
 	await page.goto('/tasks');
 	await page.getByRole('button', { name: 'New Task' }).click();
 
-	const repeats = page.getByLabel('Repeats');
-	await expect(repeats).toBeVisible();
+	await page.getByRole('combobox', { name: 'Repeats' }).click();
 	for (const option of ["Doesn't repeat", 'Daily', 'Weekdays', 'Weekly']) {
-		await expect(repeats.getByRole('option', { name: option })).toBeAttached();
+		await expect(page.getByRole('option', { name: option })).toBeVisible();
 	}
 });

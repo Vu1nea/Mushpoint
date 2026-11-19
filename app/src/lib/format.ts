@@ -3,7 +3,13 @@
 import type { CellState, DayCell } from '$lib/api/types';
 import { daysUntil, formatDate } from 'mushpoint-design/utils/format';
 
-export { percent, parseDate, formatDate, daysUntil, isOverdue } from 'mushpoint-design/utils/format';
+export {
+	percent,
+	parseDate,
+	formatDate,
+	daysUntil,
+	isOverdue
+} from 'mushpoint-design/utils/format';
 
 /**
  * How loudly a due date should read. The design colors overdue dates with the
@@ -53,4 +59,16 @@ export function dueLabel(due: string | null, now: Date = new Date()): string {
 	if (days < 0) return `${Math.abs(days)} days overdue`;
 	if (days <= 7) return `Due in ${days} days`;
 	return `Due ${formatDate(due, now)}`;
+}
+
+/** A stored URL safe to put in `href`: only absolute http(s), else null. The
+ * server enforces this on write; this covers rows written before it did. */
+export function safeHref(raw: string | null): string | null {
+	if (!raw) return null;
+	try {
+		const { protocol } = new URL(raw.trim());
+		return protocol === 'http:' || protocol === 'https:' ? raw.trim() : null;
+	} catch {
+		return null;
+	}
 }

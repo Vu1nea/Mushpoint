@@ -12,3 +12,35 @@
 		cursor: pointer;
 	}
 }
+
+/* Icon-only buttons are drawn ~22px; `mp-hit` grows their tap target to at
+   least 40px on touch screens without changing how they look. The expander is
+   centered on the button, so neighbours' targets may overlap a little — the
+   later one wins there, which is fine for a pair of row actions. */
+@layer components {
+	.mp-hit {
+		position: relative;
+	}
+
+	@media (pointer: coarse) {
+		.mp-hit::after {
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: max(100%, 40px);
+			height: max(100%, 40px);
+			translate: -50% -50%;
+		}
+	}
+}
+
+/* iOS zooms the page when focusing a form control under 16px. Unlayered so it
+   beats the text-sm on `field.input` and friends, on touch screens only. */
+@media (pointer: coarse) {
+	input,
+	select,
+	textarea {
+		font-size: 16px;
+	}
+}

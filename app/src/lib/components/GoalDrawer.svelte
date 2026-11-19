@@ -6,6 +6,7 @@
 		updateGoal,
 		type Category,
 		type Goal,
+		type GoalInput,
 		type Timeframe
 	} from '$lib/api';
 	import FormModal from './FormModal.svelte';
@@ -24,11 +25,22 @@
 		 * always starts from the record itself. */
 		prefill?: { title: string; description: string | null } | null;
 		onClose: () => void;
+		/** Replaces `createGoal` for a new goal — the ideas Promote flow creates
+		 * the goal and promotes the idea in one call. */
+		create?: (input: GoalInput) => Promise<Goal>;
 		/** Called with the created/updated goal after a successful save, before the drawer closes. */
 		onSaved: (goal: Goal) => Promise<void> | void;
 	}
 
-	let { open, categories, goal = null, prefill = null, onClose, onSaved }: Props = $props();
+	let {
+		open,
+		categories,
+		goal = null,
+		prefill = null,
+		create = createGoal,
+		onClose,
+		onSaved
+	}: Props = $props();
 
 	let submitting = $state(false);
 	let error = $state<unknown>(null);
@@ -89,7 +101,7 @@
 
 		submitting = true;
 		error = null;
-		const input = {
+		const input: GoalInput = {
 			categoryId: form.categoryId ? Number(form.categoryId) : null,
 			title: form.title.trim(),
 			description: form.description.trim() || null,
@@ -101,7 +113,7 @@
 		};
 
 		try {
-			const saved = goal ? await updateGoal(goal.id, input) : await createGoal(input);
+			const saved = goal ? await updateGoal(goal.id, input) : await create(input);
 			await onSaved(saved);
 			onClose();
 		} catch (failure) {

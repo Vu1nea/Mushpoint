@@ -1,14 +1,12 @@
 import type { TaskSummary } from './api';
-import { localDateOf } from './db/repo/helpers';
-import { compareDates, weekdayOf } from './db/logic/dates';
-import { isExpectedOn } from './db/logic/streak';
+import { compareDates, isExpectedOn, localDateOf, weekdayOf } from './dates';
 
 /**
  * Buckets tasks onto each day in `days`. A non-recurring task lands on its
  * `dueDate`; a recurring task lands on every day the cadence expects an
  * occurrence, per its creation weekday — same rule the board/streak views
  * already use (`taskColumn` in `./kanban`, `withCompletion` in
- * `./db/repo/task`). A habit that also carries a `dueDate` landing on an
+ * the server's `repo/task`). A habit that also carries a `dueDate` landing on an
  * expected day is deduped to one entry via the per-task `Set`.
  */
 export function tasksByDay(tasks: TaskSummary[], days: string[]): Map<string, TaskSummary[]> {
@@ -34,4 +32,16 @@ export function tasksByDay(tasks: TaskSummary[], days: string[]): Map<string, Ta
 	}
 
 	return byDay;
+}
+
+/**
+ * Steps a month view by whole years, keeping the month (0-based). The view
+ * holds no day, so there is nothing to clamp.
+ */
+export function shiftYear(
+	year: number,
+	month: number,
+	delta: number
+): { year: number; month: number } {
+	return { year: year + delta, month };
 }

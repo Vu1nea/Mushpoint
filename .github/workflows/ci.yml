@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server (typecheck + tests)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['54329:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+
+  app:
+    name: App (typecheck + lint + unit tests + build)
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: server
+        run: npm audit --audit-level=high --omit=dev
+        working-directory: server
+      - name: app
+        run: npm audit --audit-level=high --omit=dev
+        working-directory: app
+
+  e2e:
+    name: E2E (Playwright)
+    needs: [server, app]
+    runs-on: ubuntu-latest
+    # Needs a real Supabase project. Skipped (green) until these repo secrets exist:
+    # E2E_SUPABASE_URL, E2E_SUPABASE_SERVICE_KEY, E2E_SUPABASE_ANON_KEY, E2E_PASSWORD.
+    env:
+      HAS_SECRETS: ${{ secrets.E2E_SUPABASE_SERVICE_KEY != '' }}
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['54329:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+        if: env.HAS_SECRETS == 'true'
+      - uses: actions/setup-node@v4
+        if: env.HAS_SECRETS == 'true'
+        with:
+          node-version: 24
+      - name: Install
+        if: env.HAS_SECRETS == 'true'
+        run: |
+          npm ci --prefix server
+          npm ci --prefix app
+          npx --prefix app playwright install --with-deps chromium
+      - name: Write config
+        if: env.HAS_SECRETS == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+        run: |
+          cp server/.env.example server/.env
+          sed -i "s|^SUPABASE_URL=.*|SUPABASE_URL=$SUPABASE_URL|; s|^SUPABASE_SERVICE_KEY=.*|SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY|" server/.env
+          printf '{"apiUrl":"/api","supabaseUrl":"%s","supabaseAnonKey":"%s"}\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > app/static/config.json
+          printf 'E2E_SUPABASE_URL=%s\nE2E_SUPABASE_SERVICE_KEY=%s\nE2E_PASSWORD=%s\n' "$SUPABASE_URL" "$SUPABASE_SERVICE_KEY" "$E2E_PASSWORD" > app/.env.e2e
+      - name: Migrate
+        if: env.HAS_SECRETS == 'true'
+        run: npm --prefix server run migrate
+      - name: Playwright
+        if: env.HAS_SECRETS == 'true'
+        run: npm --prefix app run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_SECRETS == 'true' && failure()
+        with:
+          name: playwright-report
+          path: app/playwright-report
+          retention-days: 7

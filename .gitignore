@@ -59,3 +59,19 @@ TODO.md
 
 # local git worktrees
 .worktrees/
+
+# graphify: share the graph, report, build excludes and community labels;
+# keep cache, manifest, cost log, snapshots and local interpreter path local
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/graph.html
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/.graphify_build.json
+!graphify-out/.graphify_labels.json
+!graphify-out/.graphify_labels.json.sig
+
+# server
+server/node_modules
+server/dist
+server/.env
+!server/package-lock.json

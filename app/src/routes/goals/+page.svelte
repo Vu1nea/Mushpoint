@@ -6,7 +6,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 	import ProgressRing from '$lib/components/ProgressRing.svelte';
 	import Select from '$lib/components/Select.svelte';
-	import { button, chip, DUE_CLASSES, lift, sectionHeading } from '$lib/components/ui';
+	import { button, chip, DUE_CLASSES, sectionHeading } from '$lib/components/ui';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
@@ -23,7 +23,7 @@
 	/** Status feedback on the card itself — the "All" filter mixes every status together. */
 	const STATUS_CLASSES: Record<GoalStatus, string> = {
 		active: 'bg-accent-secondary/15 text-accent-secondary',
-		completed: 'bg-accent/15 text-accent',
+		completed: 'bg-accent/15 text-accent-ink',
 		archived: 'bg-background text-muted'
 	};
 
@@ -54,15 +54,15 @@
 
 <svelte:head><title>Goals · Mushpoint</title></svelte:head>
 
-<header class="mb-6 flex items-start justify-between gap-4">
-	<div>
-		<h1 class="mb-1 font-display text-3xl font-bold">Goals</h1>
+<header class="mb-6 flex flex-wrap items-start justify-between gap-4">
+	<div class="min-w-0">
+		<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Goals</h1>
 		<p class="text-sm text-muted">
 			{visible.length}
 			{visible.length === 1 ? 'goal' : 'goals'} across {data.categories.length} categories
 		</p>
 	</div>
-	<button type="button" class={button.primary} onclick={() => (drawerOpen = true)}>
+	<button type="button" class="{button.primary} shrink-0" onclick={() => (drawerOpen = true)}>
 		<Icon name="plus" size={15} weight={2.4} />
 		New Goal
 	</button>
@@ -115,7 +115,7 @@
 					<li class="mp-enter" style="--mp-delay:{stagger(index)}">
 						<a
 							href="/goals/{goal.id}"
-							class="flex items-center gap-4 rounded-card border border-subtle bg-surface px-4.5 py-4 {lift}"
+							class="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-card border border-subtle bg-surface px-4.5 py-4 transition-colors duration-150 hover:border-accent/60 sm:flex-nowrap"
 						>
 							<ProgressRing
 								value={goal.progress}
@@ -137,25 +137,31 @@
 									{goal.taskCount === 1 ? 'task' : 'tasks'}
 								</p>
 							</div>
-							{#if goal.status !== 'active'}
+							<div
+								class="flex w-full items-center gap-2 pl-15.5 sm:w-auto sm:shrink-0 sm:gap-4 sm:pl-0"
+							>
+								{#if goal.status !== 'active'}
+									<span
+										class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-bold tracking-wider uppercase {STATUS_CLASSES[
+											goal.status
+										]}"
+									>
+										{GOAL_STATUS_LABELS[goal.status]}
+									</span>
+								{/if}
 								<span
-									class="shrink-0 rounded-full px-2.5 py-1 text-2xs font-bold tracking-wider uppercase {STATUS_CLASSES[
-										goal.status
+									class="shrink-0 rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider text-muted uppercase"
+								>
+									{TIMEFRAME_LABELS[goal.timeframe]}
+								</span>
+								<span
+									class="ml-auto shrink-0 text-right text-xs sm:ml-0 sm:min-w-21.5 {DUE_CLASSES[
+										dueTone(goal.dueDate)
 									]}"
 								>
-									{GOAL_STATUS_LABELS[goal.status]}
+									{dueLabel(goal.dueDate)}
 								</span>
-							{/if}
-							<span
-								class="shrink-0 rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider text-muted uppercase"
-							>
-								{TIMEFRAME_LABELS[goal.timeframe]}
-							</span>
-							<span
-								class="min-w-21.5 shrink-0 text-right text-xs {DUE_CLASSES[dueTone(goal.dueDate)]}"
-							>
-								{dueLabel(goal.dueDate)}
-							</span>
+							</div>
 						</a>
 					</li>
 				{/each}

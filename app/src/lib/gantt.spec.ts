@@ -57,9 +57,7 @@ describe('ganttChart', () => {
 		const chart = ganttChart(
 			goal({
 				subgoals: [subgoal({ id: 1, dueDate: '2026-08-20' })],
-				directTasks: [
-					task({ id: 2, createdAt: '2026-08-11T12:00:00Z', dueDate: '2026-08-15' })
-				]
+				directTasks: [task({ id: 2, createdAt: '2026-08-11T12:00:00Z', dueDate: '2026-08-15' })]
 			}),
 			TODAY
 		);
@@ -79,7 +77,10 @@ describe('ganttChart', () => {
 
 	it('stretches the range to cover today and the goal due date', () => {
 		const chart = ganttChart(
-			goal({ subgoals: [subgoal({ id: 1, dueDate: '2026-08-05' })], directTasks: [] }, '2026-09-01'),
+			goal(
+				{ subgoals: [subgoal({ id: 1, dueDate: '2026-08-05' })], directTasks: [] },
+				'2026-09-01'
+			),
 			TODAY
 		);
 
