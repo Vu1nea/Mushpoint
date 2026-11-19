@@ -8,6 +8,10 @@ RUN npm run build && npm prune --omit=dev
 
 FROM node:24-slim
 ENV NODE_ENV=production
+# The upstream tag lags Debian security fixes (e.g. zlib CVE-2026-85091 on
+# node:26-slim), so take them at build time.
+RUN apt-get update && apt-get upgrade -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 # The runtime only needs `node`. The bundled npm/npx/corepack carry their own
 # dependency CVEs and give an attacker in the container a package manager.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack \
