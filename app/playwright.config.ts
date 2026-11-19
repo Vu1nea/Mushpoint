@@ -22,6 +22,11 @@ export default defineConfig({
 		}
 	],
 	testMatch: '**/*.e2e.{ts,js}',
+	// Set explicitly: Playwright only infers baseURL from a single webServer, and
+	// there are two, so page.goto('/login') would have no host.
+	use: { baseURL: 'http://localhost:4173' },
+	// CI uploads app/playwright-report when the job fails.
+	reporter: process.env.CI ? [['dot'], ['html', { open: 'never' }]] : 'list',
 	projects: [
 		{
 			// No `use` overrides: the same Desktop Chromium defaults the suite ran with before projects.
