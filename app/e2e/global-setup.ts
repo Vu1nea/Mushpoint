@@ -1,5 +1,5 @@
 import { writeFileSync } from 'node:fs';
-import { USERS_FILE, requireE2eEnv } from './env';
+import { USERS_FILE, requireE2eEnv, serviceKeyHeaders } from './env';
 import { deleteUsers } from './admin';
 import type { E2eUsers, Who } from './users';
 
@@ -15,8 +15,7 @@ export default async function globalSetup(): Promise<void> {
 			const response = await fetch(`${url}/auth/v1/admin/users`, {
 				method: 'POST',
 				headers: {
-					apikey: serviceKey,
-					Authorization: `Bearer ${serviceKey}`,
+					...serviceKeyHeaders(serviceKey),
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({ email, password, email_confirm: true })

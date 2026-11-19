@@ -33,3 +33,9 @@ export function requireE2eEnv(): { url: string; serviceKey: string; password: st
 		password: process.env.E2E_PASSWORD!
 	};
 }
+
+/** Legacy `service_role` keys are JWTs and also go in `Authorization`. New
+ * `sb_secret_...` keys are not JWTs and go in `apikey` only. */
+export function serviceKeyHeaders(key: string): Record<string, string> {
+	return key.startsWith('sb_') ? { apikey: key } : { apikey: key, Authorization: `Bearer ${key}` };
+}
