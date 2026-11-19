@@ -172,7 +172,7 @@
 			</div>
 
 			{#if sidebarOpen}
-				<p class="px-4 pt-1 pb-1.5 text-2xs text-muted/75">Workspace</p>
+				<p class="px-4 pt-1 pb-1.5 text-2xs text-muted">Workspace</p>
 			{/if}
 
 			<nav class="flex flex-1 flex-col gap-px overflow-y-auto px-2.5 py-1">

@@ -107,7 +107,7 @@
 				<span class="size-2.5 rounded-full" style="background:{group.color}" aria-hidden="true"
 				></span>
 				<h2 class={sectionHeading}>{categoryName}</h2>
-				<span class="text-xs text-muted/60">{group.goals.length}</span>
+				<span class="text-xs text-muted">{group.goals.length}</span>
 			</div>
 
 			<ul class="flex flex-col gap-2.5">

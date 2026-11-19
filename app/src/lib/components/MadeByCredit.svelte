@@ -1,4 +1,4 @@
-<span class="flex items-center gap-1.5 text-2xs text-muted/60">
+<span class="flex items-center gap-1.5 text-2xs text-muted">
 	Made by
 	<a target="_blank" class="no-underline" href="https://github.com/Vu1nea" rel="external">Vu1nea</a>
 	<svg
