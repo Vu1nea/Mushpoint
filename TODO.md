@@ -77,9 +77,9 @@ accessibility, then ops.
 - [x] Container scan (`trivy`, HIGH/CRITICAL, fixed only) of both images in CI.
       API image: 6 HIGH, all in the npm CLI bundled with `node:24-slim`;
       fixed by removing npm/npx/corepack from the runtime stage. Now 0.
-- [ ] Web image: confirm 0 HIGH/CRITICAL on `nginx-unprivileged:1.30-alpine`
-      (the old 1.27 tag had 68; local rescan after the bump was interrupted,
-      first CI run will show it)
+- [x] Web image: `nginx-unprivileged:1.30-alpine` still had 13 HIGH/CRITICAL
+      (musl, zlib, expat, libxslt) because the upstream tag lags Alpine fixes.
+      Runtime stage now runs `apk upgrade` (then back to uid 101). Rescan: 0.
 - [x] SAST: CodeQL `security-extended` in CI
 - [ ] Walk the OWASP ASVS Level 1 checklist against `docs/auth.md`
 - [ ] Supabase: auth rate limits, CAPTCHA on sign-up and password reset,
