@@ -16,7 +16,8 @@ RUN CSP=$(grep -o 'http-equiv="content-security-policy" content="[^"]*"' build/i
     && echo "add_header Content-Security-Policy \"$CSP; frame-ancestors 'none'\" always;" > /app/csp.conf
 
 # Unprivileged variant: runs as a non-root user and listens on 8080.
-FROM nginxinc/nginx-unprivileged:1.30-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
+# Mainline: stable 1.30.6 had 5 HIGH nginx CVEs with no 1.30.7 image yet.
 # The upstream tag lags Alpine security fixes (13 HIGH/CRITICAL fixed in
 # musl, zlib, expat, libxslt when last checked), so take them at build time.
 USER root

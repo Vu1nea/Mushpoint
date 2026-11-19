@@ -78,9 +78,10 @@ accessibility, then ops.
 - [x] Container scan (`trivy`, HIGH/CRITICAL, fixed only) of both images in CI.
       API image: 6 HIGH, all in the npm CLI bundled with `node:24-slim`;
       fixed by removing npm/npx/corepack from the runtime stage. Now 0.
-- [x] Web image: `nginx-unprivileged:1.30-alpine` still had 13 HIGH/CRITICAL
-      (musl, zlib, expat, libxslt) because the upstream tag lags Alpine fixes.
-      Runtime stage now runs `apk upgrade` (then back to uid 101). Rescan: 0.
+- [x] Web image: the base tag lags Alpine fixes (13 HIGH/CRITICAL in musl,
+      zlib, expat, libxslt), so the runtime stage runs `apk upgrade` (then back
+      to uid 101). Stable nginx 1.30.6 also had 5 HIGH nginx CVEs with no 1.30.7
+      image, so the base is mainline `nginx-unprivileged:1.31-alpine`. Rescan: 0.
 - [x] SAST: CodeQL `security-extended` in CI
 - [ ] Walk the OWASP ASVS Level 1 checklist against `docs/auth.md`
 - [ ] Supabase: auth rate limits, CAPTCHA on sign-up and password reset,
@@ -92,7 +93,7 @@ accessibility, then ops.
       inline scripts allowed, `connect-src`/`img-src` limited to self +
       `*.supabase.co`, `object-src 'none'`
 - [x] Production web image (`app/Dockerfile`, `app/nginx/`): non-root
-      `nginx-unprivileged:1.30-alpine`, SPA fallback, immutable caching for
+      `nginx-unprivileged:1.31-alpine`, SPA fallback, immutable caching for
       hashed assets, `no-cache` for `index.html`/`config.json`, `config.json`
       mounted per environment. Sends the full CSP as a header (copied from the
       build's meta tag at image build) plus `frame-ancestors 'none'`, HSTS,
