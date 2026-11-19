@@ -7,6 +7,7 @@ import { createVerifier } from './auth';
 import { createMemoryAuthAdmin } from './authAdmin';
 import { createPool } from './db/pool';
 import { createMemoryImageStore } from './images';
+import type { Limits } from './rateLimit';
 import { createTestIdentity, type TestIdentity } from './testSupport/auth';
 import { clientFor } from './testSupport/client';
 import { purgeUsers } from './testSupport/db';
@@ -16,13 +17,13 @@ const pool = createPool(process.env.DATABASE_URL!);
 const users = [randomUUID(), randomUUID(), randomUUID()];
 let identity: TestIdentity;
 
-function build(limits: { perIp?: number; uploads?: number; accountDeletes?: number }): Express {
+function build(limits: Partial<Limits>): Express {
   return createApp({
     pool,
     verify: createVerifier(identity),
     images: createMemoryImageStore(),
     authAdmin: createMemoryAuthAdmin(),
-    limits: { perIp: 1000, uploads: 1000, accountDeletes: 1000, ...limits }
+    limits: { perIp: 1000, probes: 1000, uploads: 1000, accountDeletes: 1000, ...limits }
   });
 }
 
@@ -44,9 +45,17 @@ describe('rate limiting', () => {
     expect(res.body).toEqual({ kind: 'unavailable', message: 'too many requests, try again shortly' });
   });
 
-  it('never limits the health probes', async () => {
+  it('keeps the health probes out of the per-IP limit', async () => {
     const app = build({ perIp: 1 });
     for (let i = 0; i < 5; i++) await request(app).get('/api/healthz').expect(200);
+    for (let i = 0; i < 5; i++) await request(app).get('/api/readyz').expect(200);
+  });
+
+  it('limits readiness checks per address, since each one queries the database', async () => {
+    const app = build({ probes: 2 });
+    for (let i = 0; i < 2; i++) await request(app).get('/api/readyz').expect(200);
+    await request(app).get('/api/readyz').expect(429);
+    await request(app).get('/api/healthz').expect(200);
   });
 
   it('limits image uploads per user, not per address', async () => {

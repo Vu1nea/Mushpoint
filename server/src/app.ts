@@ -56,7 +56,8 @@ export function createApp({ pool, verify, images, authAdmin, limits = DEFAULT_LI
     res.json({ status: 'ok' });
   });
   // Readiness runs as the app role, so it proves the credentials the API uses.
-  api.get('/readyz', async (_req, res) => {
+  // Liveness stays unlimited: a limited liveness probe would restart the pod.
+  api.get('/readyz', limit.probes, async (_req, res) => {
     await pool.query('SELECT 1');
     res.json({ status: 'ready' });
   });

@@ -7,13 +7,17 @@ import { rateLimit } from 'express-rate-limit';
 export interface Limits {
   /** Any /api request from one client address, per minute. */
   perIp: number;
+  /** `/readyz` checks from one client address, per minute. Separate from
+   * `perIp` so app traffic can't starve probes, but bounded because each
+   * check queries the database and the route needs no login. */
+  probes: number;
   /** Image uploads (vision board and avatar) by one user, per 15 minutes. */
   uploads: number;
   /** `DELETE /account` attempts by one user, per hour. */
   accountDeletes: number;
 }
 
-export const DEFAULT_LIMITS: Limits = { perIp: 600, uploads: 30, accountDeletes: 5 };
+export const DEFAULT_LIMITS: Limits = { perIp: 600, probes: 120, uploads: 30, accountDeletes: 5 };
 
 const MINUTE = 60_000;
 
@@ -34,6 +38,7 @@ function limiter(limit: number, windowMs: number, key?: 'user'): RequestHandler 
 export function createLimiters(limits: Limits) {
   return {
     perIp: limiter(limits.perIp, MINUTE),
+    probes: limiter(limits.probes, MINUTE),
     uploads: limiter(limits.uploads, 15 * MINUTE, 'user'),
     accountDeletes: limiter(limits.accountDeletes, 60 * MINUTE, 'user')
   };

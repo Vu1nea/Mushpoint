@@ -33,7 +33,8 @@ accessibility, then ops.
 - [ ] Request validation with `zod` schemas at each route boundary
       (`c.body<T>()` is only a type cast today)
 - [x] Rate limiting in-process (`express-rate-limit`, `server/src/rateLimit.ts`):
-      600 requests/min per IP on `/api` (health probes exempt), 30 image
+      600 requests/min per IP on `/api` (health probes exempt; `/readyz`
+      has its own 120/min per IP because it queries the DB, flagged by CodeQL), 30 image
       uploads per 15 min per user (vision board + avatar), 5 `DELETE /account`
       per hour per user; 429 with `{ kind: 'unavailable' }`
 - [x] `TRUST_PROXY` env (proxy hop count) so the per-IP limit sees the real
