@@ -12,8 +12,27 @@ const DEFAULT_CATEGORIES: [string, string][] = [
   ['Social', 'accent-secondary']
 ];
 
-/** Runs `fn` in one transaction scoped to `userId`: row-level security
- * restricts every statement to that user's rows. */
+/**
+ * Runs `fn` inside a single transaction that acts as `userId`. This is the
+ * only place a request's user identity reaches Postgres.
+ *
+ * `userId` must already be trusted (the `sub` claim of a verified JWT); the
+ * database takes it on faith.
+ *
+ * - Sets `app.user_id` with `set_config(..., true)`. The `true` makes it
+ *   transaction-local: Postgres drops it on COMMIT or ROLLBACK, so a pooled
+ *   connection never carries one user's id into another request. The
+ *   setting only holds inside BEGIN, which is why `fn` must use the driver
+ *   it is given and not open its own connection.
+ * - RLS policies (`user_id = current_setting('app.user_id')::uuid`) limit
+ *   every read and write to this user's rows, and `user_id` columns default
+ *   to the same value on INSERT. This only works when the pool connects as
+ *   `mushpoint_app`, which neither owns the tables nor has BYPASSRLS.
+ * - Creates the user's settings row and default categories on first use
+ *   (see `bootstrapUser`).
+ * - Commits if `fn` resolves. Rolls back and rethrows if it throws, so a
+ *   failed request writes nothing.
+ */
 export async function withUser<T>(
   pool: Pool,
   userId: string,
@@ -22,6 +41,7 @@ export async function withUser<T>(
   if (!UUID.test(userId)) throw AppError.validation('user id must be a uuid');
   const client = await pool.connect();
   try {
+    // Settings configuration transaction
     await client.query('BEGIN');
     await client.query("SELECT set_config('app.user_id', $1, true)", [userId]);
     const driver = createPgDriver(client);
