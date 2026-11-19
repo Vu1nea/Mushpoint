@@ -135,7 +135,13 @@ accessibility, then ops.
     under button text; passing needs `#d62b55` (much stronger pink). Or keep
     the pastel for fills and add a darker `--mp-accent-text` token for text
     and buttons.
-- [ ] Run axe on the signed-in screens (needs e2e secrets) and triage
+- [x] First signed-in axe run in CI (16 failures, all color-contrast): five
+      `text-muted/50..75` uses faded the tuned token below 4.5:1; now full
+      `text-muted`. Also found icon-only buttons with no accessible name: the
+      design Tooltip wrapped icons in `role="group"`, which Chromium drops from
+      the button name. Fixed in mushpoint-design `c4d5938`, `Icon.spec.ts` guards it.
+- [ ] Vision board upload fails in CI e2e (preview image never shows):
+      check the test project's private `vision` bucket, then the signed URL
 - [ ] Lighthouse CI accessibility score as a secondary signal
 - [ ] Keyboard-only pass of every flow
 - [ ] Kanban: keyboard alternative to drag-and-drop (2.5.7)
