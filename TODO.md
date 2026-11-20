@@ -103,7 +103,14 @@ accessibility, then ops.
       to uid 101). Stable nginx 1.30.6 also had 5 HIGH nginx CVEs with no 1.30.7
       image, so the base is mainline `nginx-unprivileged:1.31-alpine`. Rescan: 0.
 - [x] SAST: CodeQL `security-extended` in CI
-- [ ] Walk the OWASP ASVS Level 1 checklist against `docs/auth.md`
+- [x] Walk the OWASP ASVS Level 1 checklist against `docs/auth.md`:
+      `docs/security/asvs-l1.md`. Gaps: 8-character password minimum (L1
+      wants 12), leaked-password check and auth anti-automation (Supabase
+      settings), access tokens valid up to 1 h after sign-out
+- [ ] Raise the password minimum to 12 in Supabase, then `MIN_PASSWORD` in
+      `signup/+page.svelte` and `AccountSettings.svelte`
+- [ ] Decide on sign-out: accept up to 1 h of access-token validity, or
+      shorten the Supabase JWT expiry
 - [ ] Supabase: auth rate limits, CAPTCHA on sign-up and password reset,
       leaked-password protection, bucket stays private
 
