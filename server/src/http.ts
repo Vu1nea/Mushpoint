@@ -1,19 +1,23 @@
-import type { ErrorRequestHandler, Request, RequestHandler } from 'express';
+import type { ErrorRequestHandler, RequestHandler } from 'express';
 import multer from 'multer';
 import type { Pool } from 'pg';
+import type { z } from 'zod';
 import type { Verifier } from './auth';
 import type { SqlDriver } from './db/driver';
 import { withUser } from './db/scope';
 import { AppError, type ErrorKind } from './error';
 import { log, type Logger } from './logger';
 import { parseTimezone } from './repo/helpers';
+import { parse } from './schemas';
 
 export interface Ctx {
   userId: string;
   tz: string;
   id(name?: string): number;
-  body<T>(): T;
-  query: Request['query'];
+  /** The JSON body, checked against `schema`; a mismatch is a 400. */
+  body<S extends z.ZodType>(schema: S): z.output<S>;
+  /** The query string, checked against `schema`; a mismatch is a 400. */
+  query<S extends z.ZodType>(schema: S): z.output<S>;
 }
 
 export type Handle = <T>(
@@ -58,14 +62,16 @@ export function makeHandle(pool: Pool): Handle {
           if (!Number.isSafeInteger(n) || n <= 0) throw AppError.validation('invalid id');
           return n;
         },
-        body<T>() {
+        body(schema) {
           const b: unknown = req.body;
           if (typeof b !== 'object' || b === null || Array.isArray(b)) {
             throw AppError.validation('request body must be a JSON object');
           }
-          return b as T;
+          return parse(schema, b);
         },
-        query: req.query
+        query(schema) {
+          return parse(schema, req.query);
+        }
       };
       const result = await withUser(pool, userId, (driver) => fn(driver, ctx));
       if (afterCommit) {

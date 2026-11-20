@@ -3,16 +3,15 @@ import { AppError } from '../error';
 import type { Ctx, Handle } from '../http';
 import { isOwnImagePath, type ImageStore } from '../images';
 import * as visionItem from '../repo/visionItem';
+import { orderBody, visionItemInput } from '../schemas';
 import type { VisionItem, VisionItemInput } from '../types';
 import type { VisionItemView } from '../viewTypes';
 import { SIGNED_URL_SECONDS } from './visionImages';
 
 function ownInput(c: Ctx): VisionItemInput {
-  const input = c.body<VisionItemInput>();
-  if (input.imagePath !== null && input.imagePath !== undefined) {
-    if (typeof input.imagePath !== 'string' || !isOwnImagePath(c.userId, input.imagePath)) {
-      throw AppError.validation('invalid image path');
-    }
+  const input = c.body(visionItemInput);
+  if (input.imagePath !== null && !isOwnImagePath(c.userId, input.imagePath)) {
+    throw AppError.validation('invalid image path');
   }
   return input;
 }
@@ -38,11 +37,7 @@ export function visionItemsRouter(handle: Handle, images: ImageStore): Router {
   r.post('/', handle((db, c) => visionItem.create(db, ownInput(c)), { present: one }));
   // Registered before `/:id` so "order" is never read as an id.
   r.put('/order', handle((db, c) => {
-    const { orderedIds } = c.body<{ orderedIds: unknown }>();
-    if (!Array.isArray(orderedIds) || !orderedIds.every((id) => Number.isSafeInteger(id) && id > 0)) {
-      throw AppError.validation('orderedIds must be an array of positive integers');
-    }
-    return visionItem.reorder(db, orderedIds as number[]);
+    return visionItem.reorder(db, c.body(orderBody).orderedIds);
   }, { status: 204 }));
   r.put('/:id', handle(async (db, c) => {
     const id = c.id();

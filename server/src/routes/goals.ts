@@ -3,47 +3,25 @@ import { AppError } from '../error';
 import type { Ctx, Handle } from '../http';
 import { isOwnImagePath } from '../images';
 import * as goal from '../repo/goal';
-import type { GoalInput, GoalStatus } from '../types';
-
-const STATUSES: readonly GoalStatus[] = ['active', 'completed', 'archived'];
-
-function parseStatus(raw: unknown): GoalStatus {
-  if (typeof raw !== 'string' || !STATUSES.includes(raw as GoalStatus)) {
-    throw AppError.validation('status must be one of active, completed, archived');
-  }
-  return raw as GoalStatus;
-}
+import { goalDeleteQuery, goalInput, goalListQuery, goalStatusBody } from '../schemas';
+import type { GoalInput } from '../types';
 
 /** The body as a goal, refusing a motivation image that is not one of the caller's uploads. */
-function ownInput(c: Ctx): GoalInput {
-  const input = c.body<GoalInput>();
-  const path: unknown = input.motivationImagePath;
-  if (path !== null && path !== undefined && !(typeof path === 'string' && path.trim() === '')) {
-    if (typeof path !== 'string' || !isOwnImagePath(c.userId, path.trim())) {
-      throw AppError.validation('invalid image path');
-    }
-  }
+export function ownGoalInput(c: Ctx): GoalInput {
+  const input = c.body(goalInput);
+  const path = input.motivationImagePath?.trim();
+  if (path && !isOwnImagePath(c.userId, path)) throw AppError.validation('invalid image path');
   return input;
 }
 
 export function goalsRouter(handle: Handle): Router {
   const r = Router();
-  r.get('/', handle((db, c) => {
-    const status = c.query.status === undefined ? null : parseStatus(c.query.status);
-    return goal.list(db, status, c.tz);
-  }));
+  r.get('/', handle((db, c) => goal.list(db, c.query(goalListQuery).status ?? null, c.tz)));
   r.get('/:id', handle((db, c) => goal.getDetail(db, c.id(), c.tz)));
-  r.post('/', handle((db, c) => goal.create(db, ownInput(c))));
-  r.put('/:id', handle((db, c) => goal.update(db, c.id(), ownInput(c))));
-  r.put('/:id/status', handle((db, c) =>
-    goal.setStatus(db, c.id(), parseStatus(c.body<{ status: unknown }>().status))
-  ));
-  r.delete('/:id', handle((db, c) => {
-    const flag = c.query.deleteOrphanedTasks;
-    if (flag !== undefined && flag !== 'true' && flag !== 'false') {
-      throw AppError.validation('deleteOrphanedTasks must be true or false');
-    }
-    return goal.remove(db, c.id(), flag === 'true');
-  }, { status: 204 }));
+  r.post('/', handle((db, c) => goal.create(db, ownGoalInput(c))));
+  r.put('/:id', handle((db, c) => goal.update(db, c.id(), ownGoalInput(c))));
+  r.put('/:id/status', handle((db, c) => goal.setStatus(db, c.id(), c.body(goalStatusBody).status)));
+  r.delete('/:id', handle((db, c) =>
+    goal.remove(db, c.id(), c.query(goalDeleteQuery).deleteOrphanedTasks), { status: 204 }));
   return r;
 }

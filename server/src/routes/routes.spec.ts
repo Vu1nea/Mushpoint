@@ -274,6 +274,14 @@ describe('vision images', () => {
     await a.post('/api/goals').send({ ...goalBody, motivationImagePath: 'https://evil.com/x.png' }).expect(400);
     const own = (await a.post('/api/goals').send({ ...goalBody, motivationImagePath: `${A}/${randomUUID()}.png` }).expect(200)).body;
     await a.put(`/api/goals/${own.id}`).send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+    const idea = (await a.post('/api/ideas').send({ title: 'I', note: null, tagNames: [] }).expect(200)).body;
+    await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+    expect((await a.get(`/api/ideas/${idea.id}`).expect(200)).body.promotedGoalId).toBeNull();
+  });
+
+  it('names the bad field in a validation message', async () => {
+    const res = await a.post('/api/goals').send({ ...goalBody, timeframe: 'bogus' }).expect(400);
+    expect(res.body).toMatchObject({ kind: 'validation', message: expect.stringMatching(/^timeframe: /) });
   });
 
   it("rejects another user's image path on a vision item", async () => {

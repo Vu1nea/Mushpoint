@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import type { Pool } from 'pg';
 import { withUser } from '../db/scope';
-import { AppError } from '../error';
 import { logFor, type Handle } from '../http';
 import { checkedUpload, type ImageStore } from '../images';
 import * as profile from '../repo/profile';
+import { usernameBody } from '../schemas';
 import type { Profile } from '../types';
 import { SIGNED_URL_SECONDS, singleImage } from './visionImages';
 
@@ -23,11 +23,7 @@ export function profileRouter(handle: Handle, pool: Pool, images: ImageStore): R
   };
 
   r.get('/', handle((db) => profile.get(db), { present }));
-  r.put('/username', handle((db, c) => {
-    const { username } = c.body<{ username: unknown }>();
-    if (typeof username !== 'string') throw AppError.validation('username must be text');
-    return profile.setUsername(db, username);
-  }, { present }));
+  r.put('/username', handle((db, c) => profile.setUsername(db, c.body(usernameBody).username), { present }));
 
   /** `PUT /avatar` (multipart field `file`): stores the picture, then points the profile at it. */
   r.put('/avatar', singleImage(), async (req, res) => {
