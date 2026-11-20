@@ -1,0 +1,29 @@
+# One origin: /api to the API, everything else to the SPA, so no CORS.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mushpoint
+  namespace: mushpoint
+  annotations:
+    # Per client IP, in front of the API's own per-IP limit (600/min).
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+    # The API accepts images up to 5 MB; ingress-nginx refuses bodies over 1 MB by default.
+    nginx.ingress.kubernetes.io/proxy-body-size: 6m
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port: { name: http }
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: web
+                port: { name: http }

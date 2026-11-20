@@ -1,0 +1,38 @@
+# Applies pending migrations with the API image. Migrations only add, so run
+# this before rolling out an API that needs them. Applied migrations are
+# skipped, so a re-run is safe; delete the old Job first (Jobs are immutable).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+  namespace: mushpoint
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: mushpoint-api:local
+          imagePullPolicy: IfNotPresent
+          command: ["node", "dist/db/migrateCli.js"]
+          env:
+            - name: MIGRATE_DATABASE_URL
+              valueFrom:
+                secretKeyRef: { name: api-secrets, key: MIGRATE_DATABASE_URL }
+            - name: MUSHPOINT_APP_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: api-secrets, key: MUSHPOINT_APP_PASSWORD }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { memory: 256Mi }

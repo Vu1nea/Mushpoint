@@ -1,0 +1,15 @@
+# Non-secret API settings. Secrets (database URLs, service key) live in the
+# api-secrets Secret; see secret.example.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: mushpoint
+data:
+  PORT: "3000"
+  # One proxy hop (the ingress) in front of the API, so per-IP rate limits see
+  # the real client address.
+  TRUST_PROXY: "1"
+  LOG_LEVEL: info
+  # Your Supabase project URL: public, but different per environment.
+  SUPABASE_URL: https://your-project-ref.supabase.co

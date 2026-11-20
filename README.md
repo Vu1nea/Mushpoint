@@ -554,9 +554,9 @@ The same image runs migrations: use the command `node dist/db/migrateCli.js` and
 
 The client builds to static files (`app/build/`, with `index.html` as the SPA fallback). It needs only a static file server plus a `/api` route to the API on the same origin.
 
-### Planned: local Kubernetes (phase 3)
+### Local Kubernetes (phase 3)
 
-> **Planned, not built.** There's no `deploy/` directory yet. This section follows the roadmap in [`docs/superpowers/plans/2026-11-06-hosted-server.md`](docs/superpowers/plans/2026-11-06-hosted-server.md) (Task 16) and the [hosted-server spec](docs/superpowers/specs/2026-11-06-hosted-server-design.md). Details may change when the phase gets its detailed plan.
+> **Manifests written, cluster run pending.** [`deploy/k8s/`](deploy/k8s) holds the manifests and [`docs/k8s-runbook.md`](docs/k8s-runbook.md) the commands to bring them up and operate them. They follow Task 16 of [`docs/superpowers/plans/2026-11-06-hosted-server.md`](docs/superpowers/plans/2026-11-06-hosted-server.md). The first end-to-end kind run is still to be recorded in the runbook.
 
 The planned cluster has these parts:
 
@@ -565,9 +565,9 @@ The planned cluster has these parts:
 - The API Deployment runs 2 replicas of `mushpoint-api`. It reads env from a ConfigMap and a Secret, uses `GET /api/healthz` as the liveness probe and `GET /api/readyz` as the readiness probe, and sets resource requests and limits.
 - The web Deployment runs nginx, serving the static build with SPA fallback. It mounts `/config.json` from a ConfigMap, so one image serves any environment.
 - The migrate Job runs the API image with `node dist/db/migrateCli.js`, reading `MIGRATE_DATABASE_URL` and `MUSHPOINT_APP_PASSWORD` from the Secret.
-- The Ingress routes `/api` to the API service and `/` to the web service on one origin, so CORS isn't needed. It also limits request rates through an ingress annotation; the API process has no rate limiter of its own.
+- The Ingress routes `/api` to the API service and `/` to the web service on one origin, so CORS isn't needed. It also limits request rates per client IP through an ingress annotation, in front of the API's own per-IP and per-user limits.
 - The database is external (Supabase Postgres); no database runs in the cluster.
-- Manifests ship `*.example.yaml` files only, so no secret lands in git. A runbook (`docs/k8s-runbook.md`) will cover create, load images, apply, scale, roll out, roll back and tear down.
+- The Secret ships only as `deploy/secret.example.yaml`; the real one is created from a gitignored env file. The runbook covers create, load images, apply, scale, roll out, roll back, rotate secrets and tear down.
 
 ```mermaid
 flowchart TB

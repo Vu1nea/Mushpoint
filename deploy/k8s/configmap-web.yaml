@@ -1,0 +1,14 @@
+# The SPA's runtime config, mounted over /config.json so one web image serves
+# any environment. Everything here is public: every browser downloads it.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: mushpoint
+data:
+  config.json: |
+    {
+      "apiUrl": "/api",
+      "supabaseUrl": "https://your-project-ref.supabase.co",
+      "supabaseAnonKey": "sb_publishable_your-key"
+    }

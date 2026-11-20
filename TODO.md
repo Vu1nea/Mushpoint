@@ -252,8 +252,13 @@ accessibility, then ops.
 
 - [ ] Staging environment with its own Supabase project
 - [ ] Secrets in a secret manager, never in env files on disk
-- [ ] Runbook (`docs/k8s-runbook.md`): deploy, roll back, rotate
-      `SUPABASE_SERVICE_KEY`, incident contacts
+- [x] Kubernetes manifests (`deploy/k8s/`, kind config, example Secret) and
+      runbook (`docs/k8s-runbook.md`): deploy, migrate, roll out, roll back,
+      rotate `SUPABASE_SERVICE_KEY`, probes, incidents. Checked offline only
+- [ ] Run the kind walkthrough end to end and record it in the runbook
+- [ ] Fill in incident contacts in the runbook
+- [ ] Pick an ingress controller: ingress-nginx (in the manifests, per the
+      plan) was retired in March 2026
 
 ### 10. Legal and privacy
 
@@ -271,7 +276,7 @@ accessibility, then ops.
 - [ ] API + Supabase vs just Supabase
 - [ ] Self-hosted Postgres vs Supabase hosted Postgres
 - [ ] CI/CD Pipeline
-- [ ] K8s Cluster
+- [x] K8s Cluster: `deploy/k8s/` + `docs/k8s-runbook.md`
 
 ### 12. File Organization
 
