@@ -214,7 +214,12 @@ accessibility, then ops.
       boundaries, signed image URLs expiring on a long-open tab
 - [ ] k6 load test on dashboard and streak endpoints; set an SLO
       (e.g. p95 under 300 ms) and size the pg pool to match
-- [ ] Postman: Create collection user can try all possible use cases
+- [x] Postman: Create collection user can try all possible use cases:
+      `server/postman/mushpoint.postman_collection.json`, generated from
+      `src/postman.ts` (`npm run postman`). Signs in with Supabase, then runs
+      every operation except DELETE /account in order, ids passed through
+      collection variables; `postman.spec.ts` runs the same steps against the
+      API and fails when a route has no step
 
 ### 7. Observability
 

@@ -15,7 +15,7 @@ where things live, and run `graphify update .` after large changes.
 ## Commands
 
 Server (`cd server`): `npm run db:up` (Postgres in Docker on 54329; tests need it),
-`npm test`, `npm run check`, `npm run build`, `npm run openapi`.
+`npm test`, `npm run check`, `npm run build`, `npm run openapi`, `npm run postman`.
 
 App (`cd app`): `npm run check`, `npm run lint` (prettier), `npm test` (unit),
 `npm run test:e2e` (Playwright, needs a Supabase test project, see `app/README.md`).
@@ -32,7 +32,8 @@ source of truth.
   (`types.spec.ts` checks it).
 - New route: add a zod schema in `server/src/schemas.ts` and read input only through
   `c.body(schema)` / `c.query(schema)`; add it to `OPERATIONS` in `server/src/openapi.ts`
-  and run `npm run openapi`; add an `:id` route to the IDOR sweep in
+  and run `npm run openapi`; add a step to `FOLDERS` in `server/src/postman.ts` and run
+  `npm run postman`; add an `:id` route to the IDOR sweep in
   `server/src/routes/idor.spec.ts`.
 - Schemas check shape only. Meaning (trim, empty, `MAX_TEXT`, http(s) URLs, ownership of
   image paths via `isOwnImagePath`) lives in `server/src/repo/` or the route.

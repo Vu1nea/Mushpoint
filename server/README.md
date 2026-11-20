@@ -23,6 +23,7 @@ Copy `.env.example` to `.env` first; its defaults point at the compose database.
 | `npm run dev` | Runs `src/main.ts` with tsx in watch mode, reading `.env` |
 | `npm run build` | Bundles `dist/main.js` and `dist/db/migrateCli.js` with esbuild and copies the migrations |
 | `npm run openapi` | Writes `openapi.json` from the request schemas. Run it after you change a route; `npm test` fails while the file is stale |
+| `npm run postman` | Writes the Postman collection from `src/postman.ts`. `npm test` fails while it is stale, or when a route has no step |
 
 ## Deploy a new server version
 
@@ -113,7 +114,7 @@ On Linux, `--network host` with `localhost` in `DATABASE_URL` works too. The sam
 
 ## API conventions
 
-The full route list, with every request body and query parameter, is in [`openapi.json`](openapi.json) (OpenAPI 3.1). Every route follows the same 4 rules:
+The full route list, with every request body and query parameter, is in [`openapi.json`](openapi.json) (OpenAPI 3.1). To try the API by hand, import [`postman/mushpoint.postman_collection.json`](postman/mushpoint.postman_collection.json) into Postman: it signs in with Supabase, then walks through every use case in order, passing new ids from one request to the next. Every route follows the same 4 rules:
 
 - **Base path and auth**: every route lives under `/api`. Every route except `healthz` and `readyz` needs `Authorization: Bearer your_supabase_access_token`.
 - **Time zone header**: routes that work out today's date need `X-Timezone` set to an Internet Assigned Numbers Authority (IANA) time zone, such as `America/New_York`. Those routes are `GET /goals`, `GET /goals/:id`, `GET /tasks`, `GET /streaks` and `PUT /tasks/:id/completion`.

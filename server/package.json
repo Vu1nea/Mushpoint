@@ -10,6 +10,7 @@
     "start": "node dist/main.js",
     "migrate": "tsx --env-file=.env src/db/migrateCli.ts",
     "openapi": "tsx src/openapiCli.ts",
+    "postman": "tsx src/postmanCli.ts",
     "test": "vitest run",
     "check": "tsc --noEmit",
     "db:up": "docker compose up -d --wait",
