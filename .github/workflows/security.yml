@@ -71,12 +71,25 @@ jobs:
             mushpoint-web:ci
           for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8080 && break; sleep 1; done
       - name: ZAP baseline
-        # -I: warnings are reported, not fatal. Two are accepted risks (see
-        # TODO.md section 4): CSP style-src 'unsafe-inline' and no COEP header.
+        # -I: warnings don't fail this step; the next step decides. Failures still do.
         run: |
           mkdir -p zap && chmod 777 zap
           docker run --rm --network host -v "$PWD/zap:/zap/wrk" ghcr.io/zaproxy/zaproxy:stable \
             zap-baseline.py -t http://localhost:8080 -r report.html -J report.json -I
+      - name: Fail on any alert that is not an accepted risk
+        # Accepted risks (TODO.md section 4), matched by alert reference so other
+        # findings from the same rule still fail: 10055-6 CSP style-src
+        # 'unsafe-inline', 90004-2 no Cross-Origin-Embedder-Policy.
+        run: |
+          new=$(jq -r '[.site[].alerts[]
+            | select((.riskcode | tonumber) >= 1)
+            | select(.alertRef as $r | ["10055-6", "90004-2"] | index($r) | not)
+            | "\(.alertRef) \(.name)"] | unique | .[]' zap/report.json)
+          if [ -n "$new" ]; then
+            echo "::error::ZAP found alerts that are not accepted risks:"
+            echo "$new"
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
