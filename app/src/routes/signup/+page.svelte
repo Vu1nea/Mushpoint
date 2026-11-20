@@ -1,5 +1,5 @@
 <script lang="ts">
-	import mushIcon from '$lib/assets/mush-icon.png';
+	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { AppError } from '$lib/api/error';
 	import { resendConfirmation, signUp } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
@@ -56,7 +56,14 @@
 <svelte:head><title>Create an account · Mushpoint</title></svelte:head>
 
 <div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img src={mushIcon} alt="" class="mb-4 size-10 rounded-full object-cover" aria-hidden="true" />
+	<img
+		src={mushIcon}
+		alt=""
+		width="40"
+		height="40"
+		class="mb-4 size-10 rounded-full object-cover"
+		aria-hidden="true"
+	/>
 
 	{#if error}
 		<div class="mb-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>

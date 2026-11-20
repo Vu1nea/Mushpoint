@@ -4,7 +4,7 @@
 
 	import { afterNavigate, invalidateAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.png';
+	import mushIcon from '$lib/assets/mush-icon.webp';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import MadeByCredit from '$lib/components/MadeByCredit.svelte';
@@ -107,8 +107,6 @@
 	});
 </script>
 
-<svelte:head><link rel="icon" href={mushIcon} /></svelte:head>
-
 {#if navigating.to}
 	<div
 		class="fixed inset-x-0 top-0 z-50 h-0.5 animate-pulse bg-accent"
@@ -156,6 +154,8 @@
 				<img
 					src={mushIcon}
 					alt=""
+					width="32"
+					height="32"
 					class="size-8 shrink-0 rounded-full object-cover"
 					aria-hidden="true"
 				/>

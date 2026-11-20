@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.png';
+	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { safeNext } from '$lib/auth/routes';
 	import { EMAIL_NOT_CONFIRMED, resendConfirmation, signIn } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
@@ -52,7 +52,14 @@
 <svelte:head><title>Sign in · Mushpoint</title></svelte:head>
 
 <div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img src={mushIcon} alt="" class="mb-4 size-10 rounded-full object-cover" aria-hidden="true" />
+	<img
+		src={mushIcon}
+		alt=""
+		width="40"
+		height="40"
+		class="mb-4 size-10 rounded-full object-cover"
+		aria-hidden="true"
+	/>
 	<h1 class="mb-1 font-display text-2xl font-bold">Sign in</h1>
 	<p class="mb-6 text-sm text-muted">Welcome back to Mushpoint</p>
 

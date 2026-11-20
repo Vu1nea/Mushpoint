@@ -1,5 +1,5 @@
 <script lang="ts">
-	import mushIcon from '$lib/assets/mush-icon.png';
+	import mushIcon from '$lib/assets/mush-icon.webp';
 	import Avatar from './Avatar.svelte';
 
 	interface Props {
@@ -21,7 +21,14 @@
 <header
 	class="flex shrink-0 items-center gap-2.5 border-b border-subtle bg-surface pt-[env(safe-area-inset-top)] pr-[max(0.375rem,env(safe-area-inset-right))] pl-[max(1rem,env(safe-area-inset-left))] md:hidden"
 >
-	<img src={mushIcon} alt="" class="size-7 shrink-0 rounded-full object-cover" aria-hidden="true" />
+	<img
+		src={mushIcon}
+		alt=""
+		width="28"
+		height="28"
+		class="size-7 shrink-0 rounded-full object-cover"
+		aria-hidden="true"
+	/>
 	<span class="min-w-0 flex-1 truncate font-display text-base font-bold tracking-[0.2px]">
 		{title}
 	</span>

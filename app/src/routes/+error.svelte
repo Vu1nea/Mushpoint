@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.png';
+	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { button } from '$lib/components/ui';
 
 	const notFound = $derived(page.status === 404);
@@ -19,6 +19,8 @@
 		<img
 			src={mushIcon}
 			alt=""
+			width="80"
+			height="80"
 			aria-hidden="true"
 			class="error-mascot mb-4 size-20 rounded-full object-cover"
 		/>

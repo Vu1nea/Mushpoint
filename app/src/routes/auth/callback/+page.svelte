@@ -3,7 +3,7 @@
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.png';
+	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { AppError } from '$lib/api/error';
 	import { completeCallback, setNewPassword, type CallbackResult } from '$lib/auth/session.svelte';
 	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
@@ -56,7 +56,14 @@
 <svelte:head><title>Mushpoint</title></svelte:head>
 
 <div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img src={mushIcon} alt="" class="mb-4 size-10 rounded-full object-cover" aria-hidden="true" />
+	<img
+		src={mushIcon}
+		alt=""
+		width="40"
+		height="40"
+		class="mb-4 size-10 rounded-full object-cover"
+		aria-hidden="true"
+	/>
 
 	{#if status === 'working'}
 		<p class="text-sm text-muted" role="status">Signing you in…</p>
