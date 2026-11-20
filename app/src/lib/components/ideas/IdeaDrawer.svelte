@@ -1,11 +1,11 @@
-<!-- app/src/lib/components/IdeaDrawer.svelte -->
+<!-- app/src/lib/components/ideas/IdeaDrawer.svelte -->
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { createIdea, updateIdea, type Idea } from '$lib/api';
-	import FormModal from './FormModal.svelte';
-	import Icon from './Icon.svelte';
-	import TagInput from './TagInput.svelte';
-	import { field } from './ui';
+	import FormModal from '../ui/FormModal.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import TagInput from '../ui/TagInput.svelte';
+	import { field } from '../ui';
 
 	interface Props {
 		open: boolean;

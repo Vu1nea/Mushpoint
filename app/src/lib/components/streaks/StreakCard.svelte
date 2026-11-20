@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { RECURRENCE_LABELS, type StreakCard } from '$lib/api';
-	import Checkbox from './Checkbox.svelte';
-	import Icon from './Icon.svelte';
+	import Checkbox from '../ui/Checkbox.svelte';
+	import Icon from '../ui/Icon.svelte';
 	import StreakHeatmap from './StreakHeatmap.svelte';
 
 	interface Props {

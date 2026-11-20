@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HTMLInputAttributes } from 'svelte/elements';
 	import Icon from './Icon.svelte';
-	import { field } from './ui';
+	import { field } from './';
 
 	interface Props extends Omit<HTMLInputAttributes, 'type' | 'value'> {
 		value: string;

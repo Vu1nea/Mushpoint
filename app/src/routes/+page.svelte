@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import DashboardGoalsPanel from '$lib/components/DashboardGoalsPanel.svelte';
-	import DashboardQuickAdd from '$lib/components/DashboardQuickAdd.svelte';
-	import DashboardStreaks from '$lib/components/DashboardStreaks.svelte';
-	import DashboardTasksToday from '$lib/components/DashboardTasksToday.svelte';
-	import DashboardUpcoming from '$lib/components/DashboardUpcoming.svelte';
-	import DashboardVisionPreview from '$lib/components/DashboardVisionPreview.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import DashboardGoalsPanel from '$lib/components/dashboard/DashboardGoalsPanel.svelte';
+	import DashboardQuickAdd from '$lib/components/dashboard/DashboardQuickAdd.svelte';
+	import DashboardStreaks from '$lib/components/dashboard/DashboardStreaks.svelte';
+	import DashboardTasksToday from '$lib/components/dashboard/DashboardTasksToday.svelte';
+	import DashboardUpcoming from '$lib/components/dashboard/DashboardUpcoming.svelte';
+	import DashboardVisionPreview from '$lib/components/dashboard/DashboardVisionPreview.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 
 	let { data } = $props();
 

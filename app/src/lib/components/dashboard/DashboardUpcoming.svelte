@@ -2,7 +2,7 @@
 	import type { GoalSummary, Subgoal, TaskSummary } from '$lib/api';
 	import { buildUpcomingFeed } from '$lib/dashboard';
 	import { dueLabel, dueTone } from '$lib/format';
-	import { DUE_CLASSES, sectionHeading } from './ui';
+	import { DUE_CLASSES, sectionHeading } from '../ui';
 
 	interface Props {
 		goals: GoalSummary[];

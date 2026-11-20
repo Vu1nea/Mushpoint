@@ -4,9 +4,9 @@
 	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { safeNext } from '$lib/auth/routes';
 	import { EMAIL_NOT_CONFIRMED, resendConfirmation, signIn } from '$lib/auth/session.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import PasswordInput from '$lib/components/PasswordInput.svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let email = $state('');

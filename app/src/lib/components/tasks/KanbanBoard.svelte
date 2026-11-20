@@ -1,4 +1,4 @@
-<!-- app/src/lib/components/KanbanBoard.svelte -->
+<!-- app/src/lib/components/tasks/KanbanBoard.svelte -->
 <script lang="ts">
 	import { flip } from 'svelte/animate';
 	import { tick } from 'svelte';
@@ -29,11 +29,11 @@
 	} from '$lib/kanban';
 	import { motion, stagger } from '$lib/motion';
 	import { optimistic } from '$lib/optimistic';
-	import Icon from './Icon.svelte';
-	import Select from './Select.svelte';
-	import Tabs from './Tabs.svelte';
-	import { tabId, tabPanelId } from './tabIds';
-	import { button, field, sectionHeading } from './ui';
+	import Icon from '../ui/Icon.svelte';
+	import Select from '../ui/Select.svelte';
+	import Tabs from '../ui/Tabs.svelte';
+	import { tabId, tabPanelId } from '../ui/tabIds';
+	import { button, field, sectionHeading } from '../ui';
 
 	interface Props {
 		goalId?: number | null;

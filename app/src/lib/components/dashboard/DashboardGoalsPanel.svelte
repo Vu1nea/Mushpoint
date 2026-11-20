@@ -3,9 +3,9 @@
 	import { percent } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
-	import Icon from './Icon.svelte';
-	import ProgressBar from './ProgressBar.svelte';
-	import { sectionHeading } from './ui';
+	import Icon from '../ui/Icon.svelte';
+	import ProgressBar from '../ui/ProgressBar.svelte';
+	import { sectionHeading } from '../ui';
 
 	interface Props {
 		goals: GoalSummary[];

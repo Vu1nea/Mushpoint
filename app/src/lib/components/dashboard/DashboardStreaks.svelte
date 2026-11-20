@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { StreakCard as StreakCardData } from '$lib/api';
 	import { topStreaks } from '$lib/dashboard';
-	import Icon from './Icon.svelte';
-	import StreakCard from './StreakCard.svelte';
-	import { sectionHeading } from './ui';
+	import Icon from '../ui/Icon.svelte';
+	import StreakCard from '../streaks/StreakCard.svelte';
+	import { sectionHeading } from '../ui';
 
 	interface Props {
 		streaks: StreakCardData[];

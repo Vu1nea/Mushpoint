@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { VisionItemView } from '$lib/api';
-	import Icon from './Icon.svelte';
-	import VisionImage from './VisionImage.svelte';
-	import { button, sectionHeading } from './ui';
+	import Icon from '../ui/Icon.svelte';
+	import VisionImage from '../vision/VisionImage.svelte';
+	import { button, sectionHeading } from '../ui';
 
 	interface Props {
 		items: VisionItemView[];

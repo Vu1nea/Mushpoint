@@ -1,4 +1,4 @@
-<!-- app/src/lib/components/VisionImage.svelte -->
+<!-- app/src/lib/components/vision/VisionImage.svelte -->
 <script lang="ts">
 	interface Props {
 		/** A vision item's signed `imageUrl`; null renders nothing. */

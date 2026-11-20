@@ -1,12 +1,12 @@
-<!-- app/src/lib/components/VisionBoard.svelte -->
+<!-- app/src/lib/components/vision/VisionBoard.svelte -->
 <script lang="ts">
 	import { tick } from 'svelte';
 	import type { VisionItemView } from '$lib/api';
 	import { stagger } from '$lib/motion';
 	import { moveId, moveIdBy } from '$lib/reorder';
-	import Icon from './Icon.svelte';
+	import Icon from '../ui/Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
-	import { button } from './ui';
+	import { button } from '../ui';
 
 	interface Props {
 		items: VisionItemView[];

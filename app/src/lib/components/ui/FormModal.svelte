@@ -6,7 +6,7 @@
 	import { motion } from '$lib/motion';
 	import Icon from './Icon.svelte';
 	import Spinner from './Spinner.svelte';
-	import { button } from './ui';
+	import { button } from './';
 
 	interface Props {
 		open: boolean;

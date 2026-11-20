@@ -5,9 +5,9 @@
 	import { GOAL_STATUS_LABELS, GOAL_STATUSES, setGoalStatus, type GoalStatus } from '$lib/api';
 	import { motion } from '$lib/motion';
 	import { optimistic } from '$lib/optimistic';
-	import ConfirmDialog from './ConfirmDialog.svelte';
+	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
 	import GoalCompleteCelebration from './GoalCompleteCelebration.svelte';
-	import Icon from './Icon.svelte';
+	import Icon from '../ui/Icon.svelte';
 
 	interface Props {
 		goalId: number;

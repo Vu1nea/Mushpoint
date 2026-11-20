@@ -6,8 +6,8 @@
 	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { AppError } from '$lib/api/error';
 	import { completeCallback, setNewPassword, type CallbackResult } from '$lib/auth/session.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	const MIN_PASSWORD = 8;

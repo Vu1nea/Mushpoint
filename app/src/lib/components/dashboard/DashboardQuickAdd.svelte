@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { createIdea, createTask } from '$lib/api';
-	import Icon from './Icon.svelte';
-	import Spinner from './Spinner.svelte';
-	import { button, field, segment } from './ui';
+	import Icon from '../ui/Icon.svelte';
+	import Spinner from '../ui/Spinner.svelte';
+	import { button, field, segment } from '../ui';
 
 	/** No goals here: a goal-sized thought starts as an idea and is promoted
 	 * once its timeframe, category and motivation are worked out. */

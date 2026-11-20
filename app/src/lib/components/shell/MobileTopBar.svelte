@@ -1,6 +1,6 @@
 <script lang="ts">
 	import mushIcon from '$lib/assets/mush-icon.webp';
-	import Avatar from './Avatar.svelte';
+	import Avatar from '../account/Avatar.svelte';
 
 	interface Props {
 		/** The current screen's name, shown in the middle of the bar. */

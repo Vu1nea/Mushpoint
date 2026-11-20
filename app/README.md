@@ -183,11 +183,16 @@ Each folder under `src` has one job:
 
 ```text
 src/lib/auth/         Supabase session (sign-in, callback, token) and public-route rules
-src/lib/api/          the one interface routes/components use; one HTTP call per function
+src/lib/api/          the one interface routes/components use; one module per resource,
+                      one HTTP call per function, all re-exported from index.ts
 src/lib/images.ts     vision image upload (type/size checked before it is sent)
 src/lib/theme/        active theme store, persisted via the API and mirrored to localStorage
 src/lib/icons/        logical icon names resolved per theme
-src/lib/components/   UI components
+src/lib/components/   UI components, one folder per feature:
+  ui/                 generic building blocks (Icon, Select, FormModal, ...); ui/index.ts
+                      holds the shared class helpers imported as $lib/components/ui
+  shell/              app frame: mobile bars and menu, sidebar user, theme switch
+  dashboard/ goals/ tasks/ streaks/ ideas/ vision/ account/
 src/routes/           one folder per screen
 static/config.json    runtime config (API base URL, Supabase project), loaded at startup
 ```

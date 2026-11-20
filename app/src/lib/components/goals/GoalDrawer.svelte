@@ -10,11 +10,11 @@
 		type GoalInput,
 		type Timeframe
 	} from '$lib/api';
-	import FormModal from './FormModal.svelte';
-	import Icon from './Icon.svelte';
-	import Select from './Select.svelte';
-	import DatePicker from './DatePicker.svelte';
-	import { field, segment } from './ui';
+	import FormModal from '../ui/FormModal.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import Select from '../ui/Select.svelte';
+	import DatePicker from '../ui/DatePicker.svelte';
+	import { field, segment } from '../ui';
 
 	interface Props {
 		open: boolean;

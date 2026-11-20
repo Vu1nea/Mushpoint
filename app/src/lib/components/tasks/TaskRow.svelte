@@ -8,10 +8,10 @@
 	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { optimistic } from '$lib/optimistic';
-	import Checkbox from './Checkbox.svelte';
-	import ConfirmDialog from './ConfirmDialog.svelte';
-	import Icon from './Icon.svelte';
-	import { button } from './ui';
+	import Checkbox from '../ui/Checkbox.svelte';
+	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import { button } from '../ui';
 
 	interface Props {
 		task: TaskSummary;

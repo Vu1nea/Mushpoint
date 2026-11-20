@@ -1,8 +1,8 @@
 <script lang="ts">
 	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { requestPasswordReset } from '$lib/auth/session.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let email = $state('');

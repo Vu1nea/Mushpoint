@@ -2,15 +2,15 @@
 	import { browser } from '$app/environment';
 	import { invalidateAll } from '$app/navigation';
 	import { deleteTask, setTaskCompletion, type TaskSummary } from '$lib/api';
-	import CalendarView from '$lib/components/CalendarView.svelte';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
-	import StreakCard from '$lib/components/StreakCard.svelte';
-	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
-	import { tabId, tabPanelId } from '$lib/components/tabIds';
-	import Tabs from '$lib/components/Tabs.svelte';
+	import CalendarView from '$lib/components/tasks/CalendarView.svelte';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
+	import StreakCard from '$lib/components/streaks/StreakCard.svelte';
+	import TaskDrawer from '$lib/components/tasks/TaskDrawer.svelte';
+	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import { button, sectionHeading } from '$lib/components/ui';
 	import { optimistic } from '$lib/optimistic';
 

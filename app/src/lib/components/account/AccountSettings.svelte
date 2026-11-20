@@ -13,10 +13,10 @@
 	import { downloadJson, exportFilename, withSignInEmail } from '$lib/download';
 	import { ACCEPTED_IMAGE_TYPES } from '$lib/images';
 	import Avatar from './Avatar.svelte';
-	import ConfirmDialog from './ConfirmDialog.svelte';
-	import ErrorBanner from './ErrorBanner.svelte';
-	import Spinner from './Spinner.svelte';
-	import { button, field, sectionHeading } from './ui';
+	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
+	import ErrorBanner from '../ui/ErrorBanner.svelte';
+	import Spinner from '../ui/Spinner.svelte';
+	import { button, field, sectionHeading } from '../ui';
 
 	interface Props {
 		username: string | null;

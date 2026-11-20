@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { auth, signOut } from '$lib/auth/session.svelte';
-	import Avatar from './Avatar.svelte';
-	import Icon from './Icon.svelte';
-	import Spinner from './Spinner.svelte';
+	import Avatar from '../account/Avatar.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import Spinner from '../ui/Spinner.svelte';
 
 	interface Props {
 		/** False in the collapsed rail: every entry shrinks to its icon. */

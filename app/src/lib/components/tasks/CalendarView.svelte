@@ -1,4 +1,4 @@
-<!-- app/src/lib/components/CalendarView.svelte -->
+<!-- app/src/lib/components/tasks/CalendarView.svelte -->
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { scale } from 'svelte/transition';
@@ -24,8 +24,8 @@
 	import { dueTone } from '$lib/format';
 	import { motion } from '$lib/motion';
 	import { portal } from '$lib/popover.svelte';
-	import Icon from './Icon.svelte';
-	import { button, DUE_CLASSES } from './ui';
+	import Icon from '../ui/Icon.svelte';
+	import { button, DUE_CLASSES } from '../ui';
 
 	interface Props {
 		goalId?: number | null;

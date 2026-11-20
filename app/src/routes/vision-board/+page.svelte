@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { deleteVisionItem, reorderVisionItems, type VisionItemView } from '$lib/api';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import VisionBoard from '$lib/components/VisionBoard.svelte';
-	import VisionItemDrawer from '$lib/components/VisionItemDrawer.svelte';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import VisionBoard from '$lib/components/vision/VisionBoard.svelte';
+	import VisionItemDrawer from '$lib/components/vision/VisionItemDrawer.svelte';
 	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();

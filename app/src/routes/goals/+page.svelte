@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { GOAL_STATUS_LABELS, TIMEFRAME_LABELS, type GoalStatus } from '$lib/api';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import ProgressRing from '$lib/components/ProgressRing.svelte';
-	import Select from '$lib/components/Select.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import ProgressRing from '$lib/components/ui/ProgressRing.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 	import { button, chip, DUE_CLASSES, sectionHeading } from '$lib/components/ui';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { stagger } from '$lib/motion';

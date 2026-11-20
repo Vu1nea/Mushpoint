@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
 	import { createIdea, deleteIdea, promoteIdea, type GoalInput, type Idea } from '$lib/api';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import IdeaDrawer from '$lib/components/IdeaDrawer.svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
-	import TagInput from '$lib/components/TagInput.svelte';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import IdeaDrawer from '$lib/components/ideas/IdeaDrawer.svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import TagInput from '$lib/components/ui/TagInput.svelte';
 	import { button, chip, field } from '$lib/components/ui';
 	import { stagger } from '$lib/motion';
 

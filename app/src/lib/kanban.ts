@@ -48,7 +48,7 @@ export function recentFirst(tasks: TaskSummary[]): TaskSummary[] {
 
 /**
  * A habit (a task with `recurrence` set) has no lasting `status` — see the rule
- * stated in `app/src/lib/components/TaskRow.svelte:36-38`. Its displayed column is
+ * stated in `app/src/lib/components/tasks/TaskRow.svelte:36-38`. Its displayed column is
  * derived from today's completion state instead, so it empties itself at midnight
  * without any scheduled job. Used directly by `KanbanBoard.svelte` for both the
  * goal-detail and Task Manager boards — no separate copy to keep in sync.

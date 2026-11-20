@@ -5,10 +5,10 @@
 	import { auth, signOut } from '$lib/auth/session.svelte';
 	import { motion } from '$lib/motion';
 	import { THEME_LABELS, theme } from '$lib/theme/theme.svelte';
-	import Avatar from './Avatar.svelte';
-	import Icon from './Icon.svelte';
+	import Avatar from '../account/Avatar.svelte';
+	import Icon from '../ui/Icon.svelte';
 	import MadeByCredit from './MadeByCredit.svelte';
-	import Spinner from './Spinner.svelte';
+	import Spinner from '../ui/Spinner.svelte';
 	import ThemeSwitch from './ThemeSwitch.svelte';
 
 	interface Props {

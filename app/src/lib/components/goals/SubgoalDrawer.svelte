@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { updateSubgoal, type Subgoal } from '$lib/api';
-	import DatePicker from './DatePicker.svelte';
-	import FormModal from './FormModal.svelte';
-	import Icon from './Icon.svelte';
-	import { field } from './ui';
+	import DatePicker from '../ui/DatePicker.svelte';
+	import FormModal from '../ui/FormModal.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import { field } from '../ui';
 
 	interface Props {
 		subgoal: Subgoal | null;

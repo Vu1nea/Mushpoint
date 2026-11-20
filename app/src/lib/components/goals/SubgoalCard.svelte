@@ -12,13 +12,13 @@
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { motion } from '$lib/motion';
 	import { optimistic } from '$lib/optimistic';
-	import Checkbox from './Checkbox.svelte';
-	import ConfirmDialog from './ConfirmDialog.svelte';
-	import Icon from './Icon.svelte';
-	import ProgressBar from './ProgressBar.svelte';
-	import Select from './Select.svelte';
-	import TaskRow from './TaskRow.svelte';
-	import { button, field } from './ui';
+	import Checkbox from '../ui/Checkbox.svelte';
+	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import ProgressBar from '../ui/ProgressBar.svelte';
+	import Select from '../ui/Select.svelte';
+	import TaskRow from '../tasks/TaskRow.svelte';
+	import { button, field } from '../ui';
 
 	interface Props {
 		subgoal: SubgoalDetail;

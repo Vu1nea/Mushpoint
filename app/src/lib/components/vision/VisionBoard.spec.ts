@@ -1,7 +1,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
 import type { VisionItemView } from '$lib/api';
-import StreakHeatmap from './StreakHeatmap.svelte';
+import StreakHeatmap from '../streaks/StreakHeatmap.svelte';
 import VisionBoard from './VisionBoard.svelte';
 
 const item = (id: number): VisionItemView => ({

@@ -5,8 +5,8 @@
 	import { AppError } from '$lib/api/error';
 	import { USERNAME_PATTERN } from '$lib/api/types';
 	import { signOut } from '$lib/auth/session.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import Spinner from '$lib/components/Spinner.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
 	let username = $state('');

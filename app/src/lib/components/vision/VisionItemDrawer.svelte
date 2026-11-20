@@ -1,12 +1,12 @@
-<!-- app/src/lib/components/VisionItemDrawer.svelte -->
+<!-- app/src/lib/components/vision/VisionItemDrawer.svelte -->
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { createVisionItem, updateVisionItem, type VisionItemView } from '$lib/api';
 	import { uploadImage } from '$lib/images';
-	import FormModal from './FormModal.svelte';
-	import Icon from './Icon.svelte';
+	import FormModal from '../ui/FormModal.svelte';
+	import Icon from '../ui/Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
-	import { button, field } from './ui';
+	import { button, field } from '../ui';
 
 	interface Props {
 		open: boolean;

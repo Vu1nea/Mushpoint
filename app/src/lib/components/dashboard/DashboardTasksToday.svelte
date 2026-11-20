@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { TaskSummary } from '$lib/api';
 	import { todaysTasks } from '$lib/dashboard';
-	import TaskRow from './TaskRow.svelte';
-	import { sectionHeading } from './ui';
+	import TaskRow from '../tasks/TaskRow.svelte';
+	import { sectionHeading } from '../ui';
 
 	interface Props {
 		tasks: TaskSummary[];

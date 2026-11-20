@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { IconName } from '$lib/icons';
-	import Icon from './Icon.svelte';
+	import Icon from '../ui/Icon.svelte';
 
 	interface Props {
 		items: { href: string; label: string; icon: IconName }[];
