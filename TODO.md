@@ -268,9 +268,16 @@ accessibility, then ops.
 
 ### 12. File Organization
 
-- [ ] In app move diff table operations to seperate files and for each and then index exports them?
-- [ ] Organize components folder (also why are imports throwing errors?)
-- [ ] Organize repo folder in server
+- [x] App API client: one module per resource in `app/src/lib/api/`
+      (categories, goals, subgoals, tasks, streaks, ideas, visionItems),
+      re-exported from `index.ts`; `$lib/api` imports unchanged
+- [x] Components grouped into `ui/`, `shell/` and one folder per feature
+      (`dashboard`, `goals`, `tasks`, `streaks`, `ideas`, `vision`, `account`)
+- [x] Import errors in the editor: `prepare` ran `playwright install` before
+      `svelte-kit sync`, so a failed browser download skipped sync and left
+      `$lib`/`./$types` unresolved. Sync now runs first; README says how to recover
+- [ ] Server `repo/`: already one file + spec per resource (11 pairs). Left
+      as is; say what layout you want if it still feels messy
 
 
 ### 13. Web performance
