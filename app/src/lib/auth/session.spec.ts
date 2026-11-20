@@ -40,8 +40,11 @@ const supabase = vi.hoisted(() => {
 	};
 });
 
-vi.mock('@supabase/supabase-js', () => ({
-	createClient: vi.fn(() => ({ auth: supabase.auth }))
+vi.mock('@supabase/auth-js', () => ({
+	// A constructor that hands back the shared fake, so the module's client is it.
+	GoTrueClient: vi.fn(function () {
+		return supabase.auth;
+	})
 }));
 
 const {
@@ -54,7 +57,7 @@ const {
 	changePassword,
 	auth
 } = await import('./session.svelte');
-const { createClient } = await import('@supabase/supabase-js');
+const { GoTrueClient } = await import('@supabase/auth-js');
 
 const config: AppConfig = {
 	apiUrl: '/api',
@@ -70,8 +73,15 @@ beforeEach(() => {
 
 describe('session', () => {
 	it('creates a PKCE client that persists the session and ignores the URL', () => {
-		expect(createClient).toHaveBeenCalledWith('https://proj.supabase.co', 'anon', {
-			auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: false }
+		expect(GoTrueClient).toHaveBeenCalledWith({
+			url: 'https://proj.supabase.co/auth/v1',
+			headers: { Authorization: 'Bearer anon', apikey: 'anon' },
+			// Same key supabase-js used, so sessions from earlier builds survive.
+			storageKey: 'sb-proj-auth-token',
+			autoRefreshToken: true,
+			persistSession: true,
+			detectSessionInUrl: false,
+			flowType: 'pkce'
 		});
 	});
 

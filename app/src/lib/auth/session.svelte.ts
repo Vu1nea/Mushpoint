@@ -1,4 +1,4 @@
-import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
+import { GoTrueClient, type Session } from '@supabase/auth-js';
 import { AppError, UNREACHABLE_MESSAGE } from '$lib/api/error';
 import type { AppConfig } from '$lib/config';
 
@@ -17,25 +17,48 @@ class AuthState {
 /** The signed-in user, kept in sync with Supabase's auth events. */
 export const auth = new AuthState();
 
-let client: SupabaseClient | null = null;
+let client: GoTrueClient | null = null;
 let unsubscribe: (() => void) | null = null;
 
-/** Creates the Supabase client and starts tracking the session. */
+/**
+ * Builds the auth client the way `@supabase/supabase-js` does, without its
+ * database, storage and realtime clients (the app only uses auth, and the full
+ * client was the largest chunk on every page). The URL, headers and storage key
+ * match supabase-js so sessions saved by earlier builds stay signed in.
+ */
+function createAuthClient(config: AppConfig): GoTrueClient {
+	const base = new URL(
+		config.supabaseUrl.endsWith('/') ? config.supabaseUrl : `${config.supabaseUrl}/`
+	);
+	return new GoTrueClient({
+		url: new URL('auth/v1', base).href,
+		headers: {
+			Authorization: `Bearer ${config.supabaseAnonKey}`,
+			apikey: config.supabaseAnonKey
+		},
+		storageKey: `sb-${base.hostname.split('.')[0]}-auth-token`,
+		autoRefreshToken: true,
+		persistSession: true,
+		// The callback page exchanges the code itself, so the URL is not parsed on load.
+		detectSessionInUrl: false,
+		flowType: 'pkce'
+	});
+}
+
+/** Creates the Supabase auth client and starts tracking the session. */
 export function initAuth(config: AppConfig): void {
 	unsubscribe?.();
-	client = createClient(config.supabaseUrl, config.supabaseAnonKey, {
-		// The callback page exchanges the code itself, so the URL is not parsed on load.
-		auth: { flowType: 'pkce', persistSession: true, detectSessionInUrl: false }
-	});
-	const { data } = client.auth.onAuthStateChange((_event, session) => {
+	client = createAuthClient(config);
+	const { data } = client.onAuthStateChange((_event, session) => {
 		auth.session = session;
 	});
 	unsubscribe = () => data.subscription.unsubscribe();
 }
 
-function supabase(): SupabaseClient {
+/** Keeps the call sites reading `supabase().auth.*`, as with the full client. */
+function supabase(): { auth: GoTrueClient } {
 	if (!client) throw new AppError('internal', 'Auth is not initialized');
-	return client;
+	return { auth: client };
 }
 
 type SupabaseError = { code?: string; status?: number; name?: string; message: string };
