@@ -30,3 +30,6 @@ test-results
 
 # E2E throwaway users written by global setup
 /e2e/.users.json
+
+# Lighthouse CI reports
+/.lighthouseci

@@ -14,3 +14,6 @@ bun.lockb
 
 # Local design-tool cache
 .impeccable/
+
+# Lighthouse CI reports
+/.lighthouseci/

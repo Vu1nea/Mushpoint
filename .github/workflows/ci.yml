@@ -63,6 +63,34 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  lighthouse:
+    name: Lighthouse (signed-out pages)
+    # Secondary accessibility signal; the axe e2e suite is the main gate.
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      # Placeholder Supabase values: the signed-out pages make no calls on load.
+      - run: cp static/config.example.json build/config.json
+      - run: npx --yes @lhci/cli@0.15 autorun
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: app/.lighthouseci
+          retention-days: 7
+
   audit:
     name: Dependency audit
     runs-on: ubuntu-latest

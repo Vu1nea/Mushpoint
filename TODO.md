@@ -162,7 +162,10 @@ accessibility, then ops.
       the button name. Fixed in mushpoint-design `c4d5938`, `Icon.spec.ts` guards it.
 - [x] Vision board upload in CI e2e: the test project had no `vision`
       bucket; the test now reports the dialog's error if an upload fails
-- [ ] Lighthouse CI accessibility score as a secondary signal
+- [x] Lighthouse CI accessibility score as a secondary signal: `lighthouse`
+      CI job over the signed-out pages (`app/lighthouserc.cjs`); accessibility
+      must score 100 (all three do), best practices warns below 90 (now 96).
+      Signed-in pages stay covered by the axe suite only
 - [ ] Keyboard-only pass of every flow
 - [x] Drag-and-drop alternatives (2.5.7): kanban already had a move menu
       and left/right buttons per card; calendar chips open the task drawer
