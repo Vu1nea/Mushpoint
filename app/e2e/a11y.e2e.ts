@@ -24,6 +24,11 @@ const SIGNED_IN_ROUTES = [
 ];
 
 async function useTheme(page: Page, theme: (typeof THEMES)[number]) {
+	// Switch colors instantly: with transition-colors still running, axe would
+	// measure a mid-fade blend of the two themes and flag false contrast failures.
+	await page.addStyleTag({
+		content: '*,*::before,*::after{transition:none!important;animation:none!important}'
+	});
 	await page.evaluate((name) => {
 		document.documentElement.dataset.theme = name;
 	}, theme);
