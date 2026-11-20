@@ -279,25 +279,31 @@ A Lighthouse run flagged 4.7 MB of unminified JS and a 6.9 MB payload, but the
 whole build (`build/_app/immutable`) is about 1.2 MB, so that run was against
 `vite dev`. Re-measure on the production build before fixing anything.
 
-- [ ] Baseline: `npm run build`, serve `build/` (`npx sirv-cli build --single`),
-      run Lighthouse performance on `/login` and one signed-in page; record scores here
-- [ ] `app/src/lib/assets/mush-icon.png` is 1024x1024 (433 KB) but shown at
-      20 to 40 px and used as the favicon: replace with a ~96 px WebP/PNG and a
-      32 px favicon (or SVG); add `width`/`height` to each `<img>`
-- [ ] `app/static/mush_img.png` (2816x1536, 4.6 MB) is not referenced in `src`:
-      delete or shrink it
-- [ ] `VisionImage.svelte`, `Avatar.svelte`: `loading="lazy"`, `decoding="async"`, sizes
+- [x] Baseline on the production build: performance 0.72 on `/login` and
+      `/signup` (FCP 3.0 s, LCP 6.5 s). No minify problem; the real costs were
+      the icon, no compression, and supabase-js. After the fixes below, on the
+      nginx image: 0.94 (FCP 2.2 s, LCP 2.7 s), 238 KB transferred
+- [x] `@supabase/auth-js` instead of `supabase-js` (only auth is used): the
+      largest chunk on every page went from 220 KB to 103 KB. Same storage key,
+      so existing sessions stay signed in
+- [x] Mascot icon: 1024 px PNG (433 KB) replaced by a 192 px WebP (5 KB) with
+      `width`/`height` on every `<img>`; static 32 px favicon and 180 px
+      apple-touch-icon in `app.html`. Original kept in `app/docs/brand/`
+- [x] Removed the unused `app/static/mush_img.png` (4.6 MB, shipped in the image)
+- [x] `VisionImage.svelte`: `loading="lazy"`, `decoding="async"`; `Avatar.svelte`: `decoding="async"`
 - [ ] Resize Supabase uploads server-side (e.g. `sharp`, WebP, ~1600 px vision,
       256 px avatar); or Supabase image transforms (paid plan). Separate PR
-- [ ] nginx gzip is off (`app/nginx/default.conf`): `gzip on;` for css, js,
-      json, svg, `gzip_min_length 1024`
-- [ ] LCP discovery: preload the two woff2 fonts (Bricolage, Hanken) and
-      `/config.json` from `app.html`; check `font-display: swap` in mushpoint-design
-- [ ] Forced reflow: `CalendarView.svelte` reads `getBoundingClientRect` /
-      `offsetHeight` after style writes (lines 132, 149); batch reads or use
-      `requestAnimationFrame`. Re-check after the baseline
-- [ ] Lighthouse CI: add `performance` to `app/lighthouserc.cjs` (warn below
-      0.9) plus a `resource-summary` budget (total under ~500 KB)
+- [x] gzip: adapter-static `precompress`, nginx `gzip_static` plus on-the-fly
+      fallback. `config.json` excluded (a build-time `.gz` would hide the mounted file)
+- [x] Preload the two woff2 fonts (`src/hooks.server.ts`, runs at build) and
+      `/config.json` (`app.html`); fonts already use `font-display: swap`
+- [x] Forced reflow: the one on load is Svelte's transition code, not the app.
+      `CalendarView.svelte` reads layout only on click, read before write. No change
+- [x] Lighthouse CI (`app/lighthouserc.cjs`): performance warns below 0.9;
+      page weight over 500 KB or images over 50 KB fail the build. sirv now
+      serves the `.gz` files like nginx
+- Lighthouse locally: run it with Playwright's Chromium (`CHROME_PATH`); on
+  Windows it sometimes fails every run with `NO_FCP`, even on builds that passed before
 - Not worth chasing: "Minify CSS" (2 KB), one non-composited animation,
   third parties (Supabase)
 
