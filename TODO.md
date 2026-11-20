@@ -29,11 +29,24 @@ accessibility, then ops.
 - [x] Prettier `endOfLine: auto` so `npm run lint` passes on Windows CRLF
       checkouts; reformatted 12 files that had real drift
 - [x] Bumped `devalue` 5.9.0 to 5.9.4 (high-severity advisories, via SvelteKit)
+- [x] Dev deps patched within their majors for new advisories: vite 8.3.8
+      (Windows dev-server file exposure, launch-editor), vitest 4.1.12,
+      SvelteKit 2.70.4, adapter-static 3.0.11. CI's `--omit=dev` audit: 0
+- [ ] SvelteKit 3: the remaining high advisory (GHSA-3r8g, remote-function
+      `form` DoS) has no 2.x fix. Not reachable here (static SPA, no server,
+      no form actions or remote functions), so it waits for a planned major
+- Local npm 9.2 crashes on this lockfile (arborist `edgesOut`); use the npm 11
+  that ships with Node 24 (`npx npm@11 ...`). After any install, check the
+  `mushpoint-design` `resolved` URL is still `git+https` (npm rewrites it to
+  `git+ssh`, which CI cannot fetch)
 
 ### 2. API hardening
 
-- [ ] Request validation with `zod` schemas at each route boundary
-      (`c.body<T>()` is only a type cast today)
+- [x] Request validation with `zod` schemas at each route boundary
+      (`server/src/schemas.ts`; `c.body(schema)` / `c.query(schema)`): shape
+      only, 400 names the field; meaning rules stay in the repo layer. Found
+      and fixed: `POST /ideas/:id/promote` skipped the own-upload check on
+      `motivationImagePath`
 - [x] Rate limiting in-process (`express-rate-limit`, `server/src/rateLimit.ts`):
       600 requests/min per IP on `/api` (health probes exempt; `/readyz`
       has its own 120/min per IP because it queries the DB, flagged by CodeQL), 30 image
@@ -55,7 +68,9 @@ accessibility, then ops.
 - [ ] Account deletion: alert when `authAdmin.deleteUser` fails (needs
       Sentry, see section 7). Already done: the failure is logged, the client
       gets 503, and a retry works because `DELETE /account` skips the tombstone.
-- [ ] OpenAPI spec for the API (needed for the ZAP API scan; generate from zod)
+- [x] OpenAPI 3.1 spec (`server/openapi.json`, `npm run openapi`), request
+      bodies and queries generated from the zod schemas. `openapi.spec.ts`
+      fails when the file is stale or a listed route is not mounted
 - [x] Client: `safeHref` in `app/src/lib/format.ts` renders `repoUrl` as a link
       only when it is http(s), covering rows written before the server check
 
@@ -68,15 +83,18 @@ accessibility, then ops.
 - [x] OWASP ZAP baseline in CI (`.github/workflows/security.yml`) against
       the production nginx web image; report uploaded as an artifact.
       Local run: 0 fail, only the accepted risks below remain.
-- [ ] Make ZAP fail the build on new warnings (rules file that ignores the
-      two accepted risks only)
+- [x] ZAP fails the build on any Low+ alert except the two accepted risks,
+      matched by alert reference (`10055-6`, `90004-2`) so other CSP findings
+      still fail. Local run on the web image: only those two
 - [ ] OWASP ZAP full + API scan against staging, authenticated with a bearer token
 - [x] `npm audit --audit-level=high` in CI (`ci.yml`)
 - [x] Secret scanning (`gitleaks`) in CI over full history. One historical
       finding: a localhost-only Impeccable live-server token in
       `.impeccable/live/server.json` (removed in `10e7dcf`, now gitignored),
       allowlisted by fingerprint in `.gitleaksignore`
-- [ ] gitleaks as a pre-commit hook
+- [x] gitleaks as a pre-commit hook (`.githooks/pre-commit`, staged changes
+      only; local gitleaks or the CI image via Docker). Enable per clone with
+      `git config core.hooksPath .githooks`
 - [x] Container scan (`trivy`, HIGH/CRITICAL, fixed only) of both images in CI.
       API image: 6 HIGH, all in the npm CLI bundled with `node:24-slim`;
       fixed by removing npm/npx/corepack from the runtime stage. Now 0.
@@ -146,19 +164,44 @@ accessibility, then ops.
       bucket; the test now reports the dialog's error if an upload fails
 - [ ] Lighthouse CI accessibility score as a secondary signal
 - [ ] Keyboard-only pass of every flow
-- [ ] Kanban: keyboard alternative to drag-and-drop (2.5.7)
-- [ ] Gantt timeline and calendar: keyboard navigation, screen reader labels
-- [ ] `mushpoint-design` DatePicker and Select follow ARIA combobox/grid patterns
+- [x] Drag-and-drop alternatives (2.5.7): kanban already had a move menu
+      and left/right buttons per card; calendar chips open the task drawer
+      (due date). Vision board had none: added Move earlier / Move later
+      buttons that keep focus and announce the new position (`$lib/reorder.ts`)
+- [x] Calendar: one tab stop with arrow/Home/End/PageUp/PageDown grid keys
+      (`dayKeyTarget`), turns the month at the edges, full-date labels,
+      `aria-current="date"`. Gantt: not interactive, so no keys; each bar has a
+      text label and done/overdue is shown in words, not only colour (1.4.1).
+      Checked in Chromium with a throwaway harness route
+- [x] `mushpoint-design` DatePicker follows the ARIA date picker dialog
+      (focus in a real grid, full-date labels, live month heading, modal Tab
+      trap, Escape back to the trigger, value in the trigger's description);
+      Select follows the select-only combobox (Home/End, Page keys, type-ahead,
+      Tab selects, labelled groups, per-instance ids). axe with both popups open,
+      both themes: found and fixed 3 contrast bugs (other-month days at
+      `text-muted/50`, a class clash on the selected day, coquette
+      `--mp-text-muted` 4.42:1 on `surface-raised`, now `#ae4f67`).
+      Shipped: mushpoint-design `c33390f` + `75642dc`, app pinned to `75642dc`
+- [x] a11y e2e scans the task drawer with the DatePicker and Select popups
+      open, both themes, and checks Escape closes only the picker (written,
+      not yet run: needs the CI e2e secrets)
 - [ ] Screen reader pass: NVDA + Firefox, VoiceOver on iOS
-- [ ] Fix the 3 svelte-check a11y warnings: drag handlers on `<div>`s with
-      no role in `CalendarView.svelte:278`, `KanbanBoard.svelte:347`,
-      `VisionBoard.svelte:75`. They go with the keyboard alternatives below.
-- [ ] Focus visible and not obscured by sticky headers (2.4.11)
-- [ ] Target size at least 24x24 px (2.5.8)
-- [ ] `prefers-reduced-motion` respected
+- [x] Fixed the 3 svelte-check a11y warnings: cards are `<article>`s,
+      calendar days are labelled `role="group"`. svelte-check: 0 warnings
+- [x] Focus not obscured (2.4.11): the only overlay is the fixed mobile tab
+      bar; the scroll container's `scroll-padding-bottom` clears it. Focus
+      rings still to check by eye in the keyboard-only pass
+- [x] Target size (2.5.8): axe `target-size` passes on all scanned screens
+      in CI; `.mp-hit` now grows icon buttons to 24px everywhere (40px on touch)
+- [x] `prefers-reduced-motion`: theme tokens and JS transitions were already
+      handled; a global rule in `layout.css` now also stops Tailwind
+      `duration-*`, `animate-pulse` and the theme-switch slide
 - [ ] 200% zoom and 320 px reflow without loss
-- [ ] Form errors announced (`aria-live` / `aria-describedby`)
-- [ ] Streak heatmap has a text alternative
+- [x] Form errors announced: banners and the modal save error are
+      `role="alert"`; field errors are linked by `aria-describedby` and focus
+      moves to the invalid field on submit (all 5 drawers)
+- [x] Streak heatmap text alternative: accessible name summarises it
+      ("Last 14 days: 9 done, 3 missed. Today: not yet.")
 
 ### 6. Testing coverage
 
@@ -168,6 +211,7 @@ accessibility, then ops.
       boundaries, signed image URLs expiring on a long-open tab
 - [ ] k6 load test on dashboard and streak endpoints; set an SLO
       (e.g. p95 under 300 ms) and size the pg pool to match
+- [ ] Postman: Create collection user can try all possible use cases
 
 ### 7. Observability
 
@@ -201,3 +245,23 @@ accessibility, then ops.
 - [ ] Privacy policy and terms of service
 - [ ] Data export for users (GDPR); deletion already exists
 - [ ] Disclose Supabase session storage
+
+### 11. Docs
+
+- [ ] API + Supabase vs just Supabase
+- [ ] Self-hosted Postgres vs Supabase hosted Postgres
+- [ ] CI/CD Pipeline
+- [ ] K8s Cluster
+
+### 12. File Organization
+
+- [ ] In app move diff table operations to seperate files and for each and then index exports them?
+- [ ] Organize components folder (also why are imports throwing errors?)
+- [ ] Organize repo folder in server
+
+
+### 13. AI Usage
+
+- [x] Graphify graph (`graphify-out/`, refreshed with `graphify update .`)
+- [ ] Graphify hook setup
+- [x] claude.md (`CLAUDE.md`: layout, commands, rules that are easy to break)

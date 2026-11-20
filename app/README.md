@@ -126,7 +126,7 @@ sequenceDiagram
     end
 ```
 
-The numbered steps are explained in detail in [`docs/auth.md`](../docs/auth.md):
+[`docs/auth.md`](../docs/auth.md) explains the numbered steps in detail:
 
 - **Steps 4 to 6, the email link**: [Email links and the PKCE callback](../docs/auth.md#email-links-and-the-pkce-callback)
 - **Steps 10 to 13, the token**: [Getting and refreshing the access token](../docs/auth.md#getting-and-refreshing-the-access-token)
@@ -161,7 +161,7 @@ flowchart TD
     prof -->|API down or other error| errView[Error view with Try again]
 ```
 
-These parts of the flowchart are explained in detail in [`docs/auth.md`](../docs/auth.md):
+[`docs/auth.md`](../docs/auth.md) explains these parts of the flowchart in detail:
 
 - **The whole guard, and the `401 other` branch**: [Handling a 401 in the browser](../docs/auth.md#handling-a-401-in-the-browser)
 - **The `finishDeletion` branch**: [Deleting an account](../docs/auth.md#deleting-an-account)
@@ -191,7 +191,7 @@ static/config.json    runtime config (API base URL, Supabase project), loaded at
 
 These rules shape how the screens behave and aren't obvious from the UI:
 
-- **Progress is calcuated**: a goal averages its direct children. Subgoals and directly linked tasks weigh the same, and a subgoal's own value is the average of its tasks. A task counts only when `done`; `in_progress` counts as 0.
+- **Progress is calculated**: a goal averages its direct children. Subgoals and directly linked tasks weigh the same, and a subgoal's own value is the average of its tasks. A task counts only when `done`; `in_progress` counts as 0.
 - **Status is separate from progress**: completing or archiving a goal is an explicit user action, so progress can sit at 100% while the goal stays active.
 - **Images go through the server**: the client uploads images of up to 5&nbsp;MB to the server, which stores them and returns a signed URL that expires after 1 hour. The server also removes an image when its vision item drops or replaces it, so the client never deletes files.
 - **Themes come from the design package**: themes are CSS custom properties from `mushpoint-design/css/theme.css`, imported in `src/routes/layout.css`, and mapped to Tailwind utilities such as `bg-surface` and `text-muted`. To add a theme, add it to the design package, add one entry to `THEMES` in `src/lib/theme/theme.svelte.ts`, and add one to the server's allow-list. Components must not hardcode colors.
