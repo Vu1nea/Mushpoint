@@ -6,6 +6,7 @@ import { loadConfig } from './config';
 import { createPool } from './db/pool';
 import { createSupabaseImageStore } from './images';
 import { log } from './logger';
+import { DEFAULT_LIMITS } from './rateLimit';
 import { shutdown } from './shutdown';
 
 const config = loadConfig(process.env);
@@ -23,7 +24,14 @@ const images = createSupabaseImageStore({
 
 const authAdmin = createSupabaseAuthAdmin({ url: config.supabaseUrl, serviceKey: config.supabaseServiceKey });
 
-const server = createApp({ pool, verify, images, authAdmin, trustProxy: config.trustProxy }).listen(config.port, () => {
+const server = createApp({
+  pool,
+  verify,
+  images,
+  authAdmin,
+  trustProxy: config.trustProxy,
+  limits: { ...DEFAULT_LIMITS, perIp: config.rateLimitPerIp }
+}).listen(config.port, () => {
   log.info({ port: config.port }, 'api listening');
 });
 

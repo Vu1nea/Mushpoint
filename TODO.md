@@ -18,9 +18,11 @@ accessibility, then ops.
 - [x] GitHub Actions (`.github/workflows/ci.yml`) on every PR and push to
       `main`: server typecheck/tests/build against a Postgres 16 service,
       app check/lint/unit tests/build, `npm audit --audit-level=high`
-- [ ] Playwright e2e job is wired but skips until repo secrets exist:
-      `E2E_SUPABASE_URL`, `E2E_SUPABASE_SERVICE_KEY`,
-      `E2E_SUPABASE_ANON_KEY`, `E2E_PASSWORD` (use a separate test Supabase project)
+- [x] Playwright e2e job runs in CI against a separate test Supabase project
+      (secrets `E2E_SUPABASE_URL`, `E2E_SUPABASE_SERVICE_KEY` (`sb_secret_`),
+      `E2E_SUPABASE_ANON_KEY` (`sb_publishable_`), `E2E_PASSWORD`; private
+      `vision` bucket). 53/53 green, including axe on all signed-in screens.
+      First run needed an explicit `baseURL` (two webServers).
 - [ ] Branch protection on `main`: green CI required to merge (GitHub settings, manual)
 - [x] Dependabot (`.github/dependabot.yml`): npm for `app/` and `server/`,
       Docker base image, GitHub Actions, weekly
@@ -135,7 +137,13 @@ accessibility, then ops.
     under button text; passing needs `#d62b55` (much stronger pink). Or keep
     the pastel for fills and add a darker `--mp-accent-text` token for text
     and buttons.
-- [ ] Run axe on the signed-in screens (needs e2e secrets) and triage
+- [x] First signed-in axe run in CI (16 failures, all color-contrast): five
+      `text-muted/50..75` uses faded the tuned token below 4.5:1; now full
+      `text-muted`. Also found icon-only buttons with no accessible name: the
+      design Tooltip wrapped icons in `role="group"`, which Chromium drops from
+      the button name. Fixed in mushpoint-design `c4d5938`, `Icon.spec.ts` guards it.
+- [x] Vision board upload in CI e2e: the test project had no `vision`
+      bucket; the test now reports the dialog's error if an upload fails
 - [ ] Lighthouse CI accessibility score as a secondary signal
 - [ ] Keyboard-only pass of every flow
 - [ ] Kanban: keyboard alternative to drag-and-drop (2.5.7)

@@ -1,4 +1,4 @@
-import { requireE2eEnv } from './env';
+import { requireE2eEnv, serviceKeyHeaders } from './env';
 import type { E2eUser } from './users';
 
 /** Deletes users through the Supabase admin API. A 404 (already gone) is fine. */
@@ -10,7 +10,7 @@ export async function deleteUsers(users: E2eUser[]): Promise<void> {
 		try {
 			const response = await fetch(`${url}/auth/v1/admin/users/${user.id}`, {
 				method: 'DELETE',
-				headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` }
+				headers: serviceKeyHeaders(serviceKey)
 			});
 			if (!response.ok && response.status !== 404) {
 				failures.push(`${user.email} (${response.status})`);

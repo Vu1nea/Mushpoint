@@ -23,7 +23,8 @@ describe('loadConfig', () => {
       supabaseServiceKey: 'k',
       port: 3000,
       imageBucket: 'vision',
-      trustProxy: 0
+      trustProxy: 0,
+      rateLimitPerIp: 600
     });
   });
 
@@ -45,5 +46,13 @@ describe('loadConfig', () => {
 
   it.each(['true', '-1', '1.5', 'x'])('rejects TRUST_PROXY=%s', (value) => {
     expect(() => loadConfig({ ...base, TRUST_PROXY: value })).toThrow(/TRUST_PROXY/);
+  });
+
+  it('reads RATE_LIMIT_PER_IP when set', () => {
+    expect(loadConfig({ ...base, RATE_LIMIT_PER_IP: '100000' }).rateLimitPerIp).toBe(100000);
+  });
+
+  it.each(['0', '-5', '1.5', 'lots', ''])('rejects RATE_LIMIT_PER_IP=%s', (value) => {
+    expect(() => loadConfig({ ...base, RATE_LIMIT_PER_IP: value })).toThrow(/RATE_LIMIT_PER_IP/);
   });
 });
