@@ -15,9 +15,11 @@ export interface Limits {
   uploads: number;
   /** `DELETE /account` attempts by one user, per hour. */
   accountDeletes: number;
+  /** `GET /account/export` requests by one user, per hour. */
+  accountExports: number;
 }
 
-export const DEFAULT_LIMITS: Limits = { perIp: 600, probes: 120, uploads: 30, accountDeletes: 5 };
+export const DEFAULT_LIMITS: Limits = { perIp: 600, probes: 120, uploads: 30, accountDeletes: 5, accountExports: 10 };
 
 const MINUTE = 60_000;
 
@@ -40,6 +42,7 @@ export function createLimiters(limits: Limits) {
     perIp: limiter(limits.perIp, MINUTE),
     probes: limiter(limits.probes, MINUTE),
     uploads: limiter(limits.uploads, 15 * MINUTE, 'user'),
-    accountDeletes: limiter(limits.accountDeletes, 60 * MINUTE, 'user')
+    accountDeletes: limiter(limits.accountDeletes, 60 * MINUTE, 'user'),
+    accountExports: limiter(limits.accountExports, 60 * MINUTE, 'user')
   };
 }

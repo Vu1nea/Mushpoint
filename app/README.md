@@ -63,8 +63,9 @@ The end-to-end run confirms users through the admin API and never opens an email
 1. **Sign up with real email confirmation**: sign up with an inbox you can read, open the confirmation link in the same browser, and pick a username. You should land signed in.
 2. **Password reset**: click **Forgot password** on `/login`, open the emailed link, and set a new password. Sign in with the new password, then confirm the old one fails.
 3. **Email change**: change the email in **Settings**. The pending address shows as waiting for confirmation. Confirm from both inboxes, then sign in with the new address.
-4. **Delete account**: in **Settings**, the confirm button stays disabled until you type the account email. Deleting lands on `/login` with “Your account was deleted.” The old credentials no longer sign in.
-5. **Reload a signed-in page**: on `/goals`, `/tasks`, and `/settings`, reload and open the page in a new tab. Each page loads its data without an error banner.
+4. **Download your data**: in **Settings**, **Download my data** saves `mushpoint-export-<date>.json`. Open one image link from it in a private window; it should load.
+5. **Delete account**: in **Settings**, the confirm button stays disabled until you type the account email. Deleting lands on `/login` with “Your account was deleted.” The old credentials no longer sign in.
+6. **Reload a signed-in page**: on `/goals`, `/tasks`, and `/settings`, reload and open the page in a new tab. Each page loads its data without an error banner.
 
 ## How sign-in reaches the API
 

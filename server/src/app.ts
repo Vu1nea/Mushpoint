@@ -8,7 +8,7 @@ import type { ImageStore } from './images';
 import { log, requestLogger, type Logger } from './logger';
 import { createLimiters, DEFAULT_LIMITS, type Limits } from './rateLimit';
 import * as idea from './repo/idea';
-import { deleteAccount } from './routes/account';
+import { deleteAccount, exportAccount } from './routes/account';
 import { categoriesRouter } from './routes/categories';
 import { goalsRouter } from './routes/goals';
 import { ideasRouter } from './routes/ideas';
@@ -74,6 +74,7 @@ export function createApp({ pool, verify, images, authAdmin, limits = DEFAULT_LI
   api.put('/profile/avatar', limit.uploads);
 
   const handle = makeHandle(pool);
+  api.get('/account/export', limit.accountExports, exportAccount(handle, images));
   api.use('/categories', categoriesRouter(handle));
   api.use('/goals', goalsRouter(handle));
   api.use('/subgoals', subgoalsRouter(handle));

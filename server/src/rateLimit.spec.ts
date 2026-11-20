@@ -14,7 +14,7 @@ import { purgeUsers } from './testSupport/db';
 
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 const pool = createPool(process.env.DATABASE_URL!);
-const users = [randomUUID(), randomUUID(), randomUUID()];
+const users = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
 let identity: TestIdentity;
 
 function build(limits: Partial<Limits>): Express {
@@ -23,7 +23,7 @@ function build(limits: Partial<Limits>): Express {
     verify: createVerifier(identity),
     images: createMemoryImageStore(),
     authAdmin: createMemoryAuthAdmin(),
-    limits: { perIp: 1000, probes: 1000, uploads: 1000, accountDeletes: 1000, ...limits }
+    limits: { perIp: 1000, probes: 1000, uploads: 1000, accountDeletes: 1000, accountExports: 1000, ...limits }
   });
 }
 
@@ -71,6 +71,13 @@ describe('rate limiting', () => {
     await send(a, '/api/vision-images', 'post').expect(429);
     await send(a, '/api/profile/avatar', 'put').expect(429);
     await send(b, '/api/vision-images', 'post').expect(200);
+  });
+
+  it('limits account exports per user', async () => {
+    const app = build({ accountExports: 1 });
+    const c = clientFor(app, await identity.sign({ sub: users[3] }));
+    await c.get('/api/account/export').expect(200);
+    await c.get('/api/account/export').expect(429);
   });
 
   it('limits account deletion attempts per user', async () => {

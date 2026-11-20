@@ -1,6 +1,7 @@
 /** Postman collection (v2.1) that walks through every API use case in order:
  * sign in, set up the profile, build a goal with subgoals, tasks and a habit,
- * capture and promote an idea, fill the vision board, then delete what it made.
+ * capture and promote an idea, fill the vision board, export everything, then
+ * delete what it made.
  *
  * Each create request stores the new id in a collection variable that later
  * requests use, so the Collection Runner can run the folders top to bottom.
@@ -67,7 +68,7 @@ export const FOLDERS: Folder[] = [
     description: 'The account’s username, avatar, theme and streak grace period.',
     steps: [
       { name: 'Get profile', method: 'get', path: '/profile', status: 200 },
-      { name: 'Set username', method: 'put', path: '/profile/username', body: { username: 'postman_runner' }, status: 200 },
+      { name: 'Set username', method: 'put', path: '/profile/username', body: { username: 'runner_{{$timestamp}}' }, status: 200, description: 'Usernames are unique; `{{$timestamp}}` is Postman’s built-in current time.' },
       {
         name: 'Upload avatar',
         method: 'put',
@@ -208,7 +209,20 @@ export const FOLDERS: Folder[] = [
     ]
   },
   {
-    name: '7. Clean up',
+    name: '7. Your data',
+    description: 'A copy of everything stored for the account (UK GDPR access and portability).',
+    steps: [
+      {
+        name: 'Export all my data',
+        method: 'get',
+        path: '/account/export',
+        status: 200,
+        description: 'Every row from every table, plus links to the account’s images that expire after a day.'
+      }
+    ]
+  },
+  {
+    name: '8. Clean up',
     description: 'Deletes what the earlier folders created.',
     steps: [
       { name: 'Delete image item', method: 'delete', path: '/vision-items/{{imageItemId}}', status: 204 },

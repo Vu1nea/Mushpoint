@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import { deleteAccount, removeAvatar, setAvatar, setUsername } from '$lib/api/account';
+	import {
+		deleteAccount,
+		exportAccount,
+		removeAvatar,
+		setAvatar,
+		setUsername
+	} from '$lib/api/account';
 	import { AppError } from '$lib/api/error';
 	import { USERNAME_PATTERN } from '$lib/api/types';
 	import { auth, changeEmail, changePassword, signOut } from '$lib/auth/session.svelte';
+	import { downloadJson, exportFilename, withSignInEmail } from '$lib/download';
 	import { ACCEPTED_IMAGE_TYPES } from '$lib/images';
 	import Avatar from './Avatar.svelte';
 	import ConfirmDialog from './ConfirmDialog.svelte';
@@ -23,7 +30,7 @@
 	let error = $state<unknown>(null);
 	let notice = $state<string | null>(null);
 	/** The form whose request is in flight; every form is disabled while one runs. */
-	let pending = $state<'avatar' | 'profile' | 'password' | null>(null);
+	let pending = $state<'avatar' | 'profile' | 'password' | 'export' | null>(null);
 	const busy = $derived(pending !== null);
 
 	let nameDraft = $state('');
@@ -144,6 +151,15 @@
 		) {
 			currentPassword = newPassword = confirmPassword = '';
 		}
+	}
+
+	async function downloadData() {
+		await run(
+			'export',
+			async () =>
+				downloadJson(exportFilename(), withSignInEmail(await exportAccount(), auth.email)),
+			'Your data was downloaded.'
+		);
 	}
 
 	function openDelete() {
@@ -303,6 +319,29 @@
 			</button>
 		</div>
 	</form>
+</section>
+
+<section class="mb-8">
+	<h2 class="{sectionHeading} mb-3">Your data</h2>
+	<div class="flex flex-wrap items-center gap-4 rounded-card border border-subtle p-4.5">
+		<div class="min-w-48 flex-1">
+			<div class="mb-0.5 text-md font-semibold">Download your data</div>
+			<p class="text-xs text-muted">
+				A JSON file with your profile, settings, goals, tasks, habits, ideas and vision board. Links
+				to your images in it work for 24 hours.
+			</p>
+		</div>
+		<button
+			type="button"
+			class={button.ghost}
+			disabled={busy}
+			aria-busy={pending === 'export'}
+			onclick={downloadData}
+		>
+			{#if pending === 'export'}<Spinner />{/if}
+			{pending === 'export' ? 'Preparing…' : 'Download my data'}
+		</button>
+	</div>
 </section>
 
 <section>

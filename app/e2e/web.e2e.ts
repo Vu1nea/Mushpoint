@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { expect, test, usernameFor } from './fixtures';
 import { readUsers } from './users';
 
@@ -95,6 +96,23 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		} finally {
 			await context.close();
 		}
+	});
+
+	await test.step('A downloads a copy of their data', async () => {
+		await page.goto('/settings');
+		const [download] = await Promise.all([
+			page.waitForEvent('download'),
+			page.getByRole('button', { name: 'Download my data' }).click()
+		]);
+		expect(download.suggestedFilename()).toMatch(/^mushpoint-export-\d{4}-\d{2}-\d{2}\.json$/);
+		const file = JSON.parse(readFileSync(await download.path(), 'utf8'));
+		expect(file).toMatchObject({ format: 'mushpoint-export', signInEmail: users.a.email });
+		expect(file.tables.goals.map((g: { title: string }) => g.title)).toEqual(['E2E goal']);
+		expect(file.tables.tasks.map((t: { title: string }) => t.title)).toEqual(['E2E task']);
+		expect(file.tables.task_completions).toHaveLength(1);
+		expect(file.images).toHaveLength(1);
+		expect(file.images[0].url).toMatch(/^https:/);
+		expect(JSON.stringify(file)).not.toContain(usernameFor('b'));
 	});
 
 	await test.step('A deletes the account and cannot sign in again', async () => {

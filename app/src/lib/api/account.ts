@@ -10,3 +10,6 @@ export const setAvatar = async (file: File): Promise<Profile> =>
 	request('PUT', '/profile/avatar', imageForm(file));
 export const removeAvatar = (): Promise<Profile> => request('DELETE', '/profile/avatar');
 export const deleteAccount = (): Promise<void> => request('DELETE', '/account');
+/** Every record stored for the account, as the server's export document. */
+export const exportAccount = (): Promise<Record<string, unknown>> =>
+	request('GET', '/account/export');

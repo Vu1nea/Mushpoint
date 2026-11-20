@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { deleteAccount, setUsername } from './account';
+import { deleteAccount, exportAccount, setUsername } from './account';
 import { request } from './http';
 import {
 	deleteGoal,
@@ -63,7 +63,8 @@ describe('api routes', () => {
 			() => setUsername('alpha'),
 			['PUT', '/profile/username', { username: 'alpha' }]
 		],
-		['deleteAccount', () => deleteAccount(), ['DELETE', '/account']]
+		['deleteAccount', () => deleteAccount(), ['DELETE', '/account']],
+		['exportAccount', () => exportAccount(), ['GET', '/account/export']]
 	])('%s sends the matching request', async (_name, call, expected) => {
 		await call();
 		expect(requestMock).toHaveBeenCalledTimes(1);

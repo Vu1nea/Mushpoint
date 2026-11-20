@@ -27,6 +27,7 @@ interface Op {
 export const OPERATIONS: Op[] = [
   { method: 'get', path: '/healthz', summary: 'Liveness probe', open: true },
   { method: 'get', path: '/readyz', summary: 'Readiness probe (checks the database)', open: true },
+  { method: 'get', path: '/account/export', summary: 'Every record stored for the account, with image links (GDPR access and portability)' },
   { method: 'delete', path: '/account', summary: 'Delete the account and all its data', status: 204 },
 
   { method: 'get', path: '/categories', summary: 'List categories' },

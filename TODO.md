@@ -251,7 +251,12 @@ accessibility, then ops.
 ### 10. Legal and privacy
 
 - [ ] Privacy policy and terms of service
-- [ ] Data export for users (GDPR); deletion already exists
+- [x] Data export for users (UK GDPR Articles 15 and 20); deletion already exists:
+      `GET /api/account/export` returns every row of every `USER_TABLES` table
+      plus 24-hour signed image links; Settings → Your data → Download my data
+      saves it as JSON with the sign-in email added. Covered by
+      `routes/export.spec.ts` and a step in `web.e2e.ts`. The privacy policy
+      should say how to ask for a copy and that this button exists
 - [ ] Disclose Supabase session storage
 
 ### 11. Docs

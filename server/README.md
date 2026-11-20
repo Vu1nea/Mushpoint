@@ -121,6 +121,16 @@ The full route list, with every request body and query parameter, is in [`openap
 - **Error shape**: errors are always `{ "kind": ..., "message": ... }`. The kinds are 400 `validation`, 401 `unauthenticated`, 404 `not_found`, 500 `internal` or `database` (the message is always `internal error`), and 503 `unavailable`.
 - **Validation**: each route checks its body and query string against a zod schema in `src/schemas.ts` before any SQL runs. A mismatch is a 400 `validation` whose message names the field, such as `timeframe: Invalid option: expected one of "short"|"mid"|"long"`. Nullable fields are still required, so send `null` explicitly: every `PUT` replaces the whole record, and a key you leave out must not quietly clear a value. Unknown keys are dropped. Rules about meaning (trimming, empty titles, the 10,000-character limit, http(s) URLs, real dates, ownership) live in the repo layer.
 
+## How data export works
+
+`GET /api/account/export` answers with every record stored for the caller, for UK GDPR access and portability requests (Articles 15 and 20):
+
+- `tables`: every row of every table in `USER_TABLES` (`src/repo/account.ts`), columns as stored. Deletion uses the same list, and `repo/account.spec.ts` fails when a table with a `user_id` is missing from it, so a new table is exported and deleted as soon as it is listed.
+- `images`: each stored image path (avatar, goal motivation image, vision board) with a signed link valid for 24 hours, signed after the transaction commits.
+- The sign-in email is held by Supabase Auth, not this database; the web client adds it to the file as `signInEmail`.
+
+It is limited to 10 requests per user per hour, and a deleted account gets 401 like every other route.
+
 ## How account deletion works
 
 `DELETE /api/account` runs 4 steps in order, then answers 204:

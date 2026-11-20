@@ -46,9 +46,10 @@ describe('Postman collection', () => {
 
   // The runner's view: every step in order, ids flowing through variables.
   it('runs top to bottom against the API', async () => {
-    const vars: Record<string, string> = {};
+    // `$timestamp` is a Postman dynamic variable; a unique stand-in keeps runs apart.
+    const vars: Record<string, string> = { $timestamp: `${Date.now()}${Math.floor(Math.random() * 1000)}` };
     const fill = (text: string) =>
-      text.replace(/\{\{(\w+)\}\}/g, (_, name: string) => {
+      text.replace(/\{\{(\$?\w+)\}\}/g, (_, name: string) => {
         expect(vars, `{{${name}}} is used before a step sets it`).toHaveProperty(name);
         return vars[name];
       });

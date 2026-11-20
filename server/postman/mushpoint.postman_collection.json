@@ -269,7 +269,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"postman_runner\"\n}"
+              "raw": "{\n  \"username\": \"runner_{{$timestamp}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/profile/username",
@@ -280,7 +280,8 @@
                 "profile",
                 "username"
               ]
-            }
+            },
+            "description": "Usernames are unique; `{{$timestamp}}` is Postman’s built-in current time."
           }
         },
         {
@@ -1590,7 +1591,42 @@
       ]
     },
     {
-      "name": "7. Clean up",
+      "name": "7. Your data",
+      "description": "A copy of everything stored for the account (UK GDPR access and portability).",
+      "item": [
+        {
+          "name": "Export all my data",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('answers 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/account/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "account",
+                "export"
+              ]
+            },
+            "description": "Every row from every table, plus links to the account’s images that expire after a day."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Clean up",
       "description": "Deletes what the earlier folders created.",
       "item": [
         {
