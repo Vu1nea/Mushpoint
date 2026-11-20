@@ -275,7 +275,7 @@ accessibility, then ops.
 
 - [ ] API + Supabase vs just Supabase
 - [ ] Self-hosted Postgres vs Supabase hosted Postgres
-- [ ] CI/CD Pipeline
+- [x] CI/CD Pipeline: `docs/ci-cd.md` (what runs, what blocks, no CD yet and how to add it)
 - [x] K8s Cluster: `deploy/k8s/` + `docs/k8s-runbook.md`
 
 ### 12. File Organization
