@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { flattenOptions, isGroup, labelFor, type SelectItem } from './selectOptions';
+import {
+	flattenOptions,
+	isGroup,
+	labelFor,
+	typeaheadIndex,
+	type SelectItem
+} from './selectOptions';
 
 describe('isGroup', () => {
 	it('tells options and groups apart', () => {
@@ -55,5 +61,31 @@ describe('labelFor', () => {
 
 	it('returns undefined for no match', () => {
 		expect(labelFor(items, 'missing')).toBeUndefined();
+	});
+});
+
+describe('typeaheadIndex', () => {
+	const labels = ['Daily', 'Doesn’t repeat', 'Weekdays', 'Weekly'];
+
+	it('jumps to the next label starting with a typed letter, wrapping', () => {
+		expect(typeaheadIndex(labels, 0, 'w')).toBe(2);
+		expect(typeaheadIndex(labels, 3, 'd')).toBe(0);
+	});
+
+	it('cycles through matches when the same letter is typed again', () => {
+		expect(typeaheadIndex(labels, 0, 'd')).toBe(1);
+		expect(typeaheadIndex(labels, 1, 'dd')).toBe(0);
+		expect(typeaheadIndex(labels, 2, 'ww')).toBe(3);
+	});
+
+	it('keeps the current option while a longer prefix still matches it', () => {
+		expect(typeaheadIndex(labels, 2, 'week')).toBe(2);
+		expect(typeaheadIndex(labels, 2, 'weekl')).toBe(3);
+	});
+
+	it('ignores case and returns -1 when nothing matches', () => {
+		expect(typeaheadIndex(labels, 0, 'WEEKLY')).toBe(3);
+		expect(typeaheadIndex(labels, 0, 'z')).toBe(-1);
+		expect(typeaheadIndex([], 0, 'a')).toBe(-1);
 	});
 });

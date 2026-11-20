@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { TaskSummary } from './api';
 import {
 	addDays,
+	dayKeyTarget,
 	dayDots,
 	defaultSelectedDay,
 	dotTone,
@@ -170,5 +171,34 @@ describe('defaultSelectedDay', () => {
 
 	it('is null for an empty grid', () => {
 		expect(defaultSelectedDay([], '2026-08-15')).toBeNull();
+	});
+});
+
+describe('dayKeyTarget', () => {
+	// 2026-07-15 is a Wednesday.
+	it('moves by a day or a week with the arrow keys', () => {
+		expect(dayKeyTarget('2026-07-15', 'ArrowLeft')).toBe('2026-07-14');
+		expect(dayKeyTarget('2026-07-15', 'ArrowRight')).toBe('2026-07-16');
+		expect(dayKeyTarget('2026-07-15', 'ArrowUp')).toBe('2026-07-08');
+		expect(dayKeyTarget('2026-07-15', 'ArrowDown')).toBe('2026-07-22');
+		expect(dayKeyTarget('2026-07-31', 'ArrowRight')).toBe('2026-08-01');
+	});
+
+	it('goes to the start or end of the week with Home and End', () => {
+		expect(dayKeyTarget('2026-07-15', 'Home')).toBe('2026-07-12');
+		expect(dayKeyTarget('2026-07-15', 'End')).toBe('2026-07-18');
+	});
+
+	it('moves a month with Page Up/Down and a year with Shift, clamping the day', () => {
+		expect(dayKeyTarget('2026-07-15', 'PageUp')).toBe('2026-06-15');
+		expect(dayKeyTarget('2026-07-15', 'PageDown')).toBe('2026-08-15');
+		expect(dayKeyTarget('2026-03-31', 'PageUp')).toBe('2026-02-28');
+		expect(dayKeyTarget('2024-02-29', 'PageDown', true)).toBe('2025-02-28');
+		expect(dayKeyTarget('2026-07-15', 'PageUp', true)).toBe('2025-07-15');
+	});
+
+	it('ignores other keys', () => {
+		expect(dayKeyTarget('2026-07-15', 'Enter')).toBeNull();
+		expect(dayKeyTarget('2026-07-15', 'a')).toBeNull();
 	});
 });
