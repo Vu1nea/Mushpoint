@@ -199,7 +199,9 @@ accessibility, then ops.
 - [x] `prefers-reduced-motion`: theme tokens and JS transitions were already
       handled; a global rule in `layout.css` now also stops Tailwind
       `duration-*`, `animate-pulse` and the theme-switch slide
-- [ ] 200% zoom and 320 px reflow without loss
+- [x] 200% zoom and 320 px reflow: `app/e2e/reflow.e2e.ts` checks 320 and
+      640 px (400% and 200% of 1280) on every screen for sideways page scroll.
+      Public screens pass locally; signed-in screens first run in CI
 - [x] Form errors announced: banners and the modal save error are
       `role="alert"`; field errors are linked by `aria-describedby` and focus
       moves to the invalid field on submit (all 5 drawers)
