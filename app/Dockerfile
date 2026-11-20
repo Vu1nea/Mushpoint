@@ -28,6 +28,7 @@ COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
 COPY --from=build /app/csp.conf /etc/nginx/snippets/csp.conf
 COPY --from=build /app/build /usr/share/nginx/html
 # config.json is per environment: mount it at /usr/share/nginx/html/config.json
-# (a ConfigMap in Kubernetes). The image ships without one.
-RUN rm -f /usr/share/nginx/html/config.json
+# (a ConfigMap in Kubernetes). The image ships without one, or any
+# precompressed copy that would hide the mounted file.
+RUN rm -f /usr/share/nginx/html/config.json /usr/share/nginx/html/config.json.*
 EXPOSE 8080

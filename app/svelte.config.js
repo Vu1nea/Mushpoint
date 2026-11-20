@@ -9,7 +9,8 @@ const config = {
 	kit: {
 		// The built files are served as-is with no Node server, so the app
 		// ships as a static SPA: one fallback page, routing resolved in the client.
-		adapter: adapter({ fallback: 'index.html' }),
+		// precompress writes .gz/.br next to each asset; nginx serves the .gz.
+		adapter: adapter({ fallback: 'index.html', precompress: true }),
 		// Emitted as a <meta> CSP in the built page with a hash for SvelteKit's
 		// inline bootstrap script, so no 'unsafe-inline' scripts are allowed.
 		// frame-ancestors is ignored in <meta>; the web server sends it as a header.
