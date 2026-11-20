@@ -273,7 +273,35 @@ accessibility, then ops.
 - [ ] Organize repo folder in server
 
 
-### 13. AI Usage
+### 13. Web performance
+
+A Lighthouse run flagged 4.7 MB of unminified JS and a 6.9 MB payload, but the
+whole build (`build/_app/immutable`) is about 1.2 MB, so that run was against
+`vite dev`. Re-measure on the production build before fixing anything.
+
+- [ ] Baseline: `npm run build`, serve `build/` (`npx sirv-cli build --single`),
+      run Lighthouse performance on `/login` and one signed-in page; record scores here
+- [ ] `app/src/lib/assets/mush-icon.png` is 1024x1024 (433 KB) but shown at
+      20 to 40 px and used as the favicon: replace with a ~96 px WebP/PNG and a
+      32 px favicon (or SVG); add `width`/`height` to each `<img>`
+- [ ] `app/static/mush_img.png` (2816x1536, 4.6 MB) is not referenced in `src`:
+      delete or shrink it
+- [ ] `VisionImage.svelte`, `Avatar.svelte`: `loading="lazy"`, `decoding="async"`, sizes
+- [ ] Resize Supabase uploads server-side (e.g. `sharp`, WebP, ~1600 px vision,
+      256 px avatar); or Supabase image transforms (paid plan). Separate PR
+- [ ] nginx gzip is off (`app/nginx/default.conf`): `gzip on;` for css, js,
+      json, svg, `gzip_min_length 1024`
+- [ ] LCP discovery: preload the two woff2 fonts (Bricolage, Hanken) and
+      `/config.json` from `app.html`; check `font-display: swap` in mushpoint-design
+- [ ] Forced reflow: `CalendarView.svelte` reads `getBoundingClientRect` /
+      `offsetHeight` after style writes (lines 132, 149); batch reads or use
+      `requestAnimationFrame`. Re-check after the baseline
+- [ ] Lighthouse CI: add `performance` to `app/lighthouserc.cjs` (warn below
+      0.9) plus a `resource-summary` budget (total under ~500 KB)
+- Not worth chasing: "Minify CSS" (2 KB), one non-composited animation,
+  third parties (Supabase)
+
+### 14. AI Usage
 
 - [x] Graphify graph (`graphify-out/`, refreshed with `graphify update .`)
 - [ ] Graphify hook setup
