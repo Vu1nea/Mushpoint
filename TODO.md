@@ -208,12 +208,17 @@ accessibility, then ops.
 
 ### 6. Testing coverage
 
-- [ ] Playwright: add Firefox and WebKit projects
+- [x] Playwright: Firefox and WebKit projects run `shell.e2e` (`web.e2e`
+      deletes user A, so it stays Chromium-only). First run is in CI
 - [ ] Visual regression screenshots per theme
-- [ ] Edge cases: DST and timezone changes around streaks, grace-period
-      boundaries, signed image URLs expiring on a long-open tab
-- [ ] k6 load test on dashboard and streak endpoints; set an SLO
-      (e.g. p95 under 300 ms) and size the pg pool to match
+- [x] Edge cases: DST and timezone changes around streaks, grace-period
+      boundaries (`server/src/logic/streakEdges.spec.ts`, 31 cases, all pass)
+- [ ] Signed image URLs expiring on a long-open tab: `Avatar` falls back to
+      the initial, `VisionImage` shows a broken image. Refetch on error?
+- [x] k6 script (`server/load/dashboard.k6.js`): dashboard reads (6 in
+      parallel) and habit ticks, SLO thresholds p95 < 300 ms, errors < 1%
+- [ ] Run it against staging (raise `RATE_LIMIT_PER_IP` for the run) and size
+      the pg pool (`max: 10` in `server/src/db/pool.ts`) to match
 - [x] Postman: Create collection user can try all possible use cases:
       `server/postman/mushpoint.postman_collection.json`, generated from
       `src/postman.ts` (`npm run postman`). Signs in with Supabase, then runs
