@@ -1,4 +1,4 @@
-FROM node:24-slim AS build
+FROM node:26-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -6,7 +6,7 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev
 
-FROM node:24-slim
+FROM node:26-slim
 ENV NODE_ENV=production
 # The upstream tag lags Debian security fixes (e.g. zlib CVE-2026-85091 on
 # node:26-slim), so take them at build time.
