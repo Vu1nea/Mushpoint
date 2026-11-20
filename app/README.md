@@ -20,6 +20,10 @@ npm run dev
 
 The app runs on `http://localhost:5173`. The Vite dev server forwards every `/api` request to the API on port 3000.
 
+If the editor marks every `$lib/...` or `./$types` import as an error, `.svelte-kit/` has not been generated yet. `npm install` runs `svelte-kit sync`; run `npx svelte-kit sync` yourself after a clean, then restart the TypeScript/Svelte language server. Open the `app/` folder (or a workspace containing it) so the editor finds `app/tsconfig.json`.
+
+Measure performance on `npm run build` + `npm run preview`, never on `npm run dev`: the dev server sends unminified, uncached modules, so Lighthouse reports megabytes that production never ships.
+
 The `config.json` values are safe to ship to the browser. The anon key only allows what an anonymous visitor can do. Never put the Supabase service key in this file.
 
 ### Configure Supabase sign-in
