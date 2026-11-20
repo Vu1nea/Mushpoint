@@ -1,5 +1,6 @@
 <!-- app/src/lib/components/CalendarView.svelte -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { scale } from 'svelte/transition';
 
 	import {
@@ -12,6 +13,7 @@
 	import { shiftYear, tasksByDay } from '$lib/calendar';
 	import {
 		dayDots,
+		dayKeyTarget,
 		defaultSelectedDay,
 		monthGrid,
 		monthLabel,
@@ -80,6 +82,37 @@
 			? pickedDay
 			: defaultSelectedDay(grid, todayIso())
 	);
+	/**
+	 * The one day button in the tab order (roving tabindex): the last day focused
+	 * while it is on view, else the selected day. Arrow keys move it.
+	 */
+	let activeDay = $state<string | null>(null);
+	const focusDay = $derived(
+		activeDay && grid.some((cell) => cell.iso === activeDay) ? activeDay : selectedDay
+	);
+	let gridElement = $state<HTMLElement>();
+
+	/** Keyboard navigation of the month grid (ARIA date-grid keys). A day outside
+	 * the month on view turns the page to its month first. */
+	async function gridKeydown(event: KeyboardEvent) {
+		const from = (event.target as HTMLElement).dataset.day;
+		if (!from) return;
+		const target = dayKeyTarget(from, event.key, event.shiftKey);
+		if (!target) return;
+		event.preventDefault();
+		const [year, month] = target.split('-').map(Number);
+		if (year !== viewYear || month - 1 !== viewMonth) {
+			viewYear = year;
+			viewMonth = month - 1;
+			pickedDay = null;
+		}
+		activeDay = target;
+		await tick();
+		// Each day has a desktop and a phone button; only one is displayed.
+		const buttons = gridElement?.querySelectorAll<HTMLElement>(`[data-day="${target}"]`) ?? [];
+		[...buttons].find((button) => button.offsetParent !== null)?.focus();
+	}
+
 	const selectedTasks = $derived(selectedDay ? (byDay.get(selectedDay) ?? []) : []);
 
 	const DAY_PANEL_WIDTH = 256;
@@ -268,7 +301,17 @@
 	{/each}
 </div>
 
-<div class="grid grid-cols-7 gap-px overflow-hidden rounded-card border border-subtle bg-subtle">
+<p id="calendar-keys-hint" class="sr-only">
+	Arrow keys move between days, Home and End to the start or end of the week, Page Up and Page Down
+	change the month, with Shift the year.
+</p>
+<div
+	class="grid grid-cols-7 gap-px overflow-hidden rounded-card border border-subtle bg-subtle"
+	role="group"
+	aria-label={heading}
+	aria-describedby="calendar-keys-hint"
+	bind:this={gridElement}
+>
 	{#each grid as cell (cell.iso)}
 		{@const dayTasks = byDay.get(cell.iso) ?? []}
 		{@const shown = dayTasks.slice(0, CHIPS_SHOWN)}
@@ -276,6 +319,8 @@
 		{@const dots = dayDots(dayTasks, todayIso())}
 		{@const selected = selectedDay === cell.iso}
 		<div
+			role="group"
+			aria-label={longDayLabel(cell.iso)}
 			class="relative flex min-h-13 flex-col items-center gap-1 p-1 transition-colors md:min-h-24 md:items-stretch md:p-1.5 {dragOverIso ===
 			cell.iso
 				? 'bg-accent/5'
@@ -291,7 +336,14 @@
 			<button
 				type="button"
 				class="absolute inset-0 hidden md:block"
-				aria-label="New task on {cell.iso}"
+				aria-label="{longDayLabel(cell.iso)}, {dayTasks.length} {dayTasks.length === 1
+					? 'task'
+					: 'tasks'}. New task"
+				aria-current={cell.isToday ? 'date' : undefined}
+				data-day={cell.iso}
+				tabindex={cell.iso === focusDay ? 0 : -1}
+				onfocus={() => (activeDay = cell.iso)}
+				onkeydown={gridKeydown}
 				onclick={() => onCreateTask(cell.iso)}
 			></button>
 			<!-- Phones: a tap selects the day; its tasks list under the grid. -->
@@ -302,6 +354,11 @@
 					? 'task'
 					: 'tasks'}"
 				aria-pressed={selected}
+				aria-current={cell.isToday ? 'date' : undefined}
+				data-day={cell.iso}
+				tabindex={cell.iso === focusDay ? 0 : -1}
+				onfocus={() => (activeDay = cell.iso)}
+				onkeydown={gridKeydown}
 				onclick={() => (pickedDay = cell.iso)}
 			></button>
 

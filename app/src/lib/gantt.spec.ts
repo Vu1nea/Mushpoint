@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { GoalDetail, SubgoalDetail, TaskSummary } from './api';
-import { ganttChart } from './gantt';
+import { ganttChart, ganttRowLabel, type GanttRow } from './gantt';
 
 const TODAY = '2026-08-11';
 
@@ -140,5 +140,34 @@ describe('ganttChart', () => {
 
 		expect(chart.start).toBe('2026-07-20');
 		expect(chart.rows[0].left).toBe(0);
+	});
+});
+
+describe('ganttRowLabel', () => {
+	const row: GanttRow = {
+		key: 's1',
+		title: 'Design',
+		kind: 'subgoal',
+		start: '2026-07-01',
+		end: '2026-07-15',
+		done: false,
+		overdue: false,
+		left: 0,
+		width: 50
+	};
+	const now = new Date(2026, 7, 11);
+
+	it('says what the bar shows: kind, title and span', () => {
+		expect(ganttRowLabel(row, now)).toBe('Subgoal Design, Jul 1 to Jul 15');
+		expect(ganttRowLabel({ ...row, kind: 'task' }, now)).toBe('Task Design, Jul 1 to Jul 15');
+	});
+
+	it('names a status that the bar shows only by colour', () => {
+		expect(ganttRowLabel({ ...row, done: true }, now)).toBe(
+			'Subgoal Design, Jul 1 to Jul 15, done'
+		);
+		expect(ganttRowLabel({ ...row, overdue: true }, now)).toBe(
+			'Subgoal Design, Jul 1 to Jul 15, overdue'
+		);
 	});
 });

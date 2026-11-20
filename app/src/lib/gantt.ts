@@ -1,5 +1,6 @@
 import type { GoalDetail } from './api';
 import { compareDates, localDateOf } from './dates';
+import { formatDate } from './format';
 
 export interface GanttRow {
 	key: string;
@@ -83,4 +84,18 @@ export function ganttChart(
 			width: ((dayNumber(item.end) - dayNumber(item.start) + 1) / span) * 100
 		}))
 	};
+}
+
+/** A row's status in words; the bar shows it only by colour (WCAG 1.4.1). */
+export function ganttRowStatus(row: Pick<GanttRow, 'done' | 'overdue'>): 'done' | 'overdue' | null {
+	if (row.done) return 'done';
+	return row.overdue ? 'overdue' : null;
+}
+
+/** What a screen reader hears for one bar: "Subgoal Design, Jul 1 to Jul 15, overdue". */
+export function ganttRowLabel(row: GanttRow, now: Date = new Date()): string {
+	const kind = row.kind === 'subgoal' ? 'Subgoal' : 'Task';
+	const span = `${formatDate(row.start, now)} to ${formatDate(row.end, now)}`;
+	const status = ganttRowStatus(row);
+	return `${kind} ${row.title}, ${span}${status ? `, ${status}` : ''}`;
 }
