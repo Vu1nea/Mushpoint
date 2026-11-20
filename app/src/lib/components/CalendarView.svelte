@@ -308,7 +308,7 @@
 			<span
 				class="flex size-5.5 shrink-0 items-center justify-center rounded-full text-2xs font-semibold md:self-start {cell.inCurrentMonth
 					? 'text-content'
-					: 'text-muted/50'} {cell.isToday ? 'ring-2 ring-accent' : ''}"
+					: 'text-muted'} {cell.isToday ? 'ring-2 ring-accent' : ''}"
 			>
 				{cell.day}
 			</span>

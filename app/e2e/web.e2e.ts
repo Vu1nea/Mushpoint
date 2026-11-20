@@ -60,7 +60,14 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 			mimeType: 'image/png',
 			buffer: PNG
 		});
-		await expect(dialog.locator('img')).toBeVisible();
+		// Either the preview appears or the dialog shows why the upload failed;
+		// report that message instead of a bare "img not found".
+		const preview = dialog.locator('img');
+		const failure = dialog.getByRole('alert');
+		await expect(preview.or(failure)).toBeVisible({ timeout: 15_000 });
+		if (await failure.isVisible()) {
+			throw new Error(`Vision image upload failed: ${await failure.innerText()}`);
+		}
 		await dialog.getByRole('button', { name: 'Create' }).click();
 		await expect(dialog).toBeHidden();
 		await expect(page.locator('main img')).toHaveCount(1);

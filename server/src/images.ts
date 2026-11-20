@@ -1,6 +1,7 @@
 import { log } from './logger';
 import { randomUUID } from 'node:crypto';
 import { AppError } from './error';
+import { serviceKeyHeaders } from './supabaseKey';
 
 export interface ImageStore {
   /** Stores the bytes and returns `<userId>/<uuid>.<ext>`. */
@@ -70,7 +71,7 @@ export function createSupabaseImageStore(opts: {
 }): ImageStore {
   const doFetch = opts.fetch ?? fetch;
   const base = `${opts.url.replace(/\/+$/, '')}/storage/v1`;
-  const auth = { Authorization: `Bearer ${opts.serviceKey}`, apikey: opts.serviceKey };
+  const auth = serviceKeyHeaders(opts.serviceKey);
   const unavailable = () => new AppError('unavailable', 'image storage failed');
 
   const call = async (path: string, init: RequestInit) => {

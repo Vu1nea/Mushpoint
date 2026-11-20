@@ -1,5 +1,6 @@
 import { log } from './logger';
 import { AppError } from './error';
+import { serviceKeyHeaders } from './supabaseKey';
 
 export interface AuthAdmin {
   /** Removes the Supabase login; succeeds when it is already gone. */
@@ -22,7 +23,7 @@ export function createSupabaseAuthAdmin(opts: {
       try {
         res = await doFetch(`${base}/${encodeURIComponent(userId)}`, {
           method: 'DELETE',
-          headers: { apikey: opts.serviceKey, Authorization: `Bearer ${opts.serviceKey}` }
+          headers: serviceKeyHeaders(opts.serviceKey)
         });
       } catch (err) {
         log.error({ err }, 'auth admin request failed');

@@ -120,6 +120,8 @@ jobs:
         run: |
           cp server/.env.example server/.env
           sed -i "s|^SUPABASE_URL=.*|SUPABASE_URL=$SUPABASE_URL|; s|^SUPABASE_SERVICE_KEY=.*|SUPABASE_SERVICE_KEY=$SUPABASE_SERVICE_KEY|" server/.env
+          # The whole suite runs from 127.0.0.1, so the 600/min production limit returns 429s.
+          echo 'RATE_LIMIT_PER_IP=100000' >> server/.env
           printf '{"apiUrl":"/api","supabaseUrl":"%s","supabaseAnonKey":"%s"}\n' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > app/static/config.json
           printf 'E2E_SUPABASE_URL=%s\nE2E_SUPABASE_SERVICE_KEY=%s\nE2E_PASSWORD=%s\n' "$SUPABASE_URL" "$SUPABASE_SERVICE_KEY" "$E2E_PASSWORD" > app/.env.e2e
       - name: Migrate

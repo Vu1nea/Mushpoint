@@ -481,7 +481,7 @@
 			{/each}
 
 			{#if columns[status].length === 0}
-				<p class="px-2 py-6 text-center text-xs text-muted/70">
+				<p class="px-2 py-6 text-center text-xs text-muted">
 					{filtering ? 'No matching tasks' : 'No tasks'}
 				</p>
 			{/if}
