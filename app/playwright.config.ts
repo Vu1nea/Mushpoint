@@ -43,6 +43,20 @@ export default defineConfig({
 			name: 'pixel-7',
 			testMatch: '**/mobile.e2e.{ts,js}',
 			use: { ...devices['Pixel 7'] }
+		},
+		// The app shell on the other two engines. Only shell.e2e: it signs in as
+		// user B and reads. web.e2e deletes user A's account (users are made once
+		// per run), so it can run in one project only. The axe scan stays on
+		// Chromium (its rules check the DOM, not the engine).
+		{
+			name: 'firefox',
+			testMatch: '**/shell.e2e.{ts,js}',
+			use: { ...devices['Desktop Firefox'] }
+		},
+		{
+			name: 'webkit',
+			testMatch: '**/shell.e2e.{ts,js}',
+			use: { ...devices['Desktop Safari'] }
 		}
 	]
 });
