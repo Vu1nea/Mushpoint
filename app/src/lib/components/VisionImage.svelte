@@ -11,5 +11,7 @@
 </script>
 
 {#if src}
-	<img {src} {alt} class={className} />
+	<!-- Boards can hold many full-size uploads: fetch only what scrolls into view,
+	     and decode off the main thread. -->
+	<img {src} {alt} class={className} loading="lazy" decoding="async" />
 {/if}

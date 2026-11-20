@@ -22,7 +22,13 @@
 	aria-hidden="true"
 >
 	{#if showImage}
-		<img src={url} alt="" class="size-full object-cover" onerror={() => (failedUrl = url)} />
+		<img
+			src={url}
+			alt=""
+			decoding="async"
+			class="size-full object-cover"
+			onerror={() => (failedUrl = url)}
+		/>
 	{:else}
 		{initial}
 	{/if}
