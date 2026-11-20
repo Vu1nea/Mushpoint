@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	cellTitle,
+	heatmapSummary,
 	daysUntil,
 	dueLabel,
 	dueTone,
@@ -86,6 +87,31 @@ describe('cellTitle', () => {
 		expect(cellTitle({ date: '2026-07-25', state: 'not_expected' }, now)).toBe(
 			'Jul 25 · not scheduled'
 		);
+	});
+});
+
+describe('heatmapSummary', () => {
+	it('counts each state and says how today stands', () => {
+		const cells = [
+			{ date: '2026-07-27', state: 'done' },
+			{ date: '2026-07-28', state: 'missed' },
+			{ date: '2026-07-29', state: 'not_expected' },
+			{ date: '2026-07-30', state: 'done' },
+			{ date: '2026-07-31', state: 'pending' }
+		] as const;
+		expect(heatmapSummary([...cells])).toBe(
+			'Last 5 days: 2 done, 1 missed, 1 not scheduled. Today: not yet.'
+		);
+	});
+
+	it('leaves out states that never occur', () => {
+		expect(heatmapSummary([{ date: '2026-07-31', state: 'done' }])).toBe(
+			'Last 1 day: 1 done. Today: done.'
+		);
+	});
+
+	it('handles an empty history', () => {
+		expect(heatmapSummary([])).toBe('No history yet.');
 	});
 });
 

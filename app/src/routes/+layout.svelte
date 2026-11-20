@@ -217,9 +217,11 @@
 				onMenu={() => (menuOpen = true)}
 				bind:menuButton
 			/>
-			<!-- On phones the bottom padding clears the fixed tab bar (3.5rem) and the home indicator. -->
+			<!-- On phones the bottom padding clears the fixed tab bar (3.5rem) and the home
+			     indicator; the scroll padding keeps a focused control from scrolling under
+			     it (WCAG 2.4.11). -->
 			<main
-				class="flex-1 overflow-y-auto px-4 pt-5 pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:px-11 md:pt-9 md:pb-15"
+				class="flex-1 scroll-pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] overflow-y-auto px-4 pt-5 pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:scroll-pb-0 md:px-11 md:pt-9 md:pb-15"
 			>
 				{@render children()}
 			</main>

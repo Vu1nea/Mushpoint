@@ -13,25 +13,44 @@
 	}
 }
 
-/* Icon-only buttons are drawn ~22px; `mp-hit` grows their tap target to at
-   least 40px on touch screens without changing how they look. The expander is
-   centered on the button, so neighbours' targets may overlap a little — the
-   later one wins there, which is fine for a pair of row actions. */
+/* Icon-only buttons are drawn ~22px; `mp-hit` grows their target to at least
+   24px (WCAG 2.5.8) everywhere and 40px on touch screens, without changing how
+   they look. The expander is centered on the button, so neighbours' targets may
+   overlap a little — the later one wins there, which is fine for row actions. */
 @layer components {
 	.mp-hit {
 		position: relative;
 	}
 
+	.mp-hit::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: max(100%, 24px);
+		height: max(100%, 24px);
+		translate: -50% -50%;
+	}
+
 	@media (pointer: coarse) {
 		.mp-hit::after {
-			content: '';
-			position: absolute;
-			top: 50%;
-			left: 50%;
 			width: max(100%, 40px);
 			height: max(100%, 40px);
-			translate: -50% -50%;
 		}
+	}
+}
+
+/* theme.css zeroes the motion tokens under reduced motion; this catches the
+   rest (Tailwind duration-*, animate-pulse, transition-[left]) so nothing
+   slides, scales or loops. Changes still happen, just instantly. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
 	}
 }
 

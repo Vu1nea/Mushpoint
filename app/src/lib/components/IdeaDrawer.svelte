@@ -1,5 +1,6 @@
 <!-- app/src/lib/components/IdeaDrawer.svelte -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { createIdea, updateIdea, type Idea } from '$lib/api';
 	import FormModal from './FormModal.svelte';
 	import Icon from './Icon.svelte';
@@ -38,6 +39,8 @@
 	async function submit() {
 		if (!form.title.trim()) {
 			titleMissing = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('idea-title')?.focus());
 			shake = true;
 			return;
 		}
@@ -81,9 +84,10 @@
 			onanimationend={() => (shake = false)}
 			placeholder="What's the idea…"
 			aria-invalid={titleMissing}
+			aria-describedby={titleMissing ? 'idea-title-error' : undefined}
 		/>
 		{#if titleMissing}
-			<p class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+			<p id="idea-title-error" class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
 				<Icon name="warning" size={13} weight={2} /> Title is required
 			</p>
 		{/if}

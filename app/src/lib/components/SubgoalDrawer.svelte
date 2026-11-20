@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { updateSubgoal, type Subgoal } from '$lib/api';
 	import DatePicker from './DatePicker.svelte';
 	import FormModal from './FormModal.svelte';
@@ -29,6 +30,8 @@
 		if (!subgoal) return;
 		if (!form.title.trim()) {
 			titleMissing = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('subgoal-title')?.focus());
 			return;
 		}
 
@@ -67,9 +70,10 @@
 			bind:value={form.title}
 			oninput={() => (titleMissing = false)}
 			aria-invalid={titleMissing}
+			aria-describedby={titleMissing ? 'subgoal-title-error' : undefined}
 		/>
 		{#if titleMissing}
-			<p class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+			<p id="subgoal-title-error" class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
 				<Icon name="warning" size={13} weight={2} /> Title is required
 			</p>
 		{/if}

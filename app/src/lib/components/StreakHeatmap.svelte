@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CellState, DayCell } from '$lib/api';
-	import { cellTitle } from '$lib/format';
+	import { cellTitle, heatmapSummary } from '$lib/format';
 	import { stagger } from '$lib/motion';
 
 	interface Props {
@@ -25,7 +25,7 @@
 	class="grid w-full gap-0.75"
 	style="grid-template-columns:repeat({cells.length}, minmax(0, 1fr))"
 	role="img"
-	aria-label="Completion history for the last {cells.length} days"
+	aria-label="Completion history. {heatmapSummary(cells)}"
 >
 	{#each cells as cell, index (cell.date)}
 		<span

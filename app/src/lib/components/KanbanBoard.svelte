@@ -344,7 +344,8 @@
 				{@const parent = parentLabel(task)}
 				{@const inert = busy || Boolean(task.recurrence && !task.expectedToday)}
 				{@const targets = moveTargets(task)}
-				<div
+				<article
+					aria-label={task.title}
 					class="group rounded-card border p-3.5 transition-shadow {moveMenuFor === task.id
 						? 'relative z-10'
 						: ''} {justMovedId === task.id
@@ -477,7 +478,7 @@
 							{/if}
 						</div>
 					{/if}
-				</div>
+				</article>
 			{/each}
 
 			{#if columns[status].length === 0}

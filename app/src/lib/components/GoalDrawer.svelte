@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import {
 		createGoal,
 		TIMEFRAME_LABELS,
@@ -88,6 +89,8 @@
 	async function submit() {
 		if (!form.title.trim()) {
 			titleMissing = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('goal-title')?.focus());
 			shake = true;
 			return;
 		}
@@ -95,6 +98,8 @@
 		const repoUrl = form.repoUrl.trim();
 		if (repoUrl && !isValidUrl(repoUrl)) {
 			urlInvalid = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('goal-repo')?.focus());
 			shake = true;
 			return;
 		}
@@ -143,9 +148,10 @@
 			onanimationend={() => (shake = false)}
 			placeholder="Give it a name…"
 			aria-invalid={titleMissing}
+			aria-describedby={titleMissing ? 'goal-title-error' : undefined}
 		/>
 		{#if titleMissing}
-			<p class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+			<p id="goal-title-error" class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
 				<Icon name="warning" size={13} weight={2} /> Title is required
 			</p>
 		{/if}
@@ -212,9 +218,10 @@
 			onanimationend={() => (shake = false)}
 			placeholder="https://github.com/you/project"
 			aria-invalid={urlInvalid}
+			aria-describedby={urlInvalid ? 'goal-repo-error' : undefined}
 		/>
 		{#if urlInvalid}
-			<p class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+			<p id="goal-repo-error" class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
 				<Icon name="warning" size={13} weight={2} /> Enter a valid URL
 			</p>
 		{/if}

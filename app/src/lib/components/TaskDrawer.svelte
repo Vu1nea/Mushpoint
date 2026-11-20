@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import {
 		createTask,
 		RECURRENCE_OPTIONS,
@@ -103,6 +104,8 @@
 	async function submit() {
 		if (!form.title.trim()) {
 			titleMissing = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('task-title')?.focus());
 			shake = true;
 			return;
 		}
@@ -153,9 +156,10 @@
 			onanimationend={() => (shake = false)}
 			placeholder="Give it a name…"
 			aria-invalid={titleMissing}
+			aria-describedby={titleMissing ? 'task-title-error' : undefined}
 		/>
 		{#if titleMissing}
-			<p class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+			<p id="task-title-error" class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
 				<Icon name="warning" size={13} weight={2} /> Title is required
 			</p>
 		{/if}

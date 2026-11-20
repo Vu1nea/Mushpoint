@@ -1,5 +1,6 @@
 <!-- app/src/lib/components/VisionItemDrawer.svelte -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { createVisionItem, updateVisionItem, type VisionItemView } from '$lib/api';
 	import { uploadImage } from '$lib/images';
 	import FormModal from './FormModal.svelte';
@@ -70,6 +71,8 @@
 		const quoteText = form.quoteText.trim();
 		if (!form.imagePath && !quoteText) {
 			contentMissing = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('vision-quote')?.focus());
 			shake = true;
 			return;
 		}
@@ -145,11 +148,12 @@
 			onanimationend={() => (shake = false)}
 			placeholder="A line worth seeing every day…"
 			aria-invalid={contentMissing}
+			aria-describedby={contentMissing ? 'vision-quote-error' : undefined}
 		></textarea>
 	</div>
 
 	{#if contentMissing}
-		<p class="flex items-center gap-1.5 text-xs text-warn">
+		<p id="vision-quote-error" class="flex items-center gap-1.5 text-xs text-warn">
 			<Icon name="warning" size={13} weight={2} /> Add an image, a quote, or both
 		</p>
 	{/if}

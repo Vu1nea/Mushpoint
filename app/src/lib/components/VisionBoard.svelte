@@ -1,7 +1,9 @@
 <!-- app/src/lib/components/VisionBoard.svelte -->
 <script lang="ts">
+	import { tick } from 'svelte';
 	import type { VisionItemView } from '$lib/api';
 	import { stagger } from '$lib/motion';
+	import { moveId, moveIdBy } from '$lib/reorder';
 	import Icon from './Icon.svelte';
 	import VisionImage from './VisionImage.svelte';
 	import { button } from './ui';
@@ -39,15 +41,36 @@
 		dragOverId = null;
 		const sourceId = Number(event.dataTransfer?.getData('text/plain'));
 		dragId = null;
-		if (busy || !sourceId || sourceId === target.id) return;
+		if (busy || !sourceId) return;
+		const next = moveId(
+			items.map((i) => i.id),
+			sourceId,
+			target.id
+		);
+		if (next) onReorder(next);
+	}
 
-		const from = items.findIndex((i) => i.id === sourceId);
-		const to = items.findIndex((i) => i.id === target.id);
-		if (from < 0 || to < 0) return;
+	/** Polite status line for screen readers after a keyboard move. */
+	let announcement = $state('');
+	let board = $state<HTMLElement>();
 
-		const reordered = [...items];
-		reordered.splice(to, 0, ...reordered.splice(from, 1));
-		onReorder(reordered.map((i) => i.id));
+	/** Keyboard alternative to dragging (WCAG 2.5.7). The card moves in the DOM,
+	 * which drops focus, so it is put back on the same button, or on the other
+	 * one once the card reaches an end. */
+	async function step(item: VisionItemView, direction: -1 | 1) {
+		if (busy) return;
+		const next = moveIdBy(
+			items.map((i) => i.id),
+			item.id,
+			direction
+		);
+		if (!next) return;
+		onReorder(next);
+		announcement = `Moved to position ${next.indexOf(item.id) + 1} of ${next.length}`;
+		await tick();
+		const buttons = board?.querySelectorAll<HTMLButtonElement>(`[data-move-id="${item.id}"]`);
+		const same = [...(buttons ?? [])].find((b) => b.dataset.direction === String(direction));
+		(same ?? buttons?.[0])?.focus();
 	}
 </script>
 
@@ -62,7 +85,8 @@
 		</button>
 	</div>
 {:else}
-	<div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
+	<p class="sr-only" aria-live="polite">{announcement}</p>
+	<div class="columns-1 gap-4 sm:columns-2 lg:columns-3" bind:this={board}>
 		<button
 			type="button"
 			class="mb-4 flex h-32 w-full break-inside-avoid items-center justify-center rounded-card border border-dashed border-subtle text-muted transition-colors hover:border-accent/60 hover:text-content"
@@ -72,7 +96,8 @@
 		</button>
 
 		{#each items as item, index (item.id)}
-			<div
+			<article
+				aria-label="Vision item {index + 1} of {items.length}"
 				class="group mb-4 break-inside-avoid rounded-card border p-3 transition-colors {dragOverId ===
 				item.id
 					? 'border-accent bg-accent/5'
@@ -93,6 +118,28 @@
 				<div
 					class="mt-2 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
 				>
+					{#if index > 0}
+						<button
+							type="button"
+							class="{button.bare} mp-hit"
+							data-move-id={item.id}
+							data-direction="-1"
+							onclick={() => step(item, -1)}
+						>
+							<Icon name="chevron-right" size={13} class="rotate-180" label="Move earlier" />
+						</button>
+					{/if}
+					{#if index < items.length - 1}
+						<button
+							type="button"
+							class="{button.bare} mp-hit"
+							data-move-id={item.id}
+							data-direction="1"
+							onclick={() => step(item, 1)}
+						>
+							<Icon name="chevron-right" size={13} label="Move later" />
+						</button>
+					{/if}
 					<button type="button" class="{button.bare} mp-hit" onclick={() => onEdit(item)}>
 						<Icon name="edit" size={13} label="Edit vision item" />
 					</button>
@@ -105,7 +152,7 @@
 						<Icon name="trash" size={13} label="Delete vision item" />
 					</button>
 				</div>
-			</div>
+			</article>
 		{/each}
 	</div>
 {/if}
