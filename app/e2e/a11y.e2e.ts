@@ -68,5 +68,30 @@ for (const theme of THEMES) {
 				await expectNoViolations(page);
 			});
 		}
+
+		// Popups are portaled and only exist while open, so a page scan never sees
+		// them; their contrast bugs went unnoticed until checked by hand.
+		test('the date picker and select popups have no axe violations', async ({ page }) => {
+			await page.goto('/tasks');
+			await page.waitForLoadState('networkidle');
+			await useTheme(page, theme);
+			await page.getByRole('button', { name: 'New Task' }).click();
+			const drawer = page.getByRole('dialog', { name: 'New Task' });
+
+			await drawer.getByRole('button', { name: 'Due date (optional)' }).click();
+			const picker = page.getByRole('dialog', { name: 'Choose a date' });
+			await expect(picker).toBeVisible();
+			await expect(picker.getByRole('gridcell').and(page.locator(':focus'))).toHaveCount(1);
+			await expectNoViolations(page);
+
+			// Escape closes only the picker, not the drawer around it.
+			await page.keyboard.press('Escape');
+			await expect(picker).toBeHidden();
+			await expect(drawer).toBeVisible();
+
+			await drawer.getByRole('combobox', { name: 'Repeats' }).click();
+			await expect(page.getByRole('listbox')).toBeVisible();
+			await expectNoViolations(page);
+		});
 	});
 }
