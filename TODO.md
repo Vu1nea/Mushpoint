@@ -262,14 +262,16 @@ accessibility, then ops.
 
 ### 10. Legal and privacy
 
-- [ ] Privacy policy and terms of service
+- [x] Drafts: `docs/legal/privacy-policy.md`, `docs/legal/terms-of-service.md`,
+      written from what the code does. Fill the `[bracketed]` items
+- [ ] Legal review of both drafts, then publish them as app pages linked from sign-up
 - [x] Data export for users (UK GDPR Articles 15 and 20); deletion already exists:
       `GET /api/account/export` returns every row of every `USER_TABLES` table
       plus 24-hour signed image links; Settings → Your data → Download my data
       saves it as JSON with the sign-in email added. Covered by
       `routes/export.spec.ts` and a step in `web.e2e.ts`. The privacy policy
       should say how to ask for a copy and that this button exists
-- [ ] Disclose Supabase session storage
+- [x] Disclose Supabase session storage (privacy policy, "Storage on your device")
 
 ### 11. Docs
 
