@@ -5,6 +5,7 @@
 	import { stagger } from '$lib/motion';
 	import { moveId, moveIdBy } from '$lib/reorder';
 	import Icon from '../ui/Icon.svelte';
+	import { boardSurface, noteColorOf, tiltOf } from './paper';
 	import VisionImage from './VisionImage.svelte';
 	import { button } from '../ui';
 
@@ -19,23 +20,10 @@
 
 	let { items, busy, onReorder, onEdit, onDelete, onAddNew }: Props = $props();
 
-	/** Sticky-note paper colors for quote-only items. Dark ink on all of them
-	 * keeps contrast in both themes. */
-	const NOTES = [
-		'bg-yellow-200',
-		'bg-pink-200',
-		'bg-sky-200',
-		'bg-lime-200',
-		'bg-orange-200',
-		'bg-violet-200'
-	];
-	/** Small fixed tilts in degrees; picked by id so a card keeps its look. */
-	const TILTS = [-2.5, 1.5, -1, 2.5, -1.8, 1, -0.6, 2];
-
 	const isNote = (item: VisionItemView) => !item.imageUrl && !!item.quoteText;
 	const isPhoto = (item: VisionItemView) => !!item.imageUrl;
-	const tilt = (item: VisionItemView) => TILTS[item.id % TILTS.length];
-	const noteColor = (item: VisionItemView) => NOTES[(item.id * 7) % NOTES.length];
+	const tilt = (item: VisionItemView) => tiltOf(item.id);
+	const noteColor = (item: VisionItemView) => noteColorOf(item.id);
 
 	/** Card chrome: sticky note, polaroid, or a plain card for anything else. */
 	function paperClass(item: VisionItemView) {
@@ -118,7 +106,7 @@
 {:else}
 	<p class="sr-only" aria-live="polite">{announcement}</p>
 	<div
-		class="columns-2 gap-3 rounded-card border border-subtle bg-surface/60 bg-[radial-gradient(color-mix(in_srgb,var(--color-content)_14%,transparent)_1px,transparent_1px)] bg-size-[20px_20px] p-4 pt-6 sm:columns-3 sm:gap-4 sm:p-6 lg:columns-4 xl:columns-5"
+		class="columns-2 gap-3 {boardSurface} p-4 pt-6 sm:columns-3 sm:gap-4 sm:p-6 lg:columns-4 xl:columns-5"
 		bind:this={board}
 	>
 		<button
