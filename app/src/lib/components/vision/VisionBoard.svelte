@@ -42,10 +42,10 @@
 		const over = dragOverId === item.id;
 		const paper = 'text-neutral-900 [&_button]:text-neutral-800 ';
 		if (isNote(item)) {
-			return `${paper}rounded-xs px-4 pt-6 pb-3 shadow-[0_6px_14px_rgba(0,0,0,0.28)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.35)] ${over ? 'bg-accent/40' : noteColor(item)}`;
+			return `${paper}rounded-xs px-4 pt-6 pb-3 shadow-[0_8px_18px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[0_14px_28px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.1)] ${over ? 'bg-accent/40' : noteColor(item)}`;
 		}
 		if (isPhoto(item)) {
-			return `${paper}rounded-xs px-2.5 pt-2.5 pb-2 shadow-[0_6px_14px_rgba(0,0,0,0.3)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.38)] ${over ? 'bg-accent/40' : 'bg-stone-50'}`;
+			return `${paper}rounded-xs px-2.5 pt-2.5 pb-2 shadow-[0_8px_18px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[0_14px_28px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.1)] ${over ? 'bg-accent/40' : 'bg-stone-50'}`;
 		}
 		return `rounded-card border p-3 ${over ? 'border-accent bg-accent/5' : 'border-subtle bg-surface shadow-[0_4px_10px_rgba(0,0,0,0.18)]'}`;
 	}
@@ -117,7 +117,10 @@
 	</div>
 {:else}
 	<p class="sr-only" aria-live="polite">{announcement}</p>
-	<div class="columns-2 gap-3 sm:columns-3 sm:gap-4 lg:columns-4 xl:columns-5" bind:this={board}>
+	<div
+		class="columns-2 gap-3 rounded-card border border-subtle bg-surface/60 bg-[radial-gradient(color-mix(in_srgb,var(--color-content)_14%,transparent)_1px,transparent_1px)] bg-size-[20px_20px] p-4 pt-6 sm:columns-3 sm:gap-4 sm:p-6 lg:columns-4 xl:columns-5"
+		bind:this={board}
+	>
 		<button
 			type="button"
 			class="mb-4 flex h-32 w-full break-inside-avoid items-center justify-center rounded-card border border-dashed border-subtle text-muted transition-colors hover:border-accent/60 hover:text-content"
@@ -145,8 +148,8 @@
 						class="pointer-events-none absolute -top-2 left-1/2 z-10 h-4 w-14 -translate-x-1/2 shadow-sm {isPhoto(
 							item
 						)
-							? '-rotate-3 bg-amber-200/70'
-							: 'rotate-2 bg-white/50'}"
+							? '-rotate-3 bg-amber-300/80'
+							: 'rotate-2 bg-white/70 ring-1 ring-black/10'}"
 						aria-hidden="true"
 					></span>
 				{/if}
