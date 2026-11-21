@@ -89,9 +89,6 @@
 	const isCurrent = (href: string) =>
 		href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
 
-	/** The phone top bar's title: the NAV entry for the current screen. */
-	const pageTitle = $derived(NAV.find((item) => isCurrent(item.href))?.label ?? 'Mushpoint');
-
 	let menuOpen = $state(false);
 	let menuButton = $state<HTMLButtonElement>();
 
@@ -210,7 +207,6 @@
 
 		<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
 			<MobileTopBar
-				title={pageTitle}
 				name={data.profile?.username ?? auth.email ?? ''}
 				avatarUrl={data.profile?.avatarUrl ?? null}
 				{menuOpen}
