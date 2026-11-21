@@ -146,7 +146,7 @@
 			<div
 				class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap {sidebarOpen
 					? ''
-					: 'flex-col'}"
+					: 'justify-center'}"
 			>
 				<img
 					src={mushIcon}
@@ -159,13 +159,6 @@
 				{#if sidebarOpen}
 					<span class="font-display text-base font-bold tracking-[0.2px]">Mushpoint</span>
 				{/if}
-				<button
-					type="button"
-					class="{button.bare} {sidebarOpen ? 'ml-auto' : ''}"
-					onclick={toggleSidebar}
-				>
-					<Icon name="sidebar" size={17} weight={1.7} label="Toggle sidebar" />
-				</button>
 			</div>
 
 			{#if sidebarOpen}
@@ -178,6 +171,7 @@
 						href={item.href}
 						aria-current={isCurrent(item.href) ? 'page' : undefined}
 						class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap transition-colors
+						{sidebarOpen ? '' : 'justify-center'}
 						{isCurrent(item.href)
 							? 'bg-surface-raised font-semibold text-content'
 							: 'font-medium text-muted hover:bg-surface-raised hover:text-content'}"
@@ -189,6 +183,24 @@
 					</a>
 				{/each}
 			</nav>
+
+			<div class="px-2.5 pb-2">
+				<button
+					type="button"
+					class="flex w-full items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 font-medium whitespace-nowrap text-muted transition-colors hover:bg-surface-raised hover:text-content {sidebarOpen
+						? ''
+						: 'justify-center'}"
+					aria-expanded={sidebarOpen}
+					onclick={toggleSidebar}
+				>
+					<Icon
+						name={sidebarOpen ? 'chevrons-left' : 'chevrons-right'}
+						size={16}
+						label={sidebarOpen ? undefined : 'Expand sidebar'}
+					/>
+					{#if sidebarOpen}<span class="text-sm">Collapse</span>{/if}
+				</button>
+			</div>
 
 			<SidebarUser
 				open={sidebarOpen}

@@ -34,7 +34,7 @@
 	}
 
 	const row = $derived(
-		`flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap font-medium text-muted transition-colors hover:bg-surface-raised hover:text-content disabled:opacity-50`
+		`flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap font-medium text-muted transition-colors hover:bg-surface-raised hover:text-content disabled:opacity-50 ${open ? '' : 'justify-center'}`
 	);
 </script>
 
