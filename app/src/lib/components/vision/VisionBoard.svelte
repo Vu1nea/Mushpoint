@@ -140,9 +140,13 @@
 				ondragend={() => (dragId = null)}
 				ondrop={(event) => drop(event, item)}
 			>
-				{#if isNote(item)}
+				{#if isNote(item) || isPhoto(item)}
 					<span
-						class="pointer-events-none absolute -top-2 left-1/2 h-4 w-14 -translate-x-1/2 rotate-2 bg-white/50 shadow-sm"
+						class="pointer-events-none absolute -top-2 left-1/2 z-10 h-4 w-14 -translate-x-1/2 shadow-sm {isPhoto(
+							item
+						)
+							? '-rotate-3 bg-amber-200/70'
+							: 'rotate-2 bg-white/50'}"
 						aria-hidden="true"
 					></span>
 				{/if}
