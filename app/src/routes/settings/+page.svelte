@@ -128,8 +128,7 @@
 <!-- Centered column: max-w-115 fits two theme cards per row. -->
 <div class="mx-auto w-full max-w-115">
 	<header class="mb-6">
-		<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Settings</h1>
-		<p class="text-sm text-muted">Your account, how Mushpoint looks and what it tracks</p>
+		<h1 class="font-display text-2xl font-bold sm:text-3xl">Settings</h1>
 	</header>
 
 	{#if actionError}

@@ -81,8 +81,7 @@
 <svelte:head><title>Idea Vault · Mushpoint</title></svelte:head>
 
 <header class="mb-6">
-	<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Idea Vault</h1>
-	<p class="text-sm text-muted">Capture it now, sort it later</p>
+	<h1 class="font-display text-2xl font-bold sm:text-3xl">Idea Vault</h1>
 </header>
 
 {#if data.error}

@@ -56,11 +56,7 @@
 
 <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
 	<div class="min-w-0">
-		<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Goals</h1>
-		<p class="text-sm text-muted">
-			{visible.length}
-			{visible.length === 1 ? 'goal' : 'goals'} across {data.categories.length} categories
-		</p>
+		<h1 class="font-display text-2xl font-bold sm:text-3xl">Goals</h1>
 	</div>
 	<button type="button" class="{button.primary} shrink-0" onclick={() => (drawerOpen = true)}>
 		<Icon name="plus" size={15} weight={2.4} />

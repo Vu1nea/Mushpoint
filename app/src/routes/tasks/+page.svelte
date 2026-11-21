@@ -93,8 +93,7 @@
 
 <header class="mb-6 flex flex-wrap items-start justify-between gap-4">
 	<div class="min-w-0">
-		<h1 class="mb-1 font-display text-2xl font-bold sm:text-3xl">Tasks</h1>
-		<p class="text-sm text-muted">Everything on your plate</p>
+		<h1 class="font-display text-2xl font-bold sm:text-3xl">Tasks</h1>
 	</div>
 	<button type="button" class="{button.primary} shrink-0" onclick={() => newTask()}>
 		<Icon name="plus" size={15} weight={2.4} />
