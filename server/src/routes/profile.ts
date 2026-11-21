@@ -2,7 +2,7 @@ import { Router } from 'express';
 import type { Pool } from 'pg';
 import { withUser } from '../db/scope';
 import { logFor, type Handle } from '../http';
-import { checkedUpload, type ImageStore } from '../images';
+import { preparedUpload, type ImageStore } from '../images';
 import * as profile from '../repo/profile';
 import { usernameBody } from '../schemas';
 import type { Profile } from '../types';
@@ -28,7 +28,7 @@ export function profileRouter(handle: Handle, pool: Pool, images: ImageStore): R
   /** `PUT /avatar` (multipart field `file`): stores the picture, then points the profile at it. */
   r.put('/avatar', singleImage(), async (req, res) => {
     const userId: string = res.locals.userId;
-    const { bytes, type } = checkedUpload(req.file);
+    const { bytes, type } = await preparedUpload(req.file, 'avatar');
     const path = await images.put(userId, bytes, type);
     let result: Awaited<ReturnType<typeof profile.setAvatar>>;
     try {

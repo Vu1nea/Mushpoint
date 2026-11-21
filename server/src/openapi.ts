@@ -144,7 +144,7 @@ function operation(op: Op) {
                 schema: {
                   type: 'object',
                   required: ['file'],
-                  properties: { file: { type: 'string', format: 'binary', description: 'PNG, JPEG, WebP or GIF, at most 5 MB' } }
+                  properties: { file: { type: 'string', format: 'binary', description: 'PNG, JPEG, WebP or GIF, at most 5 MB. Stored re-encoded as WebP with metadata removed: avatars as a 256 px square, other images at most 1600 px on the long side.' } }
                 }
               }
             }

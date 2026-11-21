@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
+import sharp from 'sharp';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../app';
@@ -12,6 +13,7 @@ import { USER_TABLES } from '../repo/account';
 import { createTestIdentity } from '../testSupport/auth';
 import { clientFor } from '../testSupport/client';
 import { purgeUsers } from '../testSupport/db';
+import { TEST_PNG } from '../testSupport/png';
 
 const goalBody = {
   categoryId: null,
@@ -23,6 +25,8 @@ const goalBody = {
   motivationImagePath: null,
   repoUrl: null
 };
+const PNG = TEST_PNG;
+const PNG_HEADER_ONLY = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 const taskBody = { title: 'T', dueDate: null, goalId: null, subgoalId: null, recurrence: null };
 
 const pool = createPool(process.env.DATABASE_URL!);
@@ -231,15 +235,15 @@ describe('vision-items', () => {
 });
 
 describe('vision images', () => {
-  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
   const upload = async () =>
     (await a.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(200)).body;
 
-  it('uploads an image and returns a path and a signed url', async () => {
+  it('uploads an image, stored re-encoded as WebP, and returns a path and a signed url', async () => {
     const body = await upload();
-    expect(body.imagePath).toMatch(new RegExp(`^${A}/[0-9a-f-]{36}\\.png$`));
+    expect(body.imagePath).toMatch(new RegExp(`^${A}/[0-9a-f-]{36}\\.webp$`));
     expect(body.imageUrl).toEqual(expect.any(String));
-    expect(store.objects.has(body.imagePath)).toBe(true);
+    const stored = await sharp(store.objects.get(body.imagePath)!).metadata();
+    expect([stored.format, stored.width, stored.height]).toEqual(['webp', 64, 48]);
   });
 
   it('requires a token to upload', async () => {
@@ -249,6 +253,7 @@ describe('vision images', () => {
   it.each([
     ['wrong declared type', Buffer.from(PNG), 'a.txt', 'text/plain'],
     ['declared png but not an image', Buffer.from('hello world!'), 'a.png', 'image/png'],
+    ['png header with no image behind it', Buffer.from(PNG_HEADER_ONLY), 'a.png', 'image/png'],
     ['svg', Buffer.from('<svg/>'), 'a.svg', 'image/svg+xml']
   ])('rejects %s', async (_name, buf, filename, contentType) => {
     const res = await a.post('/api/vision-images').attach('file', buf, { filename, contentType }).expect(400);
@@ -383,7 +388,6 @@ describe('profile', () => {
     await a.put('/api/profile/username').send({}).expect(400);
   });
 
-  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
   const attachPng = (client: ReturnType<typeof clientFor>) =>
     client.put('/api/profile/avatar').attach('file', Buffer.from(PNG), { filename: 'me.png', contentType: 'image/png' });
   const avatarObjects = (user: string) =>
@@ -396,6 +400,8 @@ describe('profile', () => {
     expect(first).toEqual({ username: NAME, avatarUrl: expect.any(String) });
     expect((await a.get('/api/profile').expect(200)).body.avatarUrl).toEqual(expect.any(String));
     const [firstPath] = avatarObjects(A).filter((k) => !before.includes(k));
+    const stored = await sharp(store.objects.get(firstPath)!).metadata();
+    expect([firstPath.endsWith('.webp'), stored.format, stored.width, stored.height]).toEqual([true, 'webp', 256, 256]);
 
     await attachPng(a).expect(200);
     expect(store.objects.has(firstPath)).toBe(false);
@@ -419,7 +425,6 @@ describe('profile', () => {
 });
 
 describe('account deletion', () => {
-  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 
   it("removes every row, image and the login, then refuses the user's token", async () => {
     // C is deleted; D is the bystander. Fresh users keep the shared A/B usable.

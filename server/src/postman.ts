@@ -75,7 +75,7 @@ export const FOLDERS: Folder[] = [
         path: '/profile/avatar',
         upload: true,
         status: 200,
-        description: 'Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field.'
+        description: 'Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field. It is stored as a 256 px WebP square with metadata removed.'
       },
       { name: 'Remove avatar', method: 'delete', path: '/profile/avatar', status: 200 },
       { name: 'Get settings', method: 'get', path: '/settings', status: 200 },
@@ -185,7 +185,7 @@ export const FOLDERS: Folder[] = [
         upload: true,
         capture: { variable: 'imagePath', field: 'imagePath' },
         status: 200,
-        description: 'Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field.'
+        description: 'Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field. It is stored as WebP, at most 1600 px on the long side, with metadata removed.'
       },
       {
         name: 'Create image item',

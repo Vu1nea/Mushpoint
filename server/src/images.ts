@@ -1,5 +1,6 @@
 import { log } from './logger';
 import { randomUUID } from 'node:crypto';
+import sharp from 'sharp';
 import { AppError } from './error';
 import { serviceKeyHeaders } from './supabaseKey';
 
@@ -46,6 +47,51 @@ export function checkedUpload(file: { buffer: Buffer; size: number; mimetype: st
   const type = sniffImageType(bytes);
   if (type === null || type !== file.mimetype) throw AppError.validation('unsupported image');
   return { bytes, type };
+}
+
+/** How an upload is shown: a small square avatar, or a picture (vision board, motivation). */
+export type ImageKind = 'avatar' | 'picture';
+
+export const AVATAR_SIZE = 256;
+export const PICTURE_MAX = 1600;
+/** Decoded pixels allowed per frame (about 8000 x 5000); a 5 MB file can claim far more. */
+export const MAX_INPUT_PIXELS = 40_000_000;
+const WEBP_QUALITY = 80;
+
+sharp.cache(false);
+
+/**
+ * Re-encodes a checked upload as WebP: turned upright from its EXIF orientation, sized for how it
+ * is shown, and with all metadata (EXIF, GPS, ICC, XMP) dropped. Animated GIF and WebP stay
+ * animated. Bytes that do not decode as an image are a validation error.
+ */
+export async function normalizeImage(
+  bytes: Uint8Array,
+  kind: ImageKind,
+  maxInputPixels = MAX_INPUT_PIXELS
+): Promise<{ bytes: Uint8Array; type: 'image/webp' }> {
+  try {
+    const { pages = 1 } = await sharp(bytes, { limitInputPixels: maxInputPixels }).metadata();
+    const animated = pages > 1;
+    let image = sharp(bytes, { limitInputPixels: maxInputPixels, animated, failOn: 'error' }).autoOrient();
+    image =
+      kind === 'avatar'
+        ? image.resize(AVATAR_SIZE, AVATAR_SIZE, { fit: 'cover', position: 'attention' })
+        : image.resize(PICTURE_MAX, PICTURE_MAX, { fit: 'inside', withoutEnlargement: true });
+    const out = await image.webp({ quality: WEBP_QUALITY, effort: 4 }).toBuffer();
+    return { bytes: new Uint8Array(out), type: 'image/webp' };
+  } catch (err) {
+    log.warn({ err: err instanceof Error ? err.message : String(err) }, 'upload did not decode as an image');
+    throw AppError.validation('unsupported image');
+  }
+}
+
+/** `checkedUpload`, then `normalizeImage`: what every upload route stores. */
+export async function preparedUpload(
+  file: Parameters<typeof checkedUpload>[0],
+  kind: ImageKind
+): Promise<{ bytes: Uint8Array; type: 'image/webp' }> {
+  return normalizeImage(checkedUpload(file).bytes, kind);
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

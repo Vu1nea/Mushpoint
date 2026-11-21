@@ -12,12 +12,13 @@ import { createTestIdentity } from '../testSupport/auth';
 import { clientFor } from '../testSupport/client';
 import { purgeUsers } from '../testSupport/db';
 import { EXPORT_LINK_SECONDS } from './account';
+import { TEST_PNG } from '../testSupport/png';
 
 const pool = createPool(process.env.DATABASE_URL!);
 const X = randomUUID();
 const Y = randomUUID();
 const Z = randomUUID();
-const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+const PNG = TEST_PNG;
 const store = createMemoryImageStore();
 let app: Express;
 let x: ReturnType<typeof clientFor>;

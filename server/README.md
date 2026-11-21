@@ -50,7 +50,7 @@ The API and the migration runner read these variables from `.env`:
 The API needs 2 things from your Supabase project:
 
 - **Asymmetric JSON Web Token (JWT) signing keys**: the API accepts only `ES256` or `RS256` tokens with issuer `${SUPABASE_URL}/auth/v1` and audience `authenticated`. A project still on the legacy HS256 shared secret fails closed: every request answers 401.
-- **A private Storage bucket**: named `vision`, or whatever you set in `IMAGE_BUCKET`. The API stores images at `user_id/uuid.ext`, where `ext` is `png`, `jpg`, `webp` or `gif`, and serves them through signed URLs that expire after 1 hour.
+- **A private Storage bucket**: named `vision`, or whatever you set in `IMAGE_BUCKET`. The API accepts PNG, JPEG, WebP and GIF uploads up to 5 MB, and stores every one re-encoded as WebP with [`sharp`](https://sharp.pixelplumbing.com/) at `user_id/uuid.webp`: turned upright, all metadata (EXIF, including GPS location) removed, avatars cropped to a 256 px square and other images fitted within 1600 px. Animated GIFs stay animated. Images uploaded before this change keep their original `png`, `jpg` or `gif` paths. Images are served through signed URLs that expire after 1 hour.
 
 To create the bucket with the service key, run:
 

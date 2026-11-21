@@ -320,7 +320,7 @@
                 "avatar"
               ]
             },
-            "description": "Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field."
+            "description": "Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field. It is stored as a 256 px WebP square with metadata removed."
           }
         },
         {
@@ -1410,7 +1410,7 @@
                 "vision-images"
               ]
             },
-            "description": "Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field."
+            "description": "Pick a PNG, JPEG, WebP or GIF of at most 5 MB in the `file` field. It is stored as WebP, at most 1600 px on the long side, with metadata removed."
           }
         },
         {

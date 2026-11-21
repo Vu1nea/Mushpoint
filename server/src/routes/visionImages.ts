@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { checkedUpload, type ImageStore } from '../images';
+import { preparedUpload, type ImageStore } from '../images';
 
 export const SIGNED_URL_SECONDS = 3600;
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -13,7 +13,7 @@ export const singleImage = () =>
 export function visionImagesRouter(images: ImageStore): Router {
   const r = Router();
   r.post('/', singleImage(), async (req, res) => {
-    const { bytes, type } = checkedUpload(req.file);
+    const { bytes, type } = await preparedUpload(req.file, 'picture');
     const imagePath = await images.put(res.locals.userId, bytes, type);
     const [imageUrl] = await images.signedUrls([imagePath], SIGNED_URL_SECONDS);
     res.json({ imagePath, imageUrl });
