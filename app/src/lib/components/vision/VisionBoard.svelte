@@ -19,6 +19,23 @@
 
 	let { items, busy, onReorder, onEdit, onDelete, onAddNew }: Props = $props();
 
+	/** Sticky-note paper colors for quote-only items. Dark ink on all of them
+	 * keeps contrast in both themes. */
+	const NOTES = [
+		'bg-yellow-200',
+		'bg-pink-200',
+		'bg-sky-200',
+		'bg-lime-200',
+		'bg-orange-200',
+		'bg-violet-200'
+	];
+	/** Small fixed tilts in degrees; picked by id so a card keeps its look. */
+	const TILTS = [-2.5, 1.5, -1, 2.5, -1.8, 1, -0.6, 2];
+
+	const isNote = (item: VisionItemView) => !item.imageUrl && !!item.quoteText;
+	const tilt = (item: VisionItemView) => TILTS[item.id % TILTS.length];
+	const noteColor = (item: VisionItemView) => NOTES[(item.id * 7) % NOTES.length];
+
 	let dragId = $state<number | null>(null);
 	let dragOverId = $state<number | null>(null);
 
@@ -98,11 +115,19 @@
 		{#each items as item, index (item.id)}
 			<article
 				aria-label="Vision item {index + 1} of {items.length}"
-				class="group mb-4 break-inside-avoid rounded-card border p-3 transition-colors {dragOverId ===
+				class="group relative mb-5 break-inside-avoid transition-[transform,box-shadow,background-color] duration-200 hover:z-10 hover:rotate-0! {isNote(
+					item
+				)
+					? 'rounded-xs px-4 pt-6 pb-3 text-neutral-900 shadow-[0_6px_14px_rgba(0,0,0,0.28)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.35)] [&_button]:text-neutral-800 ' +
+						(dragOverId === item.id ? 'bg-accent/40' : noteColor(item))
+					: 'rounded-card border p-3 ' +
+						(dragOverId === item.id
+							? 'border-accent bg-accent/5'
+							: 'border-subtle bg-surface shadow-[0_4px_10px_rgba(0,0,0,0.18)]')} {dragOverId ===
 				item.id
-					? 'border-accent bg-accent/5'
-					: 'mp-enter border-subtle bg-surface'}"
-				style="--mp-delay:{stagger(index, 30)}"
+					? ''
+					: 'mp-enter'}"
+				style="--mp-delay:{stagger(index, 30)}; rotate:{tilt(item)}deg"
 				draggable={!busy}
 				ondragstart={(event) => dragStart(event, item)}
 				ondragover={(event) => dragOver(event, item)}
@@ -110,9 +135,21 @@
 				ondragend={() => (dragId = null)}
 				ondrop={(event) => drop(event, item)}
 			>
+				{#if isNote(item)}
+					<span
+						class="pointer-events-none absolute -top-2 left-1/2 h-4 w-14 -translate-x-1/2 rotate-2 bg-white/50 shadow-sm"
+						aria-hidden="true"
+					></span>
+				{/if}
 				<VisionImage src={item.imageUrl} class="mb-2 w-full rounded-control object-cover" />
 				{#if item.quoteText}
-					<p class="text-sm leading-relaxed text-content">{item.quoteText}</p>
+					<p
+						class={isNote(item)
+							? 'font-display text-lg leading-snug font-semibold wrap-break-word'
+							: 'text-sm leading-relaxed text-content'}
+					>
+						{item.quoteText}
+					</p>
 				{/if}
 
 				<div

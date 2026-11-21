@@ -48,6 +48,32 @@ describe('VisionBoard keyboard reordering (WCAG 2.5.7)', () => {
 	});
 });
 
+describe('VisionBoard sticky notes', () => {
+	const html = render(VisionBoard, {
+		props: {
+			items: [item(1), item(2), { ...item(3), imageUrl: 'https://x.test/a.png' }],
+			busy: false,
+			onReorder: noop,
+			onEdit: noop,
+			onDelete: noop,
+			onAddNew: noop
+		}
+	}).body;
+	const cards = html.split('<article').slice(1);
+
+	it('styles quote-only items as tilted notes with varied colors', () => {
+		expect(cards[0]).toContain('rotate:');
+		expect(cards[0]).toMatch(/bg-(yellow|pink|sky|lime|orange|violet)-200/);
+		expect(cards[0]).not.toBe(cards[1]);
+		expect(cards[0]).toMatch(/bg-\w+-200/);
+		expect(cards[1]).toMatch(/bg-\w+-200/);
+	});
+
+	it('keeps image items as plain cards', () => {
+		expect(cards[2]).not.toMatch(/bg-\w+-200/);
+	});
+});
+
 describe('StreakHeatmap', () => {
 	it('summarises the history in its accessible name', () => {
 		const html = render(StreakHeatmap, {
