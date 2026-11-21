@@ -103,7 +103,7 @@
 	</div>
 {:else}
 	<p class="sr-only" aria-live="polite">{announcement}</p>
-	<div class="columns-1 gap-4 sm:columns-2 lg:columns-3" bind:this={board}>
+	<div class="columns-2 gap-3 sm:columns-3 sm:gap-4 lg:columns-4 xl:columns-5" bind:this={board}>
 		<button
 			type="button"
 			class="mb-4 flex h-32 w-full break-inside-avoid items-center justify-center rounded-card border border-dashed border-subtle text-muted transition-colors hover:border-accent/60 hover:text-content"
@@ -145,7 +145,7 @@
 				{#if item.quoteText}
 					<p
 						class={isNote(item)
-							? 'font-display text-lg leading-snug font-semibold wrap-break-word'
+							? 'font-display text-base leading-snug font-semibold wrap-break-word sm:text-lg'
 							: 'text-sm leading-relaxed text-content'}
 					>
 						{item.quoteText}
