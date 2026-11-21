@@ -63,7 +63,9 @@ Electronic Communications Regulations. [Reviewer: confirm.]
 | Supabase, Inc. | Sign-in, the database, and image storage | [region of the Supabase project]. Transfers outside the UK rely on [the UK International Data Transfer Addendum / adequacy, as applicable]. |
 | [Hosting provider] | Runs the Mushpoint server and website | [region] |
 
-Images are stored privately. The app shows them through links that expire after a short time.
+Images are stored privately. When you upload one, we resize it and remove its embedded metadata,
+such as the camera details and the location a photo was taken. The app shows images through links
+that expire after a short time.
 
 ## How long we keep it
 

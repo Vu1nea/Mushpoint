@@ -319,8 +319,14 @@ whole build (`build/_app/immutable`) is about 1.2 MB, so that run was against
       apple-touch-icon in `app.html`. Original kept in `app/docs/brand/`
 - [x] Removed the unused `app/static/mush_img.png` (4.6 MB, shipped in the image)
 - [x] `VisionImage.svelte`: `loading="lazy"`, `decoding="async"`; `Avatar.svelte`: `decoding="async"`
-- [ ] Resize Supabase uploads server-side (e.g. `sharp`, WebP, ~1600 px vision,
-      256 px avatar); or Supabase image transforms (paid plan). Separate PR
+- [x] Resize uploads server-side: `normalizeImage` in `server/src/images.ts` (`sharp`)
+      re-encodes every upload as WebP, upright, metadata (EXIF/GPS) stripped; avatars
+      256 px square, pictures at most 1600 px; animated GIFs stay animated; 40 MP decode
+      cap. Fixes Lighthouse's 311 KB, 941 px avatar shown at 27 px. Existing uploads unchanged:
+      re-upload, or write a backfill script if real users have images
+- [ ] Reuse signed image URLs until near expiry (in-memory map in `images.ts`) so the
+      browser cache works across page loads; then a longer `cache-control` on upload
+- [ ] Vision board thumbnails (~480 px) if Lighthouse still flags the board after resizing
 - [x] gzip: adapter-static `precompress`, nginx `gzip_static` plus on-the-fly
       fallback. `config.json` excluded (a build-time `.gz` would hide the mounted file)
 - [x] Preload the two woff2 fonts (`src/hooks.server.ts`, runs at build) and
