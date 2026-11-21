@@ -69,8 +69,8 @@ describe('VisionBoard sticky notes', () => {
 		expect(cards[1]).toMatch(/bg-\w+-200/);
 	});
 
-	it('keeps image items as plain cards', () => {
-		expect(cards[2]).not.toMatch(/bg-\w+-200/);
+	it('frames image items as polaroids', () => {
+		expect(cards[2]).toContain('bg-stone-50');
 	});
 });
 

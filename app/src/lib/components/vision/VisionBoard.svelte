@@ -33,8 +33,22 @@
 	const TILTS = [-2.5, 1.5, -1, 2.5, -1.8, 1, -0.6, 2];
 
 	const isNote = (item: VisionItemView) => !item.imageUrl && !!item.quoteText;
+	const isPhoto = (item: VisionItemView) => !!item.imageUrl;
 	const tilt = (item: VisionItemView) => TILTS[item.id % TILTS.length];
 	const noteColor = (item: VisionItemView) => NOTES[(item.id * 7) % NOTES.length];
+
+	/** Card chrome: sticky note, polaroid, or a plain card for anything else. */
+	function paperClass(item: VisionItemView) {
+		const over = dragOverId === item.id;
+		const paper = 'text-neutral-900 [&_button]:text-neutral-800 ';
+		if (isNote(item)) {
+			return `${paper}rounded-xs px-4 pt-6 pb-3 shadow-[0_6px_14px_rgba(0,0,0,0.28)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.35)] ${over ? 'bg-accent/40' : noteColor(item)}`;
+		}
+		if (isPhoto(item)) {
+			return `${paper}rounded-xs px-2.5 pt-2.5 pb-2 shadow-[0_6px_14px_rgba(0,0,0,0.3)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.38)] ${over ? 'bg-accent/40' : 'bg-stone-50'}`;
+		}
+		return `rounded-card border p-3 ${over ? 'border-accent bg-accent/5' : 'border-subtle bg-surface shadow-[0_4px_10px_rgba(0,0,0,0.18)]'}`;
+	}
 
 	let dragId = $state<number | null>(null);
 	let dragOverId = $state<number | null>(null);
@@ -115,18 +129,9 @@
 		{#each items as item, index (item.id)}
 			<article
 				aria-label="Vision item {index + 1} of {items.length}"
-				class="group relative mb-5 break-inside-avoid transition-[transform,box-shadow,background-color] duration-200 hover:z-10 hover:rotate-0! {isNote(
+				class="group relative mb-5 break-inside-avoid transition-[transform,box-shadow,background-color] duration-200 hover:z-10 hover:rotate-0! {paperClass(
 					item
-				)
-					? 'rounded-xs px-4 pt-6 pb-3 text-neutral-900 shadow-[0_6px_14px_rgba(0,0,0,0.28)] hover:shadow-[0_10px_22px_rgba(0,0,0,0.35)] [&_button]:text-neutral-800 ' +
-						(dragOverId === item.id ? 'bg-accent/40' : noteColor(item))
-					: 'rounded-card border p-3 ' +
-						(dragOverId === item.id
-							? 'border-accent bg-accent/5'
-							: 'border-subtle bg-surface shadow-[0_4px_10px_rgba(0,0,0,0.18)]')} {dragOverId ===
-				item.id
-					? ''
-					: 'mp-enter'}"
+				)} {dragOverId === item.id ? '' : 'mp-enter'}"
 				style="--mp-delay:{stagger(index, 30)}; rotate:{tilt(item)}deg"
 				draggable={!busy}
 				ondragstart={(event) => dragStart(event, item)}
@@ -141,12 +146,19 @@
 						aria-hidden="true"
 					></span>
 				{/if}
-				<VisionImage src={item.imageUrl} class="mb-2 w-full rounded-control object-cover" />
+				<VisionImage
+					src={item.imageUrl}
+					class={isPhoto(item)
+						? 'w-full rounded-[1px] object-cover'
+						: 'mb-2 w-full rounded-control object-cover'}
+				/>
 				{#if item.quoteText}
 					<p
 						class={isNote(item)
 							? 'font-display text-base leading-snug font-semibold wrap-break-word sm:text-lg'
-							: 'text-sm leading-relaxed text-content'}
+							: isPhoto(item)
+								? 'mt-2.5 line-clamp-3 px-0.5 font-display text-base leading-snug font-semibold wrap-break-word'
+								: 'text-sm leading-relaxed text-content'}
 					>
 						{item.quoteText}
 					</p>
