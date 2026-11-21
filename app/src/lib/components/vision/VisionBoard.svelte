@@ -144,12 +144,13 @@
 				ondrop={(event) => drop(event, item)}
 			>
 				{#if isNote(item) || isPhoto(item)}
+					<!-- In flow, not absolute: an absolutely positioned child of a tilted card can
+					     detach from it when CSS columns re-balance. Margins pull it over the card's
+					     top edge and give the space back (note pt-6, polaroid pt-2.5). -->
 					<span
-						class="pointer-events-none absolute -top-2 left-1/2 z-10 h-4 w-14 -translate-x-1/2 shadow-sm {isPhoto(
-							item
-						)
-							? '-rotate-3 bg-amber-300/80'
-							: 'rotate-2 bg-white/70 ring-1 ring-black/10'}"
+						class="pointer-events-none relative z-10 mx-auto block h-4 w-14 shadow-sm {isPhoto(item)
+							? '-mt-[1.125rem] mb-[0.125rem] -rotate-3 bg-amber-300/80'
+							: '-mt-8 mb-4 rotate-2 bg-white/70 ring-1 ring-black/10'}"
 						aria-hidden="true"
 					></span>
 				{/if}
