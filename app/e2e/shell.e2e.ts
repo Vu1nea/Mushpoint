@@ -65,8 +65,76 @@ test('the sidebar links to every built screen', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 });
 
+test('the tasks screen defaults to the list with its four columns', async ({ page }) => {
+	await page.goto('/tasks');
+
+	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+	await expect(page.getByRole('tab', { name: 'List' })).toHaveAttribute('aria-selected', 'true');
+	const table = page.getByRole('table', { name: 'Tasks' });
+	for (const column of ['Task', 'Goal', 'Due', 'Status']) {
+		// Goal and Due hide below the md breakpoint; assert them on desktop only.
+		if (column === 'Goal' || column === 'Due') {
+			if ((page.viewportSize()?.width ?? 0) < 768) continue;
+		}
+		await expect(table.getByRole('columnheader', { name: column, exact: true })).toBeVisible();
+	}
+	await expect(page.getByRole('searchbox', { name: 'Search tasks' })).toBeVisible();
+});
+
+test('the list filters by status, offers Edit and Delete, and contains a long title', async ({
+	page
+}, testInfo) => {
+	test.skip(testInfo.project.name !== 'desktop', 'creates a task; desktop project only');
+	const longTitle = `Long ${'x'.repeat(195)}`;
+	expect(longTitle).toHaveLength(200);
+
+	await page.goto('/tasks');
+	await page.getByRole('button', { name: 'New Task' }).click();
+	const drawer = page.getByRole('dialog', { name: 'New Task' });
+	await drawer.getByLabel('Title').fill(longTitle);
+	await drawer.getByRole('button', { name: 'Create' }).click();
+	await expect(drawer).toBeHidden();
+
+	const table = page.getByRole('table', { name: 'Tasks' });
+	const row = table.getByRole('row').filter({ hasText: 'Long xxx' });
+	await expect(row).toBeVisible();
+
+	// The sheet never scrolls sideways, at desktop width or phone width.
+	for (const width of [1440, 390]) {
+		await page.setViewportSize({ width, height: 900 });
+		const overflow = await page.evaluate(
+			() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+		);
+		expect(overflow).toBeLessThanOrEqual(0);
+	}
+	await page.setViewportSize({ width: 1440, height: 900 });
+
+	// Ticking the task done moves it out of the To do filter and into Done.
+	await row.getByRole('checkbox').click();
+	const filter = page.getByRole('radiogroup', { name: 'Filter tasks by status' });
+	await filter.getByRole('radio', { name: /^To do/ }).click();
+	await expect(table.getByRole('row').filter({ hasText: 'Long xxx' })).toHaveCount(0);
+	await filter.getByRole('radio', { name: /^Done/ }).click();
+	await expect(table.getByRole('row').filter({ hasText: 'Long xxx' })).toBeVisible();
+	await filter.getByRole('radio', { name: /^All/ }).click();
+
+	await page.getByRole('searchbox', { name: 'Search tasks' }).fill('no-such-task-zzz');
+	await expect(table.getByText('No tasks match.')).toBeVisible();
+	await page.getByRole('searchbox', { name: 'Search tasks' }).fill('');
+
+	await table.getByRole('button', { name: /^Actions for Long/ }).click();
+	const menu = page.getByRole('menu');
+	await expect(menu.getByRole('menuitem', { name: 'Edit' })).toBeVisible();
+	await menu.getByRole('menuitem', { name: 'Delete' }).click();
+
+	// Clean up so later tests still see an empty account.
+	await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+	await expect(table.getByRole('row').filter({ hasText: 'Long xxx' })).toHaveCount(0);
+});
+
 test('the task board shows all three columns', async ({ page }) => {
 	await page.goto('/tasks');
+	await page.getByRole('tab', { name: 'Board' }).click();
 
 	for (const column of ['To do', 'In progress', 'Done']) {
 		await expect(page.getByRole('heading', { name: column })).toBeVisible();
