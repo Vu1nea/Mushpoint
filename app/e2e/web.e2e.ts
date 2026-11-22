@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import type { Page } from '@playwright/test';
 import { expect, test, usernameFor } from './fixtures';
 import { readUsers } from './users';
 
@@ -7,6 +8,212 @@ const PNG = Buffer.from(
 	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
 	'base64'
 );
+
+/*
+ * Mutating checks for the app shell, run as user A (user B stays read-only so
+ * its "new user" tests hold on every project). Each test makes its own data
+ * under a random suffix and removes it in `finally`, so the serial account
+ * journey below still sees an empty account.
+ */
+
+/** Deletes a row through its menu when it exists; a no-op when it is already gone. */
+async function removeRow(page: Page, path: string, table: string | RegExp, title: string) {
+	await page.goto(path);
+	const rows = page.getByRole('table', { name: table }).getByRole('row').filter({ hasText: title });
+	if ((await rows.count()) === 0) return;
+	await rows.getByRole('button', { name: `Actions for ${title}` }).click();
+	await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
+	await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+	await expect(rows).toHaveCount(0);
+}
+
+async function createGoal(page: Page, title: string) {
+	await page.goto('/goals');
+	await page.getByRole('button', { name: 'New Goal' }).click();
+	const form = page.getByRole('dialog', { name: 'New Goal' });
+	await form.getByLabel('Title').fill(title);
+	await form.getByRole('button', { name: 'Create' }).click();
+	await expect(form).toBeHidden();
+}
+
+test('a goal can be deleted from the list menu', async ({ page, signIn }) => {
+	const title = `Delete goal ${crypto.randomUUID().slice(0, 8)}`;
+	await signIn(page, 'a');
+	try {
+		await createGoal(page, title);
+
+		const table = page.getByRole('table', { name: /goals$/ });
+		const row = table.getByRole('row').filter({ hasText: title });
+		await expect(row).toBeVisible();
+
+		await row.getByRole('button', { name: `Actions for ${title}` }).click();
+		await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
+
+		const dialog = page.getByRole('dialog');
+		await expect(dialog).toContainText('Its subgoals are removed.');
+		await expect(dialog).toContainText('stay as standalone tasks');
+		await dialog.getByRole('button', { name: 'Delete' }).click();
+		await expect(dialog).toBeHidden();
+		await expect(page.getByText(title)).toHaveCount(0);
+	} finally {
+		await removeRow(page, '/goals?status=all', /goals$/, title);
+	}
+});
+
+test('the task list filters by status, offers Edit and Delete, and contains a long title', async ({
+	page,
+	signIn
+}) => {
+	const suffix = crypto.randomUUID().slice(0, 8);
+	const prefix = `Long ${suffix} `;
+	const longTitle = prefix + 'x'.repeat(200 - prefix.length);
+	expect(longTitle).toHaveLength(200);
+	const actions = new RegExp(`^Actions for Long ${suffix}`);
+	await signIn(page, 'a');
+	try {
+		await page.goto('/tasks');
+		await page.getByRole('button', { name: 'New Task' }).click();
+		const drawer = page.getByRole('dialog', { name: 'New Task' });
+		await drawer.getByLabel('Title').fill(longTitle);
+		await drawer.getByRole('button', { name: 'Create' }).click();
+		await expect(drawer).toBeHidden();
+
+		const table = page.getByRole('table', { name: 'Tasks' });
+		const row = table.getByRole('row').filter({ hasText: prefix });
+		await expect(row).toBeVisible();
+
+		// The sheet never scrolls sideways, at desktop width or phone width.
+		for (const width of [1440, 390]) {
+			await page.setViewportSize({ width, height: 900 });
+			const overflow = await page.evaluate(
+				() => document.documentElement.scrollWidth - document.documentElement.clientWidth
+			);
+			expect(overflow).toBeLessThanOrEqual(0);
+		}
+		await page.setViewportSize({ width: 1440, height: 900 });
+
+		// Ticking the task done moves it out of the To do filter and into Done.
+		await row.getByRole('checkbox').click();
+		const filter = page.getByRole('radiogroup', { name: 'Filter tasks by status' });
+		await filter.getByRole('radio', { name: /^To do/ }).click();
+		await expect(table.getByRole('row').filter({ hasText: prefix })).toHaveCount(0);
+		await filter.getByRole('radio', { name: /^Done/ }).click();
+		await expect(table.getByRole('row').filter({ hasText: prefix })).toBeVisible();
+		await filter.getByRole('radio', { name: /^All/ }).click();
+
+		await page.getByRole('searchbox', { name: 'Search tasks' }).fill('no-such-task-zzz');
+		await expect(table.getByText('No tasks match.')).toBeVisible();
+		await page.getByRole('searchbox', { name: 'Search tasks' }).fill('');
+
+		await table.getByRole('button', { name: actions }).click();
+		const menu = page.getByRole('menu');
+		await expect(menu.getByRole('menuitem', { name: 'Edit' })).toBeVisible();
+		await menu.getByRole('menuitem', { name: 'Delete' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+		await expect(table.getByRole('row').filter({ hasText: prefix })).toHaveCount(0);
+	} finally {
+		// The row is gone on the happy path; this only runs the delete if a step failed.
+		await page.goto('/tasks');
+		const leftover = page
+			.getByRole('table', { name: 'Tasks' })
+			.getByRole('row')
+			.filter({ hasText: prefix });
+		if ((await leftover.count()) > 0) {
+			const filter = page.getByRole('radiogroup', { name: 'Filter tasks by status' });
+			await filter.getByRole('radio', { name: /^All/ }).click();
+			await leftover.getByRole('button', { name: actions }).click();
+			await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
+			await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+			await expect(leftover).toHaveCount(0);
+		}
+	}
+});
+
+test('Ctrl+K opens the command palette and Enter opens the first match', async ({
+	page,
+	signIn
+}) => {
+	const title = `Palette goal ${crypto.randomUUID().slice(0, 8)}`;
+	await signIn(page, 'a');
+	try {
+		await createGoal(page, title);
+
+		await page.goto('/tasks');
+		await page.keyboard.press('Control+k');
+		const palette = page.getByRole('dialog', { name: 'Search' });
+		await expect(palette).toBeVisible();
+
+		await palette.getByRole('combobox').fill(title);
+		await expect(palette.getByRole('option', { name: new RegExp(title) })).toBeVisible();
+
+		await page.keyboard.press('Enter');
+		await expect(page).toHaveURL(/\/goals\/\d+$/);
+		await expect(palette).toBeHidden();
+	} finally {
+		await removeRow(page, '/goals?status=all', /goals$/, title);
+	}
+});
+
+test('ideas are rows with tag chips; search, tag filter and the row menu work', async ({
+	page,
+	signIn
+}) => {
+	const suffix = Math.random().toString(36).slice(2, 8);
+	const title = `Idea ${suffix}`;
+	const other = `Other ${suffix}`;
+	const tag = `tag${suffix}`;
+	await signIn(page, 'a');
+	try {
+		await page.goto('/ideas');
+		for (const [name, tags] of [
+			[title, [tag, 'alpha']],
+			[other, []]
+		] as const) {
+			await page.getByLabel('New idea title').fill(name);
+			const tagField = page.getByLabel('Tags for the new idea');
+			for (const t of tags) {
+				await tagField.fill(t);
+				await tagField.press('Enter');
+			}
+			await page.getByRole('button', { name: 'Add Idea' }).click();
+			await expect(page.getByRole('table', { name: 'Ideas' }).getByText(name)).toBeVisible();
+		}
+
+		const table = page.getByRole('table', { name: 'Ideas' });
+		const row = table.getByRole('row').filter({ hasText: title });
+		await expect(row).toBeVisible();
+		await expect(row.getByText(tag, { exact: true })).toBeVisible();
+
+		// Search narrows the rows by title and by tag name; no match shows the empty message.
+		const search = page.getByRole('searchbox', { name: 'Search ideas' });
+		await search.fill(suffix.toUpperCase());
+		await expect(table.getByRole('row').filter({ hasText: other })).toBeVisible();
+		await search.fill(tag);
+		await expect(table.getByRole('row').filter({ hasText: other })).toHaveCount(0);
+		await expect(row).toBeVisible();
+		await search.fill('no-such-idea-zzz');
+		await expect(table.getByText('No ideas match.')).toBeVisible();
+		await search.fill('');
+
+		// The tag filter drives the URL.
+		await page
+			.getByRole('navigation', { name: 'Filter ideas by tag' })
+			.getByRole('link', { name: tag, exact: true })
+			.click();
+		await expect(page).toHaveURL(/tag=/);
+		await expect(table.getByRole('row').filter({ hasText: other })).toHaveCount(0);
+		await expect(row).toBeVisible();
+
+		await row.getByRole('button', { name: `Actions for ${title}` }).click();
+		const menu = page.getByRole('menu');
+		for (const item of ['Edit', 'Promote to goal', 'Delete']) {
+			await expect(menu.getByRole('menuitem', { name: item })).toBeVisible();
+		}
+		await page.keyboard.press('Escape');
+	} finally {
+		for (const name of [title, other]) await removeRow(page, '/ideas', 'Ideas', name);
+	}
+});
 
 test('two users: A builds data and deletes the account, B never sees it', async ({
 	page,
