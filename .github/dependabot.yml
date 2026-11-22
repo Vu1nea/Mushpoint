@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /server
+    target-branch: dev
     schedule:
       interval: weekly
     groups:
@@ -9,6 +10,7 @@ updates:
         dependency-type: development
   - package-ecosystem: npm
     directory: /app
+    target-branch: dev
     schedule:
       interval: weekly
     groups:
@@ -16,14 +18,17 @@ updates:
         dependency-type: development
   - package-ecosystem: docker
     directory: /server
+    target-branch: dev
     schedule:
       interval: weekly
   # The web image (node build stage, nginx-unprivileged runtime).
   - package-ecosystem: docker
     directory: /app
+    target-branch: dev
     schedule:
       interval: weekly
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly

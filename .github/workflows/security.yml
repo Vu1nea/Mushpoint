@@ -3,7 +3,7 @@ name: Security
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, dev]
   schedule:
     - cron: '0 6 * * 1' # Mondays 06:00 UTC: catches new CVEs in unchanged code
   workflow_dispatch:

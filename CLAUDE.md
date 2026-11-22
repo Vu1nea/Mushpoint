@@ -12,6 +12,12 @@ Goal, task, habit-streak and vision-board tracker. Two packages, no workspace to
 `graphify-out/` holds a knowledge graph of the repo (`GRAPH_REPORT.md`); use it to find
 where things live, and run `graphify update .` after large changes.
 
+## Branch flow
+
+`feature/*` -> PR -> `dev` -> PR -> `main`. Branch from `dev`; never push or open a PR
+straight to `main`. CI on `dev` (incl. E2E) is the test environment. Only the user merges
+`dev` into `main`, with a merge commit. Details in `docs/ci-cd.md`.
+
 ## Commands
 
 Server (`cd server`): `npm run db:up` (Postgres in Docker on 54329; tests need it),

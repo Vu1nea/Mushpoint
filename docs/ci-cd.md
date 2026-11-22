@@ -6,7 +6,7 @@ is the manual runbook in [`k8s-runbook.md`](k8s-runbook.md).
 
 ## Workflows
 
-Two GitHub Actions workflows run on every pull request and every push to `main`. Both use
+Two GitHub Actions workflows run on every pull request and every push to `main` or `dev`. Both use
 `permissions: contents: read`.
 
 ### `ci.yml`: does it build and work
@@ -48,16 +48,35 @@ and the GitHub Actions versions. Each update is a pull request, so it goes throu
 They belong to a separate test Supabase project, never production. Nothing in CI can reach
 production.
 
-## Merging
+## Branch flow
 
-`main` should only take a change once both workflows are green. That needs branch protection,
-which is a GitHub setting and is not on yet (`TODO.md`, section 1).
+```
+feature/* --PR--> dev --PR--> main
+```
+
+1. Branch from `dev`, open a PR into `dev`. CI and security run on the PR; merge when green.
+2. Every push to `dev` runs both workflows again, including E2E against the test Supabase
+   project. `dev` is the test environment: there is no hosted staging.
+3. When `dev` is green and you are happy with it, open a PR `dev` -> `main` and merge it
+   yourself. That click is the approval. Use a merge commit, not squash, so `dev` and `main`
+   keep a shared history.
+4. Never push or open a PR straight to `main`, except a hotfix, which is then merged back
+   into `dev`.
+
+Dependabot PRs target `dev`.
+
+Branch protection (GitHub setting, manual; `TODO.md`, section 1):
+
+- `dev`: require a PR, require status checks (Server, App, Dependency audit, E2E, Secret
+  scan, SAST), no force push.
+- `main`: require a PR from `dev`, the same status checks, no force push, no direct push.
+  Do not require approving reviews: GitHub does not let you approve your own PR.
 
 ## What deploys
 
 Nothing automatically. Today a release is:
 
-1. Merge to `main` with CI green.
+1. Merge `dev` to `main` with CI green.
 2. Build the two images from that commit (`docker build server`, `docker build app`).
 3. Run the migrate Job if the release adds a migration, then roll out the new images, as in
    [`k8s-runbook.md`](k8s-runbook.md).

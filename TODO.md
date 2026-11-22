@@ -23,7 +23,7 @@ accessibility, then ops.
       `E2E_SUPABASE_ANON_KEY` (`sb_publishable_`), `E2E_PASSWORD`; private
       `vision` bucket). 53/53 green, including axe on all signed-in screens.
       First run needed an explicit `baseURL` (two webServers).
-- [ ] Branch protection on `main`: green CI required to merge (GitHub settings, manual)
+- [ ] Branch protection on `dev` and `main` (feature -> dev -> main, see `docs/ci-cd.md`): green CI required, PRs only (GitHub settings, manual)
 - [x] Dependabot (`.github/dependabot.yml`): npm for `app/` and `server/`,
       Docker base image, GitHub Actions, weekly
 - [x] Prettier `endOfLine: auto` so `npm run lint` passes on Windows CRLF

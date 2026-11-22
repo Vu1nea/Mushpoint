@@ -1,2 +1,3 @@
 app/src-tauri/migrations/*.sql text eol=lf
 .githooks/* text eol=lf
+graphify-out/graph.json merge=graphify
