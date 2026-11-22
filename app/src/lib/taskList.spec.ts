@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TaskStatus, TaskSummary } from './api/types';
-import { filterTasks, statusCounts } from './taskList';
+import { displayColumn, filterTasks, statusCounts } from './taskList';
 
 function task(id: number, title: string, status: TaskStatus = 'todo'): TaskSummary {
 	return {
@@ -93,5 +93,31 @@ describe('statusCounts', () => {
 
 	it('is all zero for no tasks', () => {
 		expect(statusCounts([])).toEqual({ all: 0, todo: 0, in_progress: 0, done: 0 });
+	});
+});
+
+describe('displayColumn', () => {
+	const rec = (completedToday: boolean): TaskSummary => ({
+		...task(20, 'Habit'),
+		recurrence: 'daily',
+		completedToday
+	});
+
+	it('follows the board column when untouched', () => {
+		expect(displayColumn(task(1, 'a', 'done'), undefined)).toBe('done');
+		expect(displayColumn(task(1, 'a', 'in_progress'), undefined)).toBe('in_progress');
+		expect(displayColumn(task(1, 'a', 'todo'), undefined)).toBe('todo');
+		expect(displayColumn(rec(true), undefined)).toBe('done');
+		expect(displayColumn(rec(false), undefined)).toBe('todo');
+	});
+
+	it('shows done for a tick', () => {
+		expect(displayColumn(task(1, 'a'), true)).toBe('done');
+	});
+
+	it('shows the not-done column for an untick', () => {
+		expect(displayColumn(task(1, 'a', 'in_progress'), false)).toBe('in_progress');
+		expect(displayColumn(rec(true), false)).toBe('todo');
+		expect(displayColumn(task(1, 'a', 'done'), false)).toBe('todo');
 	});
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { setTaskCompletion, setTaskStatus, type TaskSummary } from '$lib/api';
+	import { taskColumn } from '$lib/kanban';
 	import { optimistic } from '$lib/optimistic';
 	import Checkbox from '../ui/Checkbox.svelte';
 
@@ -15,7 +16,7 @@
 
 	/** A habit has no lasting status: ticking it logs today's completion instead
 	 * of writing `status = 'done'`, so it stays in sync with the board and streaks. */
-	const serverDone = $derived(task.recurrence ? task.completedToday : task.status === 'done');
+	const serverDone = $derived(taskColumn(task) === 'done');
 
 	/** The tick as the user just set it, shown until fresh data arrives. */
 	let pendingDone = $state<boolean | null>(null);

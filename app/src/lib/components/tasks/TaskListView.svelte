@@ -14,7 +14,7 @@
 	import { taskColumn } from '$lib/kanban';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';
-	import { filterTasks, statusCounts, type TaskListStatus } from '$lib/taskList';
+	import { displayColumn, filterTasks, statusCounts, type TaskListStatus } from '$lib/taskList';
 	import DashboardTaskToggle from '../dashboard/DashboardTaskToggle.svelte';
 	import { DUE_CLASSES, field } from '../ui';
 
@@ -65,6 +65,11 @@
 
 	/** Ticks as just set, so a title strikes through before the refresh lands. */
 	let ticked = $state<Record<number, boolean>>({});
+	/** The checkbox state, but only while it differs from server data. */
+	const shownColumn = (task: TaskSummary) => {
+		const tick = ticked[task.id];
+		return displayColumn(task, tick === (taskColumn(task) === 'done') ? undefined : tick);
+	};
 </script>
 
 <div class="px-4 pb-3 md:px-8">
@@ -101,7 +106,9 @@
 					/>
 				</span>
 				<div class="min-w-0">
-					<p class="truncate {ticked[task.id] ? 'text-muted line-through' : ''}">{task.title}</p>
+					<p class="truncate {shownColumn(task) === 'done' ? 'text-muted line-through' : ''}">
+						{task.title}
+					</p>
 					{#if fullLine(task)}
 						<p class="truncate text-xs text-muted md:hidden">{fullLine(task)}</p>
 					{/if}
@@ -119,9 +126,7 @@
 				{task.dueDate ? dueLabel(task.dueDate) : ''}
 			</span>
 		{:else if key === 'status'}
-			{@const column = taskColumn(task)}
-			{@const shown = ticked[task.id] ? 'done' : column === 'done' ? 'todo' : column}
-			<Pill tone={statusTone(shown)}>{TASK_STATUS_LABELS[shown]}</Pill>
+			<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
 		{:else}
 			<RowMenu
 				label="Actions for {task.title}"

@@ -31,3 +31,14 @@ export function statusCounts(tasks: TaskSummary[]): Record<TaskListStatus, numbe
 	for (const task of tasks) counts[taskColumn(task)] += 1;
 	return counts;
 }
+
+/**
+ * The column a row displays. `tick` is the user's just-made checkbox change
+ * (undefined once server data agrees), which overrides until the refresh lands.
+ */
+export function displayColumn(task: TaskSummary, tick: boolean | undefined): TaskStatus {
+	if (tick === undefined) return taskColumn(task);
+	if (tick) return 'done';
+	if (task.recurrence) return 'todo';
+	return task.status === 'done' ? 'todo' : task.status;
+}
