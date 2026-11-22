@@ -32,6 +32,40 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		await expect(page.getByText('E2E goal', { exact: true })).toBeVisible();
 	});
 
+	await test.step('A sees the goal as a table row and adds a subgoal on its detail page', async () => {
+		await page.goto('/goals');
+		await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+		const table = page.getByRole('table', { name: /goals$/ });
+		for (const column of ['Goal', 'Progress', 'Due', 'Status']) {
+			await expect(table.getByRole('columnheader', { name: column, exact: true })).toBeVisible();
+		}
+		const row = table.getByRole('row').filter({ hasText: 'E2E goal' });
+		// Category and timeframe share the sub-line under the title.
+		await expect(row).toContainText('Uncategorized');
+		await expect(row.getByRole('link', { name: 'E2E goal' })).toHaveAttribute(
+			'href',
+			/\/goals\/\d+$/
+		);
+
+		await row.getByRole('link', { name: 'E2E goal' }).click();
+		await expect(page).toHaveURL(/\/goals\/\d+$/);
+		await expect(page.getByRole('heading', { level: 1 })).toHaveText('E2E goal');
+
+		const summary = page.getByRole('group', { name: 'Summary' });
+		for (const label of ['Progress', 'Subgoals done', 'Tasks done', 'Due']) {
+			await expect(summary).toContainText(label);
+		}
+		await expect(summary).toContainText('0/0');
+
+		const subgoals = page.getByRole('list', { name: 'Subgoals' });
+		await expect(subgoals).toHaveCount(0);
+		await page.getByLabel('New subgoal', { exact: true }).fill('E2E subgoal');
+		await page.keyboard.press('Enter');
+		await expect(subgoals.getByRole('listitem')).toHaveCount(1);
+		await expect(subgoals).toContainText('E2E subgoal');
+		await expect(summary).toContainText('0/1');
+	});
+
 	await test.step('A creates a daily task and ticks it', async () => {
 		await page.goto('/tasks');
 		await page.getByRole('button', { name: 'New Task' }).click();
@@ -95,7 +129,9 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 
 			await pageB.goto('/goals');
 			await expect(pageB.getByRole('heading', { name: 'Goals' })).toBeVisible();
-			await expect(pageB.getByText(/goals here yet/)).toBeVisible();
+			await expect(
+				pageB.getByRole('table', { name: 'Goals' }).getByText(/goals here yet/)
+			).toBeVisible();
 			await expect(pageB.getByText('E2E goal')).toHaveCount(0);
 
 			await pageB.goto('/tasks');

@@ -89,8 +89,8 @@
 	}
 </script>
 
-<article class="overflow-hidden rounded-card border border-subtle bg-surface">
-	<div class="group flex items-center gap-2.5 px-4 py-3.5 sm:gap-3.5">
+<li class="list-none">
+	<div class="group flex min-h-11 items-center gap-2.5 py-2 sm:gap-3.5">
 		<button
 			type="button"
 			class="flex min-w-0 flex-1 items-center gap-2.5 text-left sm:gap-3.5"
@@ -104,13 +104,13 @@
 				class="text-muted transition-transform duration-200 {expanded ? 'rotate-90' : ''}"
 			/>
 			<div class="min-w-0 flex-1">
-				<p class="mb-1.5 truncate text-md font-semibold">{subgoal.title}</p>
-				<div class="max-w-[280px]">
+				<p class="mb-1 truncate text-sm font-semibold">{subgoal.title}</p>
+				<div class="max-w-70">
 					<ProgressBar
 						value={subgoal.progress}
 						label="{subgoal.title} progress"
 						showValue={false}
-						height={6}
+						height={5}
 						color="var(--mp-accent-secondary)"
 						{delay}
 					/>
@@ -118,7 +118,7 @@
 			</div>
 			<span class="shrink-0 text-xs text-muted tabular-nums">{percent(subgoal.progress)}</span>
 			<span
-				class="shrink-0 text-right text-2xs sm:min-w-[70px] {dueTone(subgoal.dueDate) === 'overdue'
+				class="shrink-0 text-right text-xs sm:min-w-21.5 {dueTone(subgoal.dueDate) === 'overdue'
 					? 'text-warn'
 					: 'text-muted'}"
 			>
@@ -153,10 +153,7 @@
 	/>
 
 	{#if expanded}
-		<div
-			class="flex flex-col gap-2 pt-0 pr-4 pb-4 pl-4 sm:pl-11"
-			transition:slide={{ duration: motion(180) }}
-		>
+		<div class="flex flex-col gap-2 pb-3 pl-6 sm:pl-8" transition:slide={{ duration: motion(180) }}>
 			{#if subgoal.tasks.length > 0}
 				<ul class="flex flex-col">
 					{#each subgoal.tasks as task (task.id)}
@@ -192,4 +189,4 @@
 			</form>
 		</div>
 	{/if}
-</article>
+</li>

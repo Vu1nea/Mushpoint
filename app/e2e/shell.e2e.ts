@@ -42,6 +42,24 @@ test('a new user sees the stat strip and an empty message in every section', asy
 	}
 });
 
+test('the goals screen is one h1 over a table, with an empty message for a new user', async ({
+	page
+}) => {
+	await page.goto('/goals');
+
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Goals');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+	await expect(page.getByRole('button', { name: 'New Goal' })).toBeVisible();
+	await expect(page.getByRole('radiogroup', { name: 'Filter goals by status' })).toBeVisible();
+	const table = page.getByRole('table', { name: 'Goals' });
+	await expect(table.getByText(/No active goals here yet/)).toBeVisible();
+
+	// The status filter is a segmented control that drives the URL.
+	await page.getByRole('radio', { name: 'All' }).click();
+	await expect(page).toHaveURL(/status=all/);
+	await expect(table.getByText(/No goals here yet/)).toBeVisible();
+});
+
 test('the sidebar links to every built screen', async ({ page }) => {
 	await page.goto('/goals');
 
