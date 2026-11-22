@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto, invalidateAll } from '$app/navigation';
-	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { setUsername } from '$lib/api/account';
 	import { AppError } from '$lib/api/error';
 	import { USERNAME_PATTERN } from '$lib/api/types';
 	import { signOut } from '$lib/auth/session.svelte';
+	import AuthSheet from '$lib/components/auth/AuthSheet.svelte';
 	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
@@ -50,16 +50,8 @@
 
 <svelte:head><title>Welcome · Mushpoint</title></svelte:head>
 
-<div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img
-		src={mushIcon}
-		alt=""
-		width="40"
-		height="40"
-		class="mb-4 size-10 rounded-full object-cover"
-		aria-hidden="true"
-	/>
-	<h1 class="mb-1 font-display text-2xl font-bold">Pick a username</h1>
+<AuthSheet>
+	<h1 class="mb-1 font-display text-xl font-bold">Pick a username</h1>
 	<p class="mb-6 text-sm text-muted">
 		This is how Mushpoint will greet you. You can change it later.
 	</p>
@@ -88,7 +80,11 @@
 		</button>
 	</form>
 
-	<button type="button" class="mt-5 text-sm text-muted hover:text-content" onclick={leave}>
+	<button
+		type="button"
+		class="mt-6 w-full border-t border-subtle pt-4 text-left text-sm text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
+		onclick={leave}
+	>
 		Sign out
 	</button>
-</div>
+</AuthSheet>

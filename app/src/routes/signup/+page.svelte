@@ -1,7 +1,7 @@
 <script lang="ts">
-	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { AppError } from '$lib/api/error';
 	import { resendConfirmation, signUp } from '$lib/auth/session.svelte';
+	import AuthSheet from '$lib/components/auth/AuthSheet.svelte';
 	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 	import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
@@ -55,22 +55,13 @@
 
 <svelte:head><title>Create an account · Mushpoint</title></svelte:head>
 
-<div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img
-		src={mushIcon}
-		alt=""
-		width="40"
-		height="40"
-		class="mb-4 size-10 rounded-full object-cover"
-		aria-hidden="true"
-	/>
-
+<AuthSheet>
 	{#if error}
 		<div class="mb-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
 	{/if}
 
 	{#if sent}
-		<h1 class="mb-1 font-display text-2xl font-bold">Check your email to confirm your account</h1>
+		<h1 class="mb-1 font-display text-xl font-bold">Check your email to confirm your account</h1>
 		<p class="mb-6 text-sm text-muted">
 			We sent a link to <span class="font-semibold wrap-anywhere text-content">{email.trim()}</span
 			>. Open it in this browser to finish signing up.
@@ -88,11 +79,11 @@
 			{#if busy}<Spinner />{/if}
 			Resend email
 		</button>
-		<p class="mt-5 text-sm">
+		<p class="mt-6 border-t border-subtle pt-4 text-sm">
 			<a class="font-semibold text-accent-ink" href="/login">Back to sign in</a>
 		</p>
 	{:else}
-		<h1 class="mb-1 font-display text-2xl font-bold">Create an account</h1>
+		<h1 class="mb-1 font-display text-xl font-bold">Create an account</h1>
 		<p class="mb-6 text-sm text-muted">Start tracking your goals with Mushpoint</p>
 
 		<form class="flex flex-col gap-4" onsubmit={submit}>
@@ -126,8 +117,8 @@
 			</button>
 		</form>
 
-		<p class="mt-5 text-sm text-muted">
+		<p class="mt-6 border-t border-subtle pt-4 text-sm text-muted">
 			Already have an account? <a class="font-semibold text-accent-ink" href="/login">Sign in</a>
 		</p>
 	{/if}
-</div>
+</AuthSheet>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { requestPasswordReset } from '$lib/auth/session.svelte';
+	import AuthSheet from '$lib/components/auth/AuthSheet.svelte';
 	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
@@ -27,16 +27,8 @@
 
 <svelte:head><title>Reset password · Mushpoint</title></svelte:head>
 
-<div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img
-		src={mushIcon}
-		alt=""
-		width="40"
-		height="40"
-		class="mb-4 size-10 rounded-full object-cover"
-		aria-hidden="true"
-	/>
-	<h1 class="mb-1 font-display text-2xl font-bold">Reset your password</h1>
+<AuthSheet>
+	<h1 class="mb-1 font-display text-xl font-bold">Reset your password</h1>
 
 	{#if sent}
 		<p class="mb-6 text-sm text-muted" role="status">
@@ -68,7 +60,7 @@
 		</form>
 	{/if}
 
-	<p class="mt-5 text-sm">
+	<p class="mt-6 border-t border-subtle pt-4 text-sm">
 		<a class="font-semibold text-accent-ink" href="/login">Back to sign in</a>
 	</p>
-</div>
+</AuthSheet>
