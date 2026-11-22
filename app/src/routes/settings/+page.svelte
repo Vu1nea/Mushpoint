@@ -132,12 +132,12 @@
 <PageHeader title="Settings" />
 
 {#if actionError}
-	<div class="px-4 pb-4 md:px-8">
+	<div class="page-gutter pb-4">
 		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
 {/if}
 {#if data.error}
-	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 
 <Tabs
@@ -146,7 +146,7 @@
 	onChange={selectTab}
 	id="settings"
 	label="Settings sections"
-	class="mx-4 mb-2 md:mx-8"
+	class="page-margin mb-2"
 />
 
 <div class="max-w-2xl md:px-4">

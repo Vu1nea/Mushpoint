@@ -89,10 +89,10 @@
 </PageHeader>
 
 {#if data.error}
-	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="px-4 pb-4 md:px-8">
+	<div class="page-gutter pb-4">
 		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
 {/if}

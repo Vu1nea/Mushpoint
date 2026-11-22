@@ -9,11 +9,9 @@
 		onSearch: () => void;
 		name: string;
 		avatarUrl: string | null;
-		/** The search button, so the palette can hand focus back when it closes. */
-		searchButton?: HTMLButtonElement;
 	}
 
-	let { crumbs, onSearch, name, avatarUrl, searchButton = $bindable() }: Props = $props();
+	let { crumbs, onSearch, name, avatarUrl }: Props = $props();
 </script>
 
 <!-- Desktop only; phones have the mobile top bar. Sits on the canvas above the sheet. -->
@@ -22,7 +20,6 @@
 		<Breadcrumb items={crumbs} />
 	</div>
 	<button
-		bind:this={searchButton}
 		type="button"
 		class="flex w-64 items-center gap-2 rounded-control border border-subtle bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
 		aria-label="Search"

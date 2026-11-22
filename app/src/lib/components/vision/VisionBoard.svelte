@@ -19,7 +19,6 @@
 
 	let { items, busy, onReorder, onEdit, onDelete, onAddNew }: Props = $props();
 
-	const isNote = (item: VisionItemView) => !item.imageUrl && !!item.quoteText;
 	const isPhoto = (item: VisionItemView) => !!item.imageUrl;
 
 	let dragId = $state<number | null>(null);
@@ -78,17 +77,21 @@
 </script>
 
 {#if items.length === 0}
-	<div class="mx-4 flex flex-col items-center gap-3 border-y border-subtle py-16 md:mx-8">
-		<p class="text-sm text-muted">No vision items yet — add an image or a quote to get started.</p>
-		<button type="button" class={button.primary} onclick={onAddNew}>
-			<Icon name="plus" size={15} weight={2.4} />
-			Add your first item
-		</button>
+	<div class="border-y border-subtle">
+		<div class="flex flex-col items-center gap-3 page-gutter py-16">
+			<p class="text-sm text-muted">
+				No vision items yet — add an image or a quote to get started.
+			</p>
+			<button type="button" class={button.primary} onclick={onAddNew}>
+				<Icon name="plus" size={15} weight={2.4} />
+				Add your first item
+			</button>
+		</div>
 	</div>
 {:else}
 	<p class="sr-only" aria-live="polite">{announcement}</p>
 	<div
-		class="columns-2 gap-4 px-4 pb-8 sm:columns-3 md:px-8 lg:columns-4 xl:columns-5"
+		class="columns-2 gap-4 page-gutter pb-8 sm:columns-3 lg:columns-4 xl:columns-5"
 		bind:this={board}
 	>
 		{#each items as item, index (item.id)}

@@ -32,8 +32,8 @@
 	import TaskRow from '$lib/components/tasks/TaskRow.svelte';
 	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import { button, field } from '$lib/components/ui';
-	import { dueLabel, percent, safeHref } from '$lib/format';
+	import { button, DUE_CLASSES, field } from '$lib/components/ui';
+	import { dueLabel, dueTone, percent, safeHref } from '$lib/format';
 	import { goalStats } from '$lib/goalStats';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
@@ -177,13 +177,13 @@
 <svelte:head><title>{data.goal?.title ?? 'Goal'} · Mushpoint</title></svelte:head>
 
 {#if data.error}
-	<div class="px-4 pt-5 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pt-5 md:pt-7"><ErrorBanner error={data.error} /></div>
 {:else if data.goal}
 	{@const goal = data.goal}
 
 	<div>
 		<div class={dim}>
-			<div class="px-4 pt-4 md:px-8">
+			<div class="page-gutter pt-5 md:pt-7">
 				<a
 					href="/goals"
 					class="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-content"
@@ -192,17 +192,12 @@
 				</a>
 			</div>
 
-			<PageHeader
-				title={goal.title}
-				subtitle={[
-					goal.category?.name ?? 'Uncategorized',
-					TIMEFRAME_LABELS[goal.timeframe],
-					dueLabel(goal.dueDate),
-					goal.fromIdea ? 'Promoted from an idea' : ''
-				]
-					.filter(Boolean)
-					.join(' · ')}
-			>
+			<PageHeader title={goal.title} flush>
+				{#snippet subtitle()}
+					{goal.category?.name ?? 'Uncategorized'} · {TIMEFRAME_LABELS[goal.timeframe]} ·
+					<span class={DUE_CLASSES[dueTone(goal.dueDate)]}>{dueLabel(goal.dueDate)}</span>
+					{#if goal.fromIdea}· Promoted from an idea{/if}
+				{/snippet}
 				{#snippet actions()}
 					{#if safeHref(goal.repoUrl)}
 						<a
@@ -230,13 +225,13 @@
 		</div>
 
 		{#if actionError}
-			<div class="px-4 pb-4 md:px-8">
+			<div class="page-gutter pb-4">
 				<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 			</div>
 		{/if}
 
 		<div
-			class="grid grid-cols-2 gap-4 px-4 pb-4 md:flex md:gap-12 md:px-8 {dim}"
+			class="grid grid-cols-2 gap-4 page-gutter pb-4 md:flex md:gap-12 {dim}"
 			role="group"
 			aria-label="Summary"
 		>
@@ -246,7 +241,7 @@
 			<Stat label="Due" value={goal.dueDate ? dueLabel(goal.dueDate) : 'None'} />
 		</div>
 
-		<div class="border-b border-subtle px-4 pb-4 md:px-8">
+		<div class="border-b border-subtle page-gutter pb-4">
 			<ProgressBar
 				value={goal.progress}
 				label="{goal.title} progress"
@@ -269,18 +264,18 @@
 			</div>
 		</div>
 
-		<section class="border-b border-subtle pb-4 {dim}">
+		<section class="section-gutter border-b border-subtle pb-4 {dim}">
 			<SectionHeader title="Motivation" />
-			<div class="px-4 pt-3 md:px-8">
+			<div class="page-gutter pt-3">
 				{#if goal.motivationText}
 					<p class="text-md leading-relaxed italic">“{goal.motivationText}”</p>
 				{:else}
 					<p class="text-sm text-muted">No motivation yet — edit the goal to say why it matters.</p>
 				{/if}
 				{#if goal.description}
-					<h2 class="mt-4 mb-1 text-xs font-semibold tracking-[0.06em] text-muted uppercase">
+					<h3 class="mt-4 mb-1 text-xs font-semibold tracking-[0.06em] text-muted uppercase">
 						Description
-					</h2>
+					</h3>
 					<p class="text-md leading-relaxed">{goal.description}</p>
 				{/if}
 			</div>
@@ -292,23 +287,23 @@
 			tabs={GOAL_VIEWS}
 			value={view}
 			onChange={setView}
-			class="mx-4 mt-4 mb-4 md:mx-8"
+			class="page-margin mt-4 mb-4"
 		/>
 
 		<div
 			role="tabpanel"
 			id={tabPanelId('goal-view', view)}
 			aria-labelledby={tabId('goal-view', view)}
-			class={view === 'list' ? '' : 'px-4 pb-6 md:px-8'}
+			class={view === 'list' ? '' : 'page-gutter pb-6'}
 		>
 			{#if view === 'list'}
-				<section class="border-b border-subtle pb-4">
+				<section class="section-gutter border-b border-subtle pb-4">
 					<SectionHeader title="Subgoals" count={goal.subgoals.length} />
-					<p class="px-4 pt-3 pb-2 text-sm text-muted md:px-8">
+					<p class="page-gutter pt-3 pb-2 text-sm text-muted">
 						Milestones toward the goal — each one can hold its own tasks and due date.
 					</p>
 
-					<div class="px-4 md:px-8">
+					<div class="page-gutter">
 						{#if goal.subgoals.length === 0}
 							<p class="py-2 text-sm text-muted">No subgoals yet.</p>
 						{:else}
@@ -342,13 +337,13 @@
 					</div>
 				</section>
 
-				<section class="pb-4">
+				<section class="section-gutter pb-4">
 					<SectionHeader title="Direct tasks" count={goal.directTasks.length} />
-					<p class="px-4 pt-3 pb-2 text-sm text-muted md:px-8">
+					<p class="page-gutter pt-3 pb-2 text-sm text-muted">
 						Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
 					</p>
 
-					<div class="px-4 md:px-8">
+					<div class="page-gutter">
 						{#if goal.directTasks.length > 0}
 							<ul class="mb-3 flex flex-col">
 								{#each goal.directTasks as task (task.id)}

@@ -14,7 +14,7 @@
 	const preview = $derived(items.filter((item) => item.imageUrl || item.quoteText).slice(0, 4));
 </script>
 
-<section class={className}>
+<section class="section-gutter {className}">
 	<SectionHeader title="Vision board">
 		{#snippet actions()}
 			<a
@@ -27,14 +27,14 @@
 	</SectionHeader>
 
 	{#if preview.length === 0}
-		<p class="px-4 py-3 text-sm text-muted">
+		<p class="page-gutter py-3 text-sm text-muted">
 			Nothing pinned yet. Visit the board to add something.
 		</p>
 	{:else}
 		<a
 			href="/vision-board"
 			aria-label="Open the vision board"
-			class="grid grid-cols-4 gap-2 px-4 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+			class="grid grid-cols-4 gap-2 page-gutter py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
 		>
 			{#each preview as item (item.id)}
 				<div class="aspect-square min-w-0 overflow-hidden rounded-control bg-surface-raised">

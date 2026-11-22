@@ -17,7 +17,7 @@
 	);
 </script>
 
-<li class="flex flex-col gap-2 px-4 py-2.5 text-sm md:px-8">
+<li class="flex flex-col gap-2 page-gutter py-2.5 text-sm">
 	<div class="flex items-center gap-3">
 		<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
 		<span class="min-w-0 flex-1">

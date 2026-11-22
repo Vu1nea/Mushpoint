@@ -62,43 +62,45 @@
 	];
 </script>
 
-<section class={className}>
+<section class="section-gutter {className}">
 	<SectionHeader title="Tasks today" count={today.length}>
 		{#snippet actions()}
 			<Segmented ariaLabel="Filter today's tasks" {options} bind:value={filter} />
 		{/snippet}
 	</SectionHeader>
 
-	<DataTable {columns} {rows} rowKey={(task) => task.id} {empty} ariaLabel="Tasks due today">
-		{#snippet cell(task, key)}
-			{#if key === 'title'}
-				<div class="flex items-center gap-2.5">
-					<DashboardTaskToggle
-						{task}
-						disabled={isInertToday(task)}
-						{onMutated}
-						{onError}
-						onDone={(value) => (ticked[task.id] = value)}
-					/>
-					<div class="min-w-0">
-						<p class="truncate {isDone(task) ? 'text-muted line-through' : ''}">{task.title}</p>
-						{#if task.goalId && goalTitle.get(task.goalId)}
-							<a
-								href="/goals/{task.goalId}"
-								class="block truncate text-xs text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
-							>
-								{goalTitle.get(task.goalId)}
-							</a>
-						{/if}
+	<div class="page-gutter">
+		<DataTable {columns} {rows} rowKey={(task) => task.id} {empty} ariaLabel="Tasks due today">
+			{#snippet cell(task, key)}
+				{#if key === 'title'}
+					<div class="flex items-center gap-2.5">
+						<DashboardTaskToggle
+							{task}
+							disabled={isInertToday(task)}
+							{onMutated}
+							{onError}
+							onDone={(value) => (ticked[task.id] = value)}
+						/>
+						<div class="min-w-0">
+							<p class="truncate {isDone(task) ? 'text-muted line-through' : ''}">{task.title}</p>
+							{#if task.goalId && goalTitle.get(task.goalId)}
+								<a
+									href="/goals/{task.goalId}"
+									class="block truncate text-xs text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
+								>
+									{goalTitle.get(task.goalId)}
+								</a>
+							{/if}
+						</div>
 					</div>
-				</div>
-			{:else if key === 'due'}
-				<span class="text-xs {dueTone(task.dueDate) === 'overdue' ? 'text-warn' : 'text-muted'}">
-					{task.recurrence ? 'Repeats' : dueLabel(task.dueDate)}
-				</span>
-			{:else}
-				<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
-			{/if}
-		{/snippet}
-	</DataTable>
+				{:else if key === 'due'}
+					<span class="text-xs {dueTone(task.dueDate) === 'overdue' ? 'text-warn' : 'text-muted'}">
+						{task.recurrence ? 'Repeats' : dueLabel(task.dueDate)}
+					</span>
+				{:else}
+					<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
+				{/if}
+			{/snippet}
+		</DataTable>
+	</div>
 </section>

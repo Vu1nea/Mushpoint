@@ -125,7 +125,7 @@
 	{/snippet}
 </PageHeader>
 
-<div class="px-4 pb-3 md:px-8">
+<div class="page-gutter pb-3">
 	<Toolbar>
 		<Segmented
 			ariaLabel="Filter goals by status"
@@ -152,10 +152,10 @@
 </div>
 
 {#if data.error}
-	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="px-4 pb-4 md:px-8">
+	<div class="page-gutter pb-4">
 		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
 {/if}
@@ -207,31 +207,35 @@
 {/snippet}
 
 {#if visible.length === 0 && !data.error}
-	<DataTable
-		{columns}
-		rows={[] as GoalSummary[]}
-		rowKey={(goal) => goal.id}
-		{empty}
-		ariaLabel="Goals"
-	>
-		{#snippet cell()}{/snippet}
-	</DataTable>
+	<div class="page-gutter">
+		<DataTable
+			{columns}
+			rows={[] as GoalSummary[]}
+			rowKey={(goal) => goal.id}
+			{empty}
+			ariaLabel="Goals"
+		>
+			{#snippet cell()}{/snippet}
+		</DataTable>
+	</div>
 {:else if visible.length > 0}
 	{#each grouped as [name, group] (name)}
-		<section class="mb-6">
+		<section class="section-gutter mb-6">
 			<SectionHeader title={name} count={group.goals.length} />
-			<DataTable
-				{columns}
-				rows={group.goals}
-				rowKey={(goal) => goal.id}
-				{empty}
-				ariaLabel="{name} goals"
-				onRowClick={open}
-			>
-				{#snippet cell(goal, key)}
-					{@render cellContent(goal, key, group.color)}
-				{/snippet}
-			</DataTable>
+			<div class="page-gutter">
+				<DataTable
+					{columns}
+					rows={group.goals}
+					rowKey={(goal) => goal.id}
+					{empty}
+					ariaLabel="{name} goals"
+					onRowClick={open}
+				>
+					{#snippet cell(goal, key)}
+						{@render cellContent(goal, key, group.color)}
+					{/snippet}
+				</DataTable>
+			</div>
 		</section>
 	{/each}
 {/if}

@@ -32,7 +32,7 @@
 	];
 </script>
 
-<section class={className}>
+<section class="section-gutter {className}">
 	<SectionHeader title="Goals" count={goals.length}>
 		{#snippet actions()}
 			<a
@@ -44,40 +44,47 @@
 		{/snippet}
 	</SectionHeader>
 
-	<DataTable
-		{columns}
-		rows={goals}
-		rowKey={(goal) => goal.id}
-		empty="No active goals yet."
-		ariaLabel="Active goals"
-		onRowClick={(goal) => goto(`/goals/${goal.id}`)}
-	>
-		{#snippet cell(goal, key)}
-			{#if key === 'title'}
-				<span class="flex items-center gap-1.5">
-					{#if goal.fromIdea}
-						<Icon name="idea" size={12} label="Promoted from an idea" />
-					{/if}
-					<a
-						href="/goals/{goal.id}"
-						class="truncate focus-visible:outline-2 focus-visible:outline-accent"
-						onclick={(event) => event.stopPropagation()}>{goal.title}</a
-					>
-				</span>
-			{:else if key === 'progress'}
-				<span class="flex items-center gap-2">
-					<span class="min-w-0 flex-1">
-						<ProgressBar value={goal.progress} height={5} color={colorOf(goal)} showValue={false} />
+	<div class="page-gutter">
+		<DataTable
+			{columns}
+			rows={goals}
+			rowKey={(goal) => goal.id}
+			empty="No active goals yet."
+			ariaLabel="Active goals"
+			onRowClick={(goal) => goto(`/goals/${goal.id}`)}
+		>
+			{#snippet cell(goal, key)}
+				{#if key === 'title'}
+					<span class="flex items-center gap-1.5">
+						{#if goal.fromIdea}
+							<Icon name="idea" size={12} label="Promoted from an idea" />
+						{/if}
+						<a
+							href="/goals/{goal.id}"
+							class="truncate focus-visible:outline-2 focus-visible:outline-accent"
+							onclick={(event) => event.stopPropagation()}>{goal.title}</a
+						>
 					</span>
-					<span class="w-9 shrink-0 text-right text-xs text-muted tabular-nums">
-						{percent(goal.progress)}
+				{:else if key === 'progress'}
+					<span class="flex items-center gap-2">
+						<span class="min-w-0 flex-1">
+							<ProgressBar
+								value={goal.progress}
+								height={5}
+								color={colorOf(goal)}
+								showValue={false}
+							/>
+						</span>
+						<span class="w-9 shrink-0 text-right text-xs text-muted tabular-nums">
+							{percent(goal.progress)}
+						</span>
 					</span>
-				</span>
-			{:else if key === 'due'}
-				<span class="text-xs text-muted">{dueLabel(goal.dueDate)}</span>
-			{:else}
-				<Pill tone={statusTone(goal.status)}>{GOAL_STATUS_LABELS[goal.status]}</Pill>
-			{/if}
-		{/snippet}
-	</DataTable>
+				{:else if key === 'due'}
+					<span class="text-xs text-muted">{dueLabel(goal.dueDate)}</span>
+				{:else}
+					<Pill tone={statusTone(goal.status)}>{GOAL_STATUS_LABELS[goal.status]}</Pill>
+				{/if}
+			{/snippet}
+		</DataTable>
+	</div>
 </section>

@@ -79,6 +79,7 @@
 	}
 
 	async function removeIdea() {
+		if (busy) return;
 		const idea = deletingIdea;
 		if (!idea) return;
 		deletingIdea = null;
@@ -122,45 +123,48 @@
 </PageHeader>
 
 {#if data.error}
-	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="px-4 pb-4 md:px-8">
+	<div class="page-gutter pb-4">
 		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
 {/if}
 
-<form
-	class="mx-4 mb-4 flex flex-col gap-3 border-y border-subtle py-3 md:mx-8 md:flex-row md:items-start"
-	onsubmit={addIdea}
->
-	<div class="flex min-w-0 flex-1 flex-col gap-2">
-		<input
-			id="new-idea-title"
-			class="{field.dashed} w-full"
-			bind:value={quickAdd.title}
-			placeholder="Capture an idea…"
-			aria-label="New idea title"
-		/>
-		<input
-			class="{field.dashed} w-full text-sm"
-			bind:value={quickAdd.note}
-			placeholder="Optional note…"
-			aria-label="New idea note"
-		/>
-		<TagInput bind:tags={quickAdd.tags} ariaLabel="Tags for the new idea" placeholder="Add tags…" />
-	</div>
-	<button type="submit" class="{button.primary} shrink-0" disabled={busy} aria-busy={busy}>
-		{#if busy}
-			<Spinner size={15} />
-		{:else}
-			<Icon name="plus" size={15} weight={2.4} />
-		{/if}
-		{busy ? 'Adding…' : 'Add Idea'}
-	</button>
-</form>
+<div class="mb-4 border-y border-subtle">
+	<form class="flex flex-col gap-3 page-gutter py-3 md:flex-row md:items-start" onsubmit={addIdea}>
+		<div class="flex min-w-0 flex-1 flex-col gap-2">
+			<input
+				id="new-idea-title"
+				class="{field.dashed} w-full"
+				bind:value={quickAdd.title}
+				placeholder="Capture an idea…"
+				aria-label="New idea title"
+			/>
+			<input
+				class="{field.dashed} w-full text-sm"
+				bind:value={quickAdd.note}
+				placeholder="Optional note…"
+				aria-label="New idea note"
+			/>
+			<TagInput
+				bind:tags={quickAdd.tags}
+				ariaLabel="Tags for the new idea"
+				placeholder="Add tags…"
+			/>
+		</div>
+		<button type="submit" class="{button.primary} shrink-0" disabled={busy} aria-busy={busy}>
+			{#if busy}
+				<Spinner size={15} />
+			{:else}
+				<Icon name="plus" size={15} weight={2.4} />
+			{/if}
+			{busy ? 'Adding…' : 'Add Idea'}
+		</button>
+	</form>
+</div>
 
-<div class="px-4 pb-3 md:px-8">
+<div class="page-gutter pb-3">
 	<Toolbar>
 		<input
 			type="search"
@@ -192,46 +196,57 @@
 	</Toolbar>
 </div>
 
-<DataTable {columns} {rows} rowKey={(idea) => idea.id} {empty} ariaLabel="Ideas" onRowClick={edit}>
-	{#snippet cell(idea, key)}
-		{#if key === 'title'}
-			<div class="min-w-0">
-				<button
-					type="button"
-					class="block max-w-full truncate text-left focus-visible:outline-2 focus-visible:outline-accent"
-					onclick={(event) => {
-						event.stopPropagation();
-						edit(idea);
-					}}>{idea.title}</button
-				>
-				{#if idea.note}
-					<p class="truncate text-xs text-muted">{idea.note}</p>
+{#if !data.error}
+	<div class="page-gutter">
+		<DataTable
+			{columns}
+			{rows}
+			rowKey={(idea) => idea.id}
+			{empty}
+			ariaLabel="Ideas"
+			onRowClick={edit}
+		>
+			{#snippet cell(idea, key)}
+				{#if key === 'title'}
+					<div class="min-w-0">
+						<button
+							type="button"
+							class="block max-w-full truncate text-left focus-visible:outline-2 focus-visible:outline-accent"
+							onclick={(event) => {
+								event.stopPropagation();
+								edit(idea);
+							}}>{idea.title}</button
+						>
+						{#if idea.note}
+							<p class="truncate text-xs text-muted">{idea.note}</p>
+						{/if}
+					</div>
+				{:else if key === 'tags'}
+					{@const summary = tagSummary(idea.tags, MAX_TAGS)}
+					<span class="flex flex-wrap items-center gap-1">
+						{#each summary.shown as tag (tag.id)}
+							<Pill tone="neutral">{tag.name}</Pill>
+						{/each}
+						{#if summary.more > 0}
+							<span class="text-xs text-muted">+{summary.more}</span>
+						{/if}
+					</span>
+				{:else if key === 'created'}
+					<span class="text-xs text-muted">{formatDate(idea.createdAt)}</span>
+				{:else}
+					<RowMenu
+						label="Actions for {idea.title}"
+						items={[
+							{ label: 'Edit', onSelect: () => edit(idea) },
+							{ label: 'Promote to goal', onSelect: () => promote(idea) },
+							{ label: 'Delete', danger: true, onSelect: () => (deletingIdea = idea) }
+						]}
+					/>
 				{/if}
-			</div>
-		{:else if key === 'tags'}
-			{@const summary = tagSummary(idea.tags, MAX_TAGS)}
-			<span class="flex flex-wrap items-center gap-1">
-				{#each summary.shown as tag (tag.id)}
-					<Pill tone="neutral">{tag.name}</Pill>
-				{/each}
-				{#if summary.more > 0}
-					<span class="text-xs text-muted">+{summary.more}</span>
-				{/if}
-			</span>
-		{:else if key === 'created'}
-			<span class="text-xs text-muted">{formatDate(idea.createdAt)}</span>
-		{:else}
-			<RowMenu
-				label="Actions for {idea.title}"
-				items={[
-					{ label: 'Edit', onSelect: () => edit(idea) },
-					{ label: 'Promote to goal', onSelect: () => promote(idea) },
-					{ label: 'Delete', danger: true, onSelect: () => (deletingIdea = idea) }
-				]}
-			/>
-		{/if}
-	{/snippet}
-</DataTable>
+			{/snippet}
+		</DataTable>
+	</div>
+{/if}
 
 <IdeaDrawer
 	open={drawerOpen}

@@ -19,15 +19,15 @@
 	const upcoming = $derived(buildUpcomingFeed(goals, subgoals, tasks).slice(0, 8));
 </script>
 
-<section class={className}>
+<section class="section-gutter {className}">
 	<SectionHeader title="Upcoming" count={upcoming.length} />
 
 	{#if upcoming.length === 0}
-		<p class="px-4 py-3 text-sm text-muted">Nothing due soon.</p>
+		<p class="page-gutter py-3 text-sm text-muted">Nothing due soon.</p>
 	{:else}
 		<ul class="divide-y divide-subtle">
 			{#each upcoming as item (`${item.kind}-${item.id}`)}
-				<li class="flex items-center gap-3 px-4 py-2 text-sm">
+				<li class="flex items-center gap-3 page-gutter py-2 text-sm">
 					<span class="w-16 shrink-0 text-2xs font-bold tracking-wider text-muted uppercase">
 						{KIND_LABELS[item.kind]}
 					</span>

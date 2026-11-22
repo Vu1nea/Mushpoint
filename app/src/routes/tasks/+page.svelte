@@ -108,18 +108,18 @@
 </PageHeader>
 
 {#if data.error}
-	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="px-4 pb-4 md:px-8">
+	<div class="page-gutter pb-4">
 		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
 {/if}
 
-<section class="border-y border-subtle">
+<section class="section-gutter border-y border-subtle">
 	<SectionHeader title="Streaks" count={data.streaks.length} />
 	{#if data.streaks.length === 0}
-		<p class="px-4 py-3 text-sm text-muted md:px-8">No habits tracked yet.</p>
+		<p class="page-gutter py-3 text-sm text-muted">No habits tracked yet.</p>
 	{:else}
 		<ul class="divide-y divide-subtle">
 			{#each data.streaks as card (card.task.id)}
@@ -140,14 +140,14 @@
 	tabs={TASK_VIEWS}
 	value={view}
 	onChange={setView}
-	class="mx-4 mt-4 mb-4 md:mx-8"
+	class="page-margin mt-4 mb-4"
 />
 
 <div
 	role="tabpanel"
 	id={tabPanelId('tasks-view', view)}
 	aria-labelledby={tabId('tasks-view', view)}
-	class={view === 'list' ? '' : 'px-4 pb-6 md:px-8'}
+	class={view === 'list' ? '' : 'page-gutter pb-6'}
 >
 	{#if view === 'list'}
 		<TaskListView

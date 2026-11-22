@@ -15,7 +15,7 @@
 	const top = $derived(topStreaks(streaks));
 </script>
 
-<section class={className}>
+<section class="section-gutter {className}">
 	<SectionHeader title="Streaks" count={streaks.length}>
 		{#snippet actions()}
 			{#if streaks.length > top.length}
@@ -30,11 +30,11 @@
 	</SectionHeader>
 
 	{#if top.length === 0}
-		<p class="px-4 py-3 text-sm text-muted">No habits tracked yet.</p>
+		<p class="page-gutter py-3 text-sm text-muted">No habits tracked yet.</p>
 	{:else}
 		<ul class="divide-y divide-subtle">
 			{#each top as card (card.task.id)}
-				<li class="flex flex-col gap-2 px-4 py-2.5 text-sm">
+				<li class="flex flex-col gap-2 page-gutter py-2.5 text-sm">
 					<div class="flex items-center gap-3">
 						<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
 						<span class="min-w-0 flex-1">

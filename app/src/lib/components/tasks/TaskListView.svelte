@@ -78,7 +78,7 @@
 	};
 </script>
 
-<div class="px-4 pb-3 md:px-8">
+<div class="page-gutter pb-3">
 	<Toolbar>
 		<input
 			type="search"
@@ -91,59 +91,61 @@
 	</Toolbar>
 </div>
 
-<DataTable
-	{columns}
-	{rows}
-	rowKey={(task) => task.id}
-	{empty}
-	ariaLabel="Tasks"
-	onRowClick={onEditTask}
->
-	{#snippet cell(task, key)}
-		{#if key === 'title'}
-			<div class="flex items-center gap-2.5">
-				<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-				<span class="shrink-0" onclick={(event) => event.stopPropagation()}>
-					<DashboardTaskToggle
-						{task}
-						{onMutated}
-						{onError}
-						onDone={(value) => (ticked[task.id] = value)}
-					/>
-				</span>
-				<div class="min-w-0">
-					<p class="truncate {shownColumn(task) === 'done' ? 'text-muted line-through' : ''}">
-						{task.title}
-					</p>
-					{#if isInertToday(task)}
-						<p class="truncate text-xs text-muted">Not due today</p>
-					{/if}
-					{#if fullLine(task)}
-						<p class="truncate text-xs text-muted md:hidden">{fullLine(task)}</p>
-					{/if}
-					{#if subgoalOf(task)}
-						<p class="truncate text-xs text-muted max-md:hidden">{subgoalOf(task)}</p>
-					{/if}
+<div class="page-gutter">
+	<DataTable
+		{columns}
+		{rows}
+		rowKey={(task) => task.id}
+		{empty}
+		ariaLabel="Tasks"
+		onRowClick={onEditTask}
+	>
+		{#snippet cell(task, key)}
+			{#if key === 'title'}
+				<div class="flex items-center gap-2.5">
+					<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+					<span class="shrink-0" onclick={(event) => event.stopPropagation()}>
+						<DashboardTaskToggle
+							{task}
+							{onMutated}
+							{onError}
+							onDone={(value) => (ticked[task.id] = value)}
+						/>
+					</span>
+					<div class="min-w-0">
+						<p class="truncate {shownColumn(task) === 'done' ? 'text-muted line-through' : ''}">
+							{task.title}
+						</p>
+						{#if isInertToday(task)}
+							<p class="truncate text-xs text-muted">Not due today</p>
+						{/if}
+						{#if fullLine(task)}
+							<p class="truncate text-xs text-muted md:hidden">{fullLine(task)}</p>
+						{/if}
+						{#if subgoalOf(task)}
+							<p class="truncate text-xs text-muted max-md:hidden">{subgoalOf(task)}</p>
+						{/if}
+					</div>
 				</div>
-			</div>
-		{:else if key === 'goal'}
-			<span class="text-xs text-muted">
-				{task.goalId ? (goalTitle.get(task.goalId) ?? '') : ''}
-			</span>
-		{:else if key === 'due'}
-			<span class="text-xs {DUE_CLASSES[dueTone(task.dueDate)]}">
-				{task.dueDate ? dueLabel(task.dueDate) : ''}
-			</span>
-		{:else if key === 'status'}
-			<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
-		{:else}
-			<RowMenu
-				label="Actions for {task.title}"
-				items={[
-					{ label: 'Edit', onSelect: () => onEditTask(task) },
-					{ label: 'Delete', danger: true, onSelect: () => onDeleteTask(task) }
-				]}
-			/>
-		{/if}
-	{/snippet}
-</DataTable>
+			{:else if key === 'goal'}
+				<span class="text-xs text-muted">
+					{task.goalId ? (goalTitle.get(task.goalId) ?? '') : ''}
+				</span>
+			{:else if key === 'due'}
+				<span class="text-xs {DUE_CLASSES[dueTone(task.dueDate)]}">
+					{task.dueDate ? dueLabel(task.dueDate) : ''}
+				</span>
+			{:else if key === 'status'}
+				<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
+			{:else}
+				<RowMenu
+					label="Actions for {task.title}"
+					items={[
+						{ label: 'Edit', onSelect: () => onEditTask(task) },
+						{ label: 'Delete', danger: true, onSelect: () => onDeleteTask(task) }
+					]}
+				/>
+			{/if}
+		{/snippet}
+	</DataTable>
+</div>

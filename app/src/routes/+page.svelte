@@ -42,16 +42,16 @@
 </PageHeader>
 
 {#if data.error}
-	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="px-4 pb-4 md:px-8">
+	<div class="page-gutter pb-4">
 		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
 {/if}
 
 <div
-	class="mp-enter grid grid-cols-3 gap-4 border-b border-subtle px-4 pb-4 md:flex md:gap-12 md:px-8"
+	class="mp-enter grid grid-cols-3 gap-4 border-b border-subtle page-gutter pb-4 md:flex md:gap-12"
 	role="group"
 	aria-label="Summary"
 >

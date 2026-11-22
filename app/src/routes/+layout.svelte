@@ -4,7 +4,6 @@
 
 	import { afterNavigate, invalidateAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.webp';
 	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import CommandPalette from '$lib/components/shell/CommandPalette.svelte';
 	import MobileMenuSheet from '$lib/components/shell/MobileMenuSheet.svelte';
@@ -187,7 +186,7 @@
 				class="flex min-h-0 flex-1 flex-col overflow-hidden max-md:rounded-none max-md:border-0 md:mr-3 md:mb-3"
 			>
 				<main
-					class="min-h-0 flex-1 scroll-pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] overflow-y-auto px-4 pt-5 pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:scroll-pb-0 md:px-11 md:pt-9 md:pb-15"
+					class="min-h-0 flex-1 scroll-pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] overflow-y-auto pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:scroll-pb-0 md:pb-15"
 				>
 					{@render children()}
 				</main>
