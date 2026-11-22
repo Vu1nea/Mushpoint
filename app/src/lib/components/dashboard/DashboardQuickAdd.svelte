@@ -12,9 +12,11 @@
 		onAdded: () => Promise<void> | void;
 		onError: (error: unknown) => void;
 		class?: string;
+		/** Drops the card chrome, for use inside a sheet that already is one. */
+		bare?: boolean;
 	}
 
-	let { onAdded, onError, class: className = '' }: Props = $props();
+	let { onAdded, onError, class: className = '', bare = false }: Props = $props();
 
 	const KINDS: { value: QuickAddKind; label: string; icon: QuickAddKind }[] = [
 		{ value: 'idea', label: 'Idea', icon: 'idea' },
@@ -55,7 +57,9 @@
 
 <form
 	onsubmit={submit}
-	class="flex flex-col items-stretch gap-2 rounded-card border border-subtle bg-surface p-2.5 sm:flex-row sm:items-center {className}"
+	class="flex flex-col items-stretch gap-2 {bare
+		? ''
+		: 'rounded-card border border-subtle bg-surface p-2.5 sm:flex-row sm:items-center'} {className}"
 >
 	<div class="flex w-full shrink-0 gap-1.5 sm:w-auto" role="group" aria-label="Quick-add type">
 		{#each KINDS as option (option.value)}

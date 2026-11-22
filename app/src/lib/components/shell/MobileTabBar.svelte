@@ -26,7 +26,7 @@
 					{current ? 'font-semibold text-accent-ink' : 'font-medium text-muted hover:text-content'}"
 				>
 					<Icon name={item.icon} size={20} weight={current ? 2 : 1.8} />
-					<span>{item.label}</span>
+					<span class={current ? 'text-content' : ''}>{item.label}</span>
 				</a>
 			</li>
 		{/each}

@@ -58,4 +58,4 @@
 	/>
 </div>
 
-<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter mt-4" />
+<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter mt-4 max-md:hidden" />

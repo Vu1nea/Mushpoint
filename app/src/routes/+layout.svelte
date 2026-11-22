@@ -9,6 +9,7 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import MadeByCredit from '$lib/components/shell/MadeByCredit.svelte';
 	import MobileMenuSheet from '$lib/components/shell/MobileMenuSheet.svelte';
+	import MobileQuickAdd from '$lib/components/shell/MobileQuickAdd.svelte';
 	import MobileTabBar from '$lib/components/shell/MobileTabBar.svelte';
 	import MobileTopBar from '$lib/components/shell/MobileTopBar.svelte';
 	import SidebarUser from '$lib/components/shell/SidebarUser.svelte';
@@ -237,6 +238,7 @@
 	</div>
 
 	<MobileTabBar items={TABS} {isCurrent} />
+	<MobileQuickAdd />
 	<MobileMenuSheet
 		open={menuOpen}
 		username={data.profile?.username ?? null}
