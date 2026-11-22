@@ -1,6 +1,6 @@
 /** Dashboard-only aggregation logic. Pure, so `now` is always passed in rather than read. */
 
-import type { GoalSummary, StreakCard, Subgoal, TaskSummary } from './api/types';
+import type { Goal, GoalSummary, StreakCard, Subgoal, TaskSummary } from './api/types';
 import { daysUntil } from './format';
 
 /** A recurring task's expectedToday is cadence-aware and correct as-is. A
@@ -81,4 +81,24 @@ export function topStreaks(streaks: StreakCard[], limit = 3): StreakCard[] {
 	return [...streaks]
 		.sort((a, b) => b.current - a.current || b.longest - a.longest)
 		.slice(0, limit);
+}
+
+export interface DashboardStats {
+	activeGoals: number;
+	dueToday: number;
+	bestStreak: number;
+}
+
+/** The numbers for the dashboard's stat strip. */
+export function dashboardStats(
+	goals: Goal[],
+	tasks: TaskSummary[],
+	streaks: StreakCard[],
+	now: Date = new Date()
+): DashboardStats {
+	return {
+		activeGoals: goals.filter((goal) => goal.status === 'active').length,
+		dueToday: todaysTasks(tasks, now).length,
+		bestStreak: streaks.reduce((best, card) => Math.max(best, card.current), 0)
+	};
 }

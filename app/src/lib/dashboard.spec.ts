@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildUpcomingFeed, todaysTasks, topStreaks } from './dashboard';
+import { buildUpcomingFeed, dashboardStats, todaysTasks, topStreaks } from './dashboard';
 import type { GoalSummary, StreakCard, Subgoal, TaskSummary } from './api/types';
 
 const baseTask: TaskSummary = {
@@ -141,5 +141,41 @@ describe('topStreaks', () => {
 	it('defaults to a limit of 3', () => {
 		const cards = [cardWith(1, 1, 1), cardWith(2, 2, 2), cardWith(3, 3, 3), cardWith(4, 4, 4)];
 		expect(topStreaks(cards)).toHaveLength(3);
+	});
+});
+
+describe('dashboardStats', () => {
+	const card = (current: number, id: number): StreakCard => ({
+		task: { ...baseTask, id },
+		current,
+		longest: current,
+		doneToday: false,
+		cells: []
+	});
+
+	it('returns zeros for no data', () => {
+		expect(dashboardStats([], [], [], NOW)).toEqual({ activeGoals: 0, dueToday: 0, bestStreak: 0 });
+	});
+
+	it('counts only active goals', () => {
+		const goals = [
+			{ ...baseGoal, id: 1 },
+			{ ...baseGoal, id: 2, status: 'completed' as const },
+			{ ...baseGoal, id: 3, status: 'archived' as const }
+		];
+		expect(dashboardStats(goals, [], [], NOW).activeGoals).toBe(1);
+	});
+
+	it('dueToday matches todaysTasks', () => {
+		const tasks = [
+			{ ...baseTask, id: 1, dueDate: '2026-08-03' },
+			{ ...baseTask, id: 2, dueDate: '2026-08-10' }
+		];
+		expect(dashboardStats([], tasks, [], NOW).dueToday).toBe(todaysTasks(tasks, NOW).length);
+		expect(dashboardStats([], tasks, [], NOW).dueToday).toBe(1);
+	});
+
+	it('bestStreak is the highest current streak', () => {
+		expect(dashboardStats([], [], [card(2, 1), card(7, 2), card(4, 3)], NOW).bestStreak).toBe(7);
 	});
 });
