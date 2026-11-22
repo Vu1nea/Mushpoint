@@ -7,11 +7,14 @@
 	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
-	import StreakCard from '$lib/components/streaks/StreakCard.svelte';
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import StreakRow from '$lib/components/streaks/StreakRow.svelte';
+	import TaskListView from '$lib/components/tasks/TaskListView.svelte';
 	import TaskDrawer from '$lib/components/tasks/TaskDrawer.svelte';
 	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import { button, sectionHeading } from '$lib/components/ui';
+	import { button } from '$lib/components/ui';
 	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();
@@ -23,10 +26,13 @@
 	let busy = $state(false);
 	let actionError = $state<unknown>(null);
 	const TASK_VIEWS = [
+		{ value: 'list', label: 'List' },
 		{ value: 'board', label: 'Board' },
 		{ value: 'calendar', label: 'Calendar' }
 	] as const;
-	let view = $state<'board' | 'calendar'>('board');
+	type TaskView = (typeof TASK_VIEWS)[number]['value'];
+	let view = $state<TaskView>('list');
+	const openCount = $derived(data.tasks.filter((task) => task.status !== 'done').length);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -80,10 +86,10 @@
 	$effect(() => {
 		if (!browser) return;
 		const stored = localStorage.getItem('mp-tasks-view');
-		view = stored === 'calendar' ? 'calendar' : 'board';
+		view = stored === 'calendar' || stored === 'board' ? stored : 'list';
 	});
 
-	function setView(next: 'board' | 'calendar') {
+	function setView(next: TaskView) {
 		view = next;
 		if (browser) localStorage.setItem('mp-tasks-view', next);
 	}
@@ -91,38 +97,41 @@
 
 <svelte:head><title>Tasks · Mushpoint</title></svelte:head>
 
-<header class="mb-6 flex flex-wrap items-start justify-between gap-4">
-	<div class="min-w-0">
-		<h1 class="font-display text-2xl font-bold sm:text-3xl">Tasks</h1>
-	</div>
-	<button type="button" class="{button.primary} shrink-0" onclick={() => newTask()}>
-		<Icon name="plus" size={15} weight={2.4} />
-		New Task
-	</button>
-</header>
+<PageHeader title="Tasks" subtitle="{openCount} open">
+	{#snippet actions()}
+		<button type="button" class="{button.primary} shrink-0" onclick={() => newTask()}>
+			<Icon name="plus" size={15} weight={2.4} />
+			New Task
+		</button>
+	{/snippet}
+</PageHeader>
 
 {#if data.error}
-	<div class="mb-6"><ErrorBanner error={data.error} /></div>
+	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="mb-6"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
+	<div class="px-4 pb-4 md:px-8">
+		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
+	</div>
 {/if}
 
-{#if data.streaks.length > 0}
-	<section class="mb-6">
-		<h2 class="{sectionHeading} mb-3">Streaks</h2>
-		<div class="grid gap-4 sm:grid-cols-2">
+<section class="border-y border-subtle">
+	<SectionHeader title="Streaks" count={data.streaks.length} />
+	{#if data.streaks.length === 0}
+		<p class="px-4 py-3 text-sm text-muted md:px-8">No habits tracked yet.</p>
+	{:else}
+		<ul class="divide-y divide-subtle">
 			{#each data.streaks as card (card.task.id)}
-				<StreakCard
+				<StreakRow
 					card={card.task.id in pendingToday
 						? { ...card, doneToday: pendingToday[card.task.id] }
 						: card}
 					onToggle={(done) => toggleToday(card.task, done)}
 				/>
 			{/each}
-		</div>
-	</section>
-{/if}
+		</ul>
+	{/if}
+</section>
 
 <Tabs
 	id="tasks-view"
@@ -130,15 +139,26 @@
 	tabs={TASK_VIEWS}
 	value={view}
 	onChange={setView}
-	class="mb-5"
+	class="mx-4 mt-4 mb-4 md:mx-8"
 />
 
 <div
 	role="tabpanel"
 	id={tabPanelId('tasks-view', view)}
 	aria-labelledby={tabId('tasks-view', view)}
+	class={view === 'list' ? '' : 'px-4 pb-6 md:px-8'}
 >
-	{#if view === 'board'}
+	{#if view === 'list'}
+		<TaskListView
+			tasks={data.tasks}
+			goals={data.goals}
+			subgoals={data.subgoals}
+			onMutated={invalidateAll}
+			onError={(error) => (actionError = error)}
+			onEditTask={edit}
+			onDeleteTask={(task) => (deletingTask = task)}
+		/>
+	{:else if view === 'board'}
 		<KanbanBoard
 			tasks={data.tasks}
 			subgoals={data.subgoals}

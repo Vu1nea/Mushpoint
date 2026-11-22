@@ -319,15 +319,15 @@
 	onChange={(next) => (activeStatus = next)}
 />
 
-<div class="grid gap-4 md:grid-cols-3">
+<div class="grid md:grid-cols-3 md:divide-x md:divide-subtle">
 	{#each TASK_STATUSES as status (status)}
 		<section
 			class="{status === activeStatus
 				? 'flex'
-				: 'hidden md:flex'} min-h-50 flex-col gap-2.5 rounded-card border p-3.5 transition-colors {dragOverStatus ===
+				: 'hidden md:flex'} min-h-50 flex-col gap-2.5 p-3.5 transition-colors {dragOverStatus ===
 			status
-				? 'border-accent bg-accent/5'
-				: 'border-subtle bg-surface'}"
+				? 'bg-accent/5 outline-2 -outline-offset-2 outline-accent'
+				: ''}"
 			role={phone.current ? 'tabpanel' : undefined}
 			id={phone.current ? tabPanelId(TABS_ID, status) : undefined}
 			aria-labelledby={phone.current ? tabId(TABS_ID, status) : undefined}
@@ -349,8 +349,8 @@
 					class="group rounded-card border p-3.5 transition-shadow {moveMenuFor === task.id
 						? 'relative z-10'
 						: ''} {justMovedId === task.id
-						? 'mp-pulse border-accent bg-background ring-3 ring-accent/30'
-						: 'mp-enter border-subtle bg-background'}"
+						? 'mp-pulse border-accent bg-surface ring-3 ring-accent/30'
+						: 'mp-enter border-subtle bg-surface'}"
 					style="--mp-delay:{stagger(index, 30)}"
 					draggable={!inert}
 					ondragstart={(event) => dragStart(event, task)}

@@ -306,7 +306,7 @@
 	change the month, with Shift the year.
 </p>
 <div
-	class="grid grid-cols-7 gap-px overflow-hidden rounded-card border border-subtle bg-subtle"
+	class="grid grid-cols-7 gap-px overflow-hidden border-y border-subtle bg-subtle"
 	role="group"
 	aria-label={heading}
 	aria-describedby="calendar-keys-hint"
