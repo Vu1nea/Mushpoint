@@ -80,3 +80,7 @@ playwright-report
 # Kubernetes secrets filled in from deploy/secret.example.yaml
 deploy/secret.yaml
 deploy/*.env
+
+# graphify auto-rebuild hooks are per-developer (graphify hook install);
+# only the shared secret-scan pre-commit hook is tracked
+.githooks/post-*
