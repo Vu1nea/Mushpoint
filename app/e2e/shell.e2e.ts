@@ -235,6 +235,22 @@ test('the settings screen starts with the account section', async ({ page }) => 
 	await expect(page.getByRole('button', { name: 'Delete account' })).toBeVisible();
 });
 
+test('the settings screen is one h1 over flat sections headed in order', async ({ page }) => {
+	const sections: [string, string[]][] = [
+		['/settings', ['Profile', 'Password', 'Your data', 'Danger zone']],
+		['/settings?tab=appearance', ['Theme']],
+		['/settings?tab=tracking', ['Categories', 'Streaks']]
+	];
+	for (const [path, titles] of sections) {
+		await page.goto(path);
+		await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+		await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
+		await expect(page.getByRole('heading', { level: 2 })).toHaveText(
+			titles.map((title) => new RegExp(`^${title}`))
+		);
+	}
+});
+
 test('the task drawer offers every cadence', async ({ page }) => {
 	await page.goto('/tasks');
 	await page.getByRole('button', { name: 'New Task' }).click();
