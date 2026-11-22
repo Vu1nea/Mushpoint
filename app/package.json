@@ -37,6 +37,6 @@
 	},
 	"dependencies": {
 		"@supabase/auth-js": "^2.119.0",
-		"mushpoint-design": "git+https://github.com/Vu1nea/Mushpoint-Design.git#30e83b3a4017e1e8fc5fa1197b714e2629443a43"
+		"mushpoint-design": "git+https://github.com/Vu1nea/Mushpoint-Design.git#dcae8cd5485170a0948b1c2cd742a7a129dfcc9e"
 	}
 }
