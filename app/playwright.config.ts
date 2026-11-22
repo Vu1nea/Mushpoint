@@ -48,7 +48,7 @@ export default defineConfig({
 			use: { ...devices['Pixel 7'] }
 		},
 		// The app shell on the other two engines. Only shell.e2e: it signs in as
-		// user B and reads. web.e2e deletes user A's account (users are made once
+		// user B and reads; its one mutating test (palette search) skips outside desktop. web.e2e deletes user A's account (users are made once
 		// per run), so it can run in one project only. The axe scan stays on
 		// Chromium (its rules check the DOM, not the engine).
 		{

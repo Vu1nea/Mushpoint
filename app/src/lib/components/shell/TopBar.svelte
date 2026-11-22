@@ -32,7 +32,7 @@
 	>
 		<Icon name="search" size={15} />
 		<span class="flex-1 text-left">Search</span>
-		<kbd class="rounded-sm border border-subtle px-1.5 text-2xs text-faint">Ctrl K</kbd>
+		<kbd class="rounded-sm border border-subtle px-1.5 text-2xs text-muted">Ctrl K</kbd>
 	</button>
 	<a
 		href="/settings"

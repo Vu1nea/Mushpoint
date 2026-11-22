@@ -19,6 +19,7 @@
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
 	import { isPublicRoute } from '$lib/auth/routes';
+	import { shouldTogglePalette } from '$lib/shell/paletteNav';
 	import { crumbsFor } from '$lib/shell/crumbs';
 	import { theme } from '$lib/theme/theme.svelte';
 
@@ -96,7 +97,8 @@
 	/** Ctrl+K / Cmd+K toggles the command palette from anywhere in the shell. */
 	function onGlobalKeydown(event: KeyboardEvent) {
 		if (bare || data.error) return;
-		if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+		const otherModal = document.querySelector('[aria-modal="true"]:not([data-palette])') !== null;
+		if (shouldTogglePalette(event, paletteOpen, otherModal)) {
 			event.preventDefault();
 			paletteOpen = !paletteOpen;
 		}

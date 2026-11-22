@@ -95,8 +95,12 @@ test('the task drawer offers every cadence', async ({ page }) => {
 	}
 });
 
-test('Ctrl+K opens the command palette and Enter opens the first match', async ({ page }) => {
-	const title = `Palette goal ${Date.now()}`;
+test('Ctrl+K opens the command palette and Enter opens the first match', async ({
+	page
+}, testInfo) => {
+	// The only mutating test in this file: one project, so one goal per run.
+	test.skip(testInfo.project.name !== 'desktop', 'creates a goal; desktop project only');
+	const title = `Palette goal ${crypto.randomUUID().slice(0, 8)}`;
 
 	await page.goto('/goals');
 	await page.getByRole('button', { name: 'New Goal' }).click();

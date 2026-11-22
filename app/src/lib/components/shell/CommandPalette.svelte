@@ -9,7 +9,7 @@
 	import type { Goal, Idea, Task } from '$lib/api/types';
 	import { motion } from '$lib/motion';
 	import { searchItems, type SearchHit } from '$lib/search';
-	import { moveIndex } from '$lib/shell/paletteNav';
+	import { createRequestCounter, moveIndex } from '$lib/shell/paletteNav';
 	import ErrorBanner from '../ui/ErrorBanner.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import Spinner from '../ui/Spinner.svelte';
@@ -37,16 +37,20 @@
 
 	const hits = $derived(data ? searchItems(query, data) : []);
 
+	const requests = createRequestCounter();
+
+	/** Refetches on every open; the previous data stays searchable meanwhile. */
 	async function load() {
+		const token = requests.next();
 		loading = true;
 		error = null;
 		try {
 			const [goals, tasks, ideas] = await Promise.all([listGoals(), listTasks(), listIdeas()]);
-			data = { goals, tasks, ideas };
+			if (requests.isCurrent(token)) data = { goals, tasks, ideas };
 		} catch (e) {
-			error = e;
+			if (requests.isCurrent(token)) error = e;
 		} finally {
-			loading = false;
+			if (requests.isCurrent(token)) loading = false;
 		}
 	}
 
@@ -56,10 +60,12 @@
 			opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 			query = '';
 			active = 0;
-			// Loaded once, on first open; a failed load is retried on the next open.
-			if (!data && !loading) void load();
+			void load();
 			void tick().then(() => input?.focus());
 		} else if (!open && wasOpen) {
+			// A response still in flight belongs to a closed palette; drop it.
+			requests.next();
+			loading = false;
 			opener?.focus();
 			opener = null;
 		}
@@ -81,6 +87,7 @@
 		if (!open) return;
 		if (event.key === 'Escape') {
 			event.preventDefault();
+			event.stopPropagation();
 			onClose();
 		} else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
 			event.preventDefault();
@@ -119,6 +126,7 @@
 		<div
 			class="pointer-events-auto flex max-h-[70dvh] w-full max-w-xl flex-col overflow-hidden rounded-sheet border border-subtle bg-surface shadow-[0_20px_50px_rgba(0,0,0,0.35)]"
 			role="dialog"
+			data-palette
 			aria-modal="true"
 			aria-label="Search"
 		>
@@ -139,7 +147,7 @@
 					autocomplete="off"
 					spellcheck="false"
 				/>
-				{#if loading}<Spinner size={16} />{/if}
+				{#if loading && !data}<Spinner size={16} />{/if}
 			</div>
 
 			<div class="min-h-0 flex-1 overflow-y-auto">
@@ -170,7 +178,7 @@
 						</li>
 					{/each}
 				</ul>
-				{#if !error && !loading}
+				{#if !error && !(loading && !data)}
 					{#if query.trim() === ''}
 						<p class="px-4 py-6 text-center text-sm text-muted">
 							Type to search your goals, tasks and ideas.
