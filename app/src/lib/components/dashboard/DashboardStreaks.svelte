@@ -46,7 +46,7 @@
 						<b class="tabular-nums">{card.current}</b>
 						<span class="text-xs text-muted">best {card.longest}</span>
 					</div>
-					<StreakHeatmap cells={card.cells} />
+					<StreakHeatmap cells={card.cells} active={card.current > 0} />
 				</li>
 			{/each}
 		</ul>

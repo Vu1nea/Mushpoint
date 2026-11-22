@@ -36,5 +36,5 @@
 			/>
 		{/if}
 	</div>
-	<StreakHeatmap cells={card.cells} />
+	<StreakHeatmap cells={card.cells} active={card.current > 0} />
 </li>
