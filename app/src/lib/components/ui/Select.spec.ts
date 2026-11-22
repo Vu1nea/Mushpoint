@@ -27,6 +27,6 @@ describe('DatePicker', () => {
 	it('describes the trigger with its current value, so a <label> name keeps the date', () => {
 		const html = render(DatePicker, { props: { value: '2026-03-31', id: 'due' } }).body;
 		const describedBy = /aria-describedby="([^"]+)"/.exec(html)![1];
-		expect(html).toMatch(new RegExp(`<span id="${describedBy}"[^>]*>\s*Mar 31`));
+		expect(html).toMatch(new RegExp(`<span id="${describedBy}"[^>]*>\\s*Mar 31`));
 	});
 });

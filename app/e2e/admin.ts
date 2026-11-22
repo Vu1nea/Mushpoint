@@ -8,7 +8,7 @@ export async function deleteUsers(users: E2eUser[]): Promise<void> {
 	const failures: string[] = [];
 	for (const user of users) {
 		try {
-			const response = await fetch(`${url}/auth/v1/admin/users/${user.id}`, {
+			const response = await fetch(`${url}/auth/v1/admin/users/${encodeURIComponent(user.id)}`, {
 				method: 'DELETE',
 				headers: serviceKeyHeaders(serviceKey)
 			});
