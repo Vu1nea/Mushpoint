@@ -48,7 +48,7 @@ describe('VisionBoard keyboard reordering (WCAG 2.5.7)', () => {
 	});
 });
 
-describe('VisionBoard sticky notes', () => {
+describe('VisionBoard flat items', () => {
 	const html = render(VisionBoard, {
 		props: {
 			items: [item(1), item(2), { ...item(3), imageUrl: 'https://x.test/a.png' }],
@@ -61,16 +61,18 @@ describe('VisionBoard sticky notes', () => {
 	}).body;
 	const cards = html.split('<article').slice(1);
 
-	it('styles quote-only items as tilted notes with varied colors', () => {
-		expect(cards[0]).toContain('rotate:');
-		expect(cards[0]).toMatch(/bg-(yellow|pink|sky|lime|orange|violet)-200/);
-		expect(cards[0]).not.toBe(cards[1]);
-		expect(cards[0]).toMatch(/bg-\w+-200/);
-		expect(cards[1]).toMatch(/bg-\w+-200/);
+	it('renders quote-only items flat, with no tilt, paper color or shadow', () => {
+		for (const card of cards) {
+			expect(card).not.toContain('rotate:');
+			expect(card).not.toMatch(/bg-\w+-200|bg-stone-50|shadow-/);
+		}
+		expect(cards[0]).toContain('Quote 1');
 	});
 
-	it('frames image items as polaroids', () => {
-		expect(cards[2]).toContain('bg-stone-50');
+	it('keeps an image item caption in the DOM for screen readers', () => {
+		expect(cards[2]).toContain('Quote 3');
+		expect(cards[2]).not.toContain('display:none');
+		expect(cards[2]).toContain('group-focus-within:opacity-100');
 	});
 });
 

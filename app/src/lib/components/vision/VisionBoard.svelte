@@ -5,7 +5,6 @@
 	import { stagger } from '$lib/motion';
 	import { moveId, moveIdBy } from '$lib/reorder';
 	import Icon from '../ui/Icon.svelte';
-	import { boardSurface, noteColorOf, tiltOf } from './paper';
 	import VisionImage from './VisionImage.svelte';
 	import { button } from '../ui';
 
@@ -22,21 +21,6 @@
 
 	const isNote = (item: VisionItemView) => !item.imageUrl && !!item.quoteText;
 	const isPhoto = (item: VisionItemView) => !!item.imageUrl;
-	const tilt = (item: VisionItemView) => tiltOf(item.id);
-	const noteColor = (item: VisionItemView) => noteColorOf(item.id);
-
-	/** Card chrome: sticky note, polaroid, or a plain card for anything else. */
-	function paperClass(item: VisionItemView) {
-		const over = dragOverId === item.id;
-		const paper = 'text-neutral-900 [&_button]:text-neutral-800 ';
-		if (isNote(item)) {
-			return `${paper}rounded-xs px-4 pt-6 pb-3 shadow-[0_8px_18px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[0_14px_28px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.1)] ${over ? 'bg-accent/40' : noteColor(item)}`;
-		}
-		if (isPhoto(item)) {
-			return `${paper}rounded-xs px-2.5 pt-2.5 pb-2 shadow-[0_8px_18px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.06)] hover:shadow-[0_14px_28px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.1)] ${over ? 'bg-accent/40' : 'bg-stone-50'}`;
-		}
-		return `rounded-card border p-3 ${over ? 'border-accent bg-accent/5' : 'border-subtle bg-surface shadow-[0_4px_10px_rgba(0,0,0,0.18)]'}`;
-	}
 
 	let dragId = $state<number | null>(null);
 	let dragOverId = $state<number | null>(null);
@@ -94,36 +78,26 @@
 </script>
 
 {#if items.length === 0}
-	<div
-		class="flex flex-col items-center gap-3 rounded-card border border-dashed border-subtle py-16"
-	>
+	<div class="mx-4 flex flex-col items-center gap-3 border-y border-subtle py-16 md:mx-8">
 		<p class="text-sm text-muted">No vision items yet — add an image or a quote to get started.</p>
 		<button type="button" class={button.primary} onclick={onAddNew}>
 			<Icon name="plus" size={15} weight={2.4} />
-			Add to Vision Board
+			Add your first item
 		</button>
 	</div>
 {:else}
 	<p class="sr-only" aria-live="polite">{announcement}</p>
 	<div
-		class="columns-2 gap-3 {boardSurface} p-4 pt-6 sm:columns-3 sm:gap-4 sm:p-6 lg:columns-4 xl:columns-5"
+		class="columns-2 gap-4 px-4 pb-8 sm:columns-3 md:px-8 lg:columns-4 xl:columns-5"
 		bind:this={board}
 	>
-		<button
-			type="button"
-			class="mb-4 flex h-32 w-full break-inside-avoid items-center justify-center rounded-card border border-dashed border-subtle text-muted transition-colors hover:border-accent/60 hover:text-content"
-			onclick={onAddNew}
-		>
-			<Icon name="plus" size={20} weight={2} label="Add to Vision Board" />
-		</button>
-
 		{#each items as item, index (item.id)}
 			<article
 				aria-label="Vision item {index + 1} of {items.length}"
-				class="group relative mb-5 break-inside-avoid transition-[transform,box-shadow,background-color] duration-200 hover:z-10 hover:rotate-0! {paperClass(
-					item
-				)} {dragOverId === item.id ? '' : 'mp-enter'}"
-				style="--mp-delay:{stagger(index, 30)}; rotate:{tilt(item)}deg"
+				class="group mb-6 break-inside-avoid rounded-control {dragOverId === item.id
+					? 'ring-2 ring-accent'
+					: 'mp-enter'}"
+				style="--mp-delay:{stagger(index, 30)}"
 				draggable={!busy}
 				ondragstart={(event) => dragStart(event, item)}
 				ondragover={(event) => dragOver(event, item)}
@@ -131,37 +105,33 @@
 				ondragend={() => (dragId = null)}
 				ondrop={(event) => drop(event, item)}
 			>
-				{#if isNote(item) || isPhoto(item)}
-					<!-- In flow, not absolute: an absolutely positioned child of a tilted card can
-					     detach from it when CSS columns re-balance. Margins pull it over the card's
-					     top edge and give the space back (note pt-6, polaroid pt-2.5). -->
-					<span
-						class="pointer-events-none relative z-10 mx-auto block h-4 w-14 shadow-sm {isPhoto(item)
-							? '-mt-[1.125rem] mb-[0.125rem] -rotate-3 bg-amber-300/80'
-							: '-mt-8 mb-4 rotate-2 bg-white/70 ring-1 ring-black/10'}"
-						aria-hidden="true"
-					></span>
-				{/if}
-				<VisionImage
-					src={item.imageUrl}
-					class={isPhoto(item)
-						? 'w-full rounded-[1px] object-cover'
-						: 'mb-2 w-full rounded-control object-cover'}
-				/>
-				{#if item.quoteText}
+				{#if isPhoto(item)}
+					<div class="relative overflow-hidden rounded-control">
+						<VisionImage
+							src={item.imageUrl}
+							alt={item.quoteText ? '' : 'Vision board image'}
+							class="w-full object-cover"
+						/>
+						{#if item.quoteText}
+							<!-- Solid 75% black panel: white text stays above 8:1 over any image.
+							     Always in the DOM so screen readers get it; shown on hover and focus. -->
+							<p
+								class="absolute inset-x-0 bottom-0 line-clamp-3 bg-black/75 px-3 py-2 text-sm leading-snug wrap-break-word text-white opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 pointer-coarse:opacity-100"
+							>
+								{item.quoteText}
+							</p>
+						{/if}
+					</div>
+				{:else if item.quoteText}
 					<p
-						class={isNote(item)
-							? 'font-display text-base leading-snug font-semibold wrap-break-word sm:text-lg'
-							: isPhoto(item)
-								? 'mt-2.5 line-clamp-3 px-0.5 font-display text-base leading-snug font-semibold wrap-break-word'
-								: 'text-sm leading-relaxed text-content'}
+						class="border-l-2 border-accent py-1 pl-3 font-display text-base leading-snug font-semibold wrap-break-word text-content sm:text-lg"
 					>
 						{item.quoteText}
 					</p>
 				{/if}
 
 				<div
-					class="mt-2 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
+					class="mt-1 flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 pointer-coarse:opacity-100"
 				>
 					{#if index > 0}
 						<button

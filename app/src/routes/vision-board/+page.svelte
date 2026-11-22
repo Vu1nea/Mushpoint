@@ -3,6 +3,9 @@
 	import { deleteVisionItem, reorderVisionItems, type VisionItemView } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
 	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
+	import { button } from '$lib/components/ui';
 	import VisionBoard from '$lib/components/vision/VisionBoard.svelte';
 	import VisionItemDrawer from '$lib/components/vision/VisionItemDrawer.svelte';
 	import { optimistic } from '$lib/optimistic';
@@ -73,15 +76,25 @@
 
 <svelte:head><title>Vision Board · Mushpoint</title></svelte:head>
 
-<header class="mb-6">
-	<h1 class="font-display text-2xl font-bold sm:text-3xl">Vision Board</h1>
-</header>
+<PageHeader
+	title="Vision Board"
+	subtitle="{data.items.length} {data.items.length === 1 ? 'item' : 'items'}"
+>
+	{#snippet actions()}
+		<button type="button" class="{button.primary} shrink-0" onclick={addNew}>
+			<Icon name="plus" size={15} weight={2.4} />
+			Add Item
+		</button>
+	{/snippet}
+</PageHeader>
 
 {#if data.error}
-	<div class="mb-6"><ErrorBanner error={data.error} /></div>
+	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="mb-6"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
+	<div class="px-4 pb-4 md:px-8">
+		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
+	</div>
 {/if}
 
 <VisionBoard

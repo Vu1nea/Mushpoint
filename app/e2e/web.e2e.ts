@@ -101,7 +101,7 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 
 	await test.step('A uploads an image to the vision board', async () => {
 		await page.goto('/vision-board');
-		await page.getByRole('button', { name: 'Add to Vision Board' }).click();
+		await page.getByRole('button', { name: 'Add Item', exact: true }).click();
 		const dialog = page.getByRole('dialog', { name: 'New Vision Item' });
 		await dialog.locator('input[type="file"]').setInputFiles({
 			name: 'e2e.png',
@@ -119,6 +119,8 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		await dialog.getByRole('button', { name: 'Create' }).click();
 		await expect(dialog).toBeHidden();
 		await expect(page.locator('main img')).toHaveCount(1);
+		await expect(page.getByRole('article', { name: /^Vision item 1 of 1$/ })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Edit vision item' })).toHaveCount(1);
 	});
 
 	await test.step('B, in a separate context, sees none of it', async () => {

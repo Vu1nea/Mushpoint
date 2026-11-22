@@ -109,6 +109,18 @@ test('the sidebar links to every built screen', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 });
 
+test('the vision board is one h1 with an add action and an empty message for a new user', async ({
+	page
+}) => {
+	await page.goto('/vision-board');
+
+	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Vision Board');
+	await expect(page.getByRole('button', { name: 'Add Item', exact: true })).toBeVisible();
+	await expect(page.getByText(/No vision items yet/)).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Add your first item' })).toBeVisible();
+});
+
 test('the tasks screen defaults to the list with its four columns', async ({ page }) => {
 	await page.goto('/tasks');
 
