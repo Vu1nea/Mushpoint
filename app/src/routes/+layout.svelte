@@ -14,7 +14,6 @@
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import TopBar from '$lib/components/shell/TopBar.svelte';
 	import { button } from '$lib/components/ui';
-	import Sheet from 'mushpoint-design/svelte/Sheet.svelte';
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
 	import { isPublicRoute } from '$lib/auth/routes';
@@ -178,19 +177,19 @@
 				name={data.profile?.username ?? auth.email ?? ''}
 				avatarUrl={data.profile?.avatarUrl ?? null}
 			/>
-			<!-- One sheet on the canvas: full-bleed on phones, inset with a radius from `md`.
-			     The page scrolls inside it. On phones the bottom padding clears the fixed tab
-			     bar (3.5rem) and the home indicator; the scroll padding keeps a focused control
-			     from scrolling under it (WCAG 2.4.11). -->
-			<Sheet
-				class="flex min-h-0 flex-1 flex-col overflow-hidden max-md:rounded-none max-md:border-0 md:mr-3 md:mb-3"
+			<!-- Pages sit directly on the canvas, separated from the chrome by hairlines, not a
+			     raised panel. The page scrolls inside. On phones the bottom padding clears the
+			     fixed tab bar (3.5rem) and the home indicator; the scroll padding keeps a focused
+			     control from scrolling under it (WCAG 2.4.11). -->
+			<div
+				class="flex min-h-0 flex-1 flex-col overflow-hidden md:border-t md:border-l md:border-subtle"
 			>
 				<main
 					class="min-h-0 flex-1 scroll-pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] overflow-y-auto pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:scroll-pb-0 md:pb-15"
 				>
 					{@render children()}
 				</main>
-			</Sheet>
+			</div>
 		</div>
 	</div>
 
