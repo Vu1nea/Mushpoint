@@ -1,11 +1,9 @@
 <script lang="ts">
 	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
-	import Pill from 'mushpoint-design/svelte/Pill.svelte';
 	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import { goto } from '$app/navigation';
-	import { GOAL_STATUS_LABELS, type Category, type GoalSummary } from '$lib/api';
+	import type { Category, GoalSummary } from '$lib/api';
 	import { dueLabel, percent } from '$lib/format';
-	import { statusTone } from '$lib/statusTone';
 	import { categoryColor } from '$lib/theme/category';
 	import Icon from '../ui/Icon.svelte';
 	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
@@ -27,8 +25,7 @@
 	const columns = [
 		{ key: 'title', label: 'Goal' },
 		{ key: 'progress', label: 'Progress', width: '9rem' },
-		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const },
-		{ key: 'status', label: 'Status', width: '6.5rem', hideBelow: 'md' as const }
+		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const }
 	];
 </script>
 
@@ -79,10 +76,8 @@
 							{percent(goal.progress)}
 						</span>
 					</span>
-				{:else if key === 'due'}
-					<span class="text-xs text-muted">{dueLabel(goal.dueDate)}</span>
 				{:else}
-					<Pill tone={statusTone(goal.status)}>{GOAL_STATUS_LABELS[goal.status]}</Pill>
+					<span class="text-xs text-muted">{dueLabel(goal.dueDate)}</span>
 				{/if}
 			{/snippet}
 		</DataTable>

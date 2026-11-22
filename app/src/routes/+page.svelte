@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Stat from 'mushpoint-design/svelte/Stat.svelte';
 	import { button } from 'mushpoint-design/utils/ui';
 	import { invalidateAll } from '$app/navigation';
 	import DashboardGoalsPanel from '$lib/components/dashboard/DashboardGoalsPanel.svelte';
@@ -36,7 +35,6 @@
 
 <PageHeader title="Dashboard" {subtitle}>
 	{#snippet actions()}
-		<DashboardQuickAdd onAdded={invalidateAll} {onError} class="max-md:hidden" />
 		<a href="/goals" class={button.primary}>New goal</a>
 	{/snippet}
 </PageHeader>
@@ -50,38 +48,37 @@
 	</div>
 {/if}
 
-<div
-	class="mp-enter grid grid-cols-3 gap-4 border-b border-subtle page-gutter pb-4 md:flex md:gap-12"
-	role="group"
-	aria-label="Summary"
->
-	<Stat label="Active goals" value={stats.activeGoals} />
-	<Stat label="Due today" value={stats.dueToday} />
-	<Stat label="Best streak (days)" value={stats.bestStreak} />
+<!-- One lead, then support. Tasks today is the answer to "what do I do now"; goals sit under
+     it. Upcoming, streaks and the vision preview are the quiet rail: beside the lead on wide
+     screens, stacked after it on narrow ones. -->
+<div class="xl:grid xl:grid-cols-[minmax(0,1fr)_22rem]">
+	<div class="min-w-0 xl:border-r xl:border-subtle">
+		<!-- Capture is a quiet row of its own under the title, not another header button. -->
+		<div class="page-gutter pb-5 max-md:hidden">
+			<DashboardQuickAdd onAdded={invalidateAll} {onError} class="w-full" />
+		</div>
+		<DashboardTasksToday
+			tasks={data.tasks}
+			goals={data.goals}
+			onMutated={invalidateAll}
+			{onError}
+			class="mp-enter border-b border-subtle pb-3"
+		/>
+		<DashboardGoalsPanel
+			goals={data.goals}
+			categories={data.categories}
+			class="mp-enter border-b border-subtle pb-2 xl:border-b-0"
+		/>
+	</div>
+
+	<div class="compact-gutter min-w-0">
+		<DashboardUpcoming
+			goals={data.goals}
+			subgoals={data.subgoals}
+			tasks={data.tasks}
+			class="mp-enter border-b border-subtle pb-2"
+		/>
+		<DashboardStreaks streaks={data.streaks} class="mp-enter border-b border-subtle" />
+		<DashboardVisionPreview items={data.visionItems} class="mp-enter" />
+	</div>
 </div>
-
-<DashboardTasksToday
-	tasks={data.tasks}
-	goals={data.goals}
-	onMutated={invalidateAll}
-	{onError}
-	class="mp-enter border-b border-subtle pb-2"
-/>
-
-<div class="mp-enter grid border-b border-subtle md:grid-cols-2 md:divide-x md:divide-subtle">
-	<DashboardStreaks streaks={data.streaks} class="max-md:border-b max-md:border-subtle" />
-	<DashboardVisionPreview items={data.visionItems} />
-</div>
-
-<DashboardGoalsPanel
-	goals={data.goals}
-	categories={data.categories}
-	class="mp-enter border-b border-subtle pb-2"
-/>
-
-<DashboardUpcoming
-	goals={data.goals}
-	subgoals={data.subgoals}
-	tasks={data.tasks}
-	class="mp-enter pb-2"
-/>

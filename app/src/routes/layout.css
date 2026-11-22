@@ -49,6 +49,16 @@
 	}
 }
 
+/* The dashboard's right rail is only 22rem wide, so the page gutter eats too much of it.
+   Inside `.compact-gutter` the gutter is the phone size again, from xl up (where the rail
+   exists). Unlayered, so it beats the layered `page-gutter` utility and the kit's px-4. */
+@media (min-width: 80rem) {
+	.compact-gutter .page-gutter,
+	.compact-gutter .section-gutter > :first-child {
+		padding-inline: calc(var(--spacing) * 4);
+	}
+}
+
 /* Tailwind's reset leaves buttons on the default arrow. In the base layer so a
    cursor utility, like the modal backdrops' cursor-default, still wins. */
 @layer base {

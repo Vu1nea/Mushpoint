@@ -13,6 +13,14 @@ export function todaysTasks(tasks: TaskSummary[], now: Date = new Date()): TaskS
 	);
 }
 
+/** Open, non-recurring tasks whose due date has already passed. Habits are
+ * excluded: they repeat, so a missed day is a streak matter, not an overdue one. */
+export function overdueTasks(tasks: TaskSummary[], now: Date = new Date()): TaskSummary[] {
+	return tasks.filter(
+		(task) => !task.recurrence && task.status !== 'done' && (daysUntil(task.dueDate, now) ?? 0) < 0
+	);
+}
+
 export type UpcomingKind = 'goal' | 'subgoal' | 'task';
 
 export interface UpcomingItem {

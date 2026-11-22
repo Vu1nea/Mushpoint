@@ -1,15 +1,12 @@
 <script lang="ts">
 	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
 	import Pill from 'mushpoint-design/svelte/Pill.svelte';
-	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import Segmented from 'mushpoint-design/svelte/Segmented.svelte';
 	import type { GoalSummary, TaskSummary } from '$lib/api';
-	import { todaysTasks } from '$lib/dashboard';
+	import { overdueTasks, todaysTasks } from '$lib/dashboard';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { taskColumn } from '$lib/kanban';
-	import { statusTone } from '$lib/statusTone';
 	import { displayColumn, isInertToday } from '$lib/taskList';
-	import { TASK_STATUS_LABELS } from '$lib/api';
 	import DashboardTaskToggle from './DashboardTaskToggle.svelte';
 
 	interface Props {
@@ -25,6 +22,7 @@
 	let { tasks, goals, onMutated, onError, class: className = '' }: Props = $props();
 
 	const today = $derived(todaysTasks(tasks));
+	const overdue = $derived(overdueTasks(tasks));
 	const goalTitle = $derived(new Map(goals.map((goal) => [goal.id, goal.title])));
 
 	/** Ticks as just set, so the strike-through, pill and counts agree before the refresh lands. */
@@ -55,19 +53,41 @@
 		{ value: 'done' as const, label: 'Done', count: finished.length }
 	]);
 
+	// The checkbox carries the done state, so there is no separate status column here.
 	const columns = [
 		{ key: 'title', label: 'Task' },
-		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const },
-		{ key: 'status', label: 'Status', width: '7.5rem' }
+		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const }
 	];
+
+	const summary = $derived(
+		today.length === 0
+			? ''
+			: open.length === 0
+				? 'All done for today.'
+				: `${open.length} left, ${finished.length} done`
+	);
 </script>
 
-<section class="section-gutter {className}">
-	<SectionHeader title="Tasks today" count={today.length}>
-		{#snippet actions()}
-			<Segmented ariaLabel="Filter today's tasks" {options} bind:value={filter} />
-		{/snippet}
-	</SectionHeader>
+<section class={className}>
+	<div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 page-gutter pt-1 pb-4">
+		<div class="min-w-0">
+			<h2 class="font-display text-xl font-bold text-content">Tasks today</h2>
+			{#if summary || overdue.length > 0}
+				<p class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted">
+					{#if summary}<span>{summary}</span>{/if}
+					{#if overdue.length > 0}
+						<a
+							href="/tasks"
+							class="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+						>
+							<Pill tone="danger">{overdue.length} overdue</Pill>
+						</a>
+					{/if}
+				</p>
+			{/if}
+		</div>
+		<Segmented ariaLabel="Filter today's tasks" {options} bind:value={filter} />
+	</div>
 
 	<div class="page-gutter">
 		<DataTable {columns} {rows} rowKey={(task) => task.id} {empty} ariaLabel="Tasks due today">
@@ -93,12 +113,10 @@
 							{/if}
 						</div>
 					</div>
-				{:else if key === 'due'}
+				{:else}
 					<span class="text-xs {dueTone(task.dueDate) === 'overdue' ? 'text-warn' : 'text-muted'}">
 						{task.recurrence ? 'Repeats' : dueLabel(task.dueDate)}
 					</span>
-				{:else}
-					<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
 				{/if}
 			{/snippet}
 		</DataTable>

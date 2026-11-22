@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildUpcomingFeed, dashboardStats, todaysTasks, topStreaks } from './dashboard';
+import {
+	buildUpcomingFeed,
+	dashboardStats,
+	overdueTasks,
+	todaysTasks,
+	topStreaks
+} from './dashboard';
 import type { GoalSummary, StreakCard, Subgoal, TaskSummary } from './api/types';
 
 const baseTask: TaskSummary = {
@@ -177,5 +183,31 @@ describe('dashboardStats', () => {
 
 	it('bestStreak is the highest current streak', () => {
 		expect(dashboardStats([], [], [card(2, 1), card(7, 2), card(4, 3)], NOW).bestStreak).toBe(7);
+	});
+});
+
+describe('overdueTasks', () => {
+	const now = new Date(2026, 5, 10, 12);
+
+	it('keeps open one-off tasks due before today', () => {
+		const late = { ...baseTask, id: 2, dueDate: '2026-06-09' };
+		expect(overdueTasks([late], now)).toEqual([late]);
+	});
+
+	it('ignores tasks due today, later, or with no due date', () => {
+		const tasks = [
+			{ ...baseTask, id: 2, dueDate: '2026-06-10' },
+			{ ...baseTask, id: 3, dueDate: '2026-06-11' },
+			{ ...baseTask, id: 4, dueDate: null }
+		];
+		expect(overdueTasks(tasks, now)).toEqual([]);
+	});
+
+	it('ignores finished tasks and habits', () => {
+		const tasks = [
+			{ ...baseTask, id: 2, dueDate: '2026-06-01', status: 'done' as const },
+			{ ...baseTask, id: 3, dueDate: '2026-06-01', recurrence: 'daily' as const }
+		];
+		expect(overdueTasks(tasks, now)).toEqual([]);
 	});
 });
