@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Task, TaskInput, TaskStatus, TaskSummary, TaskUpdate } from '../types';
-import { localDateOf, now, optionalText, requiredText, today } from './helpers';
+import { localDateOf, nowIso, optionalText, requiredText, today } from './helpers';
 import { isExpectedOn } from '../logic/streak';
 import { weekdayOf } from '../logic/dates';
 
@@ -126,7 +126,7 @@ export async function get(driver: SqlDriver, id: number): Promise<Task> {
 export async function create(driver: SqlDriver, input: TaskInput): Promise<Task> {
 	const title = requiredText('task title', input.title);
 	const { goalId, subgoalId } = await resolveParents(driver, input.goalId, input.subgoalId);
-	const timestamp = now();
+	const timestamp = nowIso();
 
 	const result = await driver.execute(
 		`INSERT INTO tasks (title, status, due_date, goal_id, subgoal_id, recurrence, created_at, updated_at)
@@ -154,7 +154,7 @@ export async function update(driver: SqlDriver, id: number, input: TaskUpdate): 
 			goalId,
 			subgoalId,
 			input.recurrence,
-			now(),
+			nowIso(),
 			id
 		]
 	);
@@ -166,7 +166,7 @@ export async function update(driver: SqlDriver, id: number, input: TaskUpdate): 
 export async function setStatus(driver: SqlDriver, id: number, status: TaskStatus): Promise<Task> {
 	const result = await driver.execute(
 		'UPDATE tasks SET status = ?1, updated_at = ?2 WHERE id = ?3',
-		[status, now(), id]
+		[status, nowIso(), id]
 	);
 	if (result.rowsAffected === 0) throw AppError.notFound('task', id);
 	return get(driver, id);

@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Subgoal, SubgoalDetail, SubgoalInput, SubgoalUpdate } from '../types';
-import { now, optionalText, requiredText } from './helpers';
+import { nowIso, optionalText, requiredText } from './helpers';
 import * as task from './task';
 import { countsTowardProgress, subgoalProgress, taskCompletion } from '../logic/progress';
 
@@ -84,7 +84,7 @@ export async function create(driver: SqlDriver, input: SubgoalInput): Promise<Su
 		'SELECT COALESCE(MAX(position) + 1, 0) as next FROM subgoals WHERE goal_id = ?1',
 		[input.goalId]
 	);
-	const timestamp = now();
+	const timestamp = nowIso();
 
 	const result = await driver.execute(
 		`INSERT INTO subgoals (goal_id, title, due_date, is_complete, position, created_at, updated_at)
@@ -105,7 +105,7 @@ export async function update(
 	const result = await driver.execute(
 		`UPDATE subgoals SET title = ?1, due_date = ?2, is_complete = ?3, updated_at = ?4
          WHERE id = ?5`,
-		[title, optionalText(input.dueDate), Number(input.isComplete), now(), id]
+		[title, optionalText(input.dueDate), Number(input.isComplete), nowIso(), id]
 	);
 	if (result.rowsAffected === 0) throw AppError.notFound('subgoal', id);
 	return get(driver, id);
@@ -118,7 +118,7 @@ export async function setComplete(
 ): Promise<Subgoal> {
 	const result = await driver.execute(
 		'UPDATE subgoals SET is_complete = ?1, updated_at = ?2 WHERE id = ?3',
-		[Number(isComplete), now(), id]
+		[Number(isComplete), nowIso(), id]
 	);
 	if (result.rowsAffected === 0) throw AppError.notFound('subgoal', id);
 	return get(driver, id);

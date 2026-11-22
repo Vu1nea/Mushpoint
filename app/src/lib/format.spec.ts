@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	cellTitle,
+	heatmapSummary,
 	daysUntil,
 	dueLabel,
 	dueTone,
 	isOverdue,
 	parseDate,
 	percent,
+	safeHref,
 	weeklyAnchorLabel
 } from './format';
 
@@ -88,6 +90,31 @@ describe('cellTitle', () => {
 	});
 });
 
+describe('heatmapSummary', () => {
+	it('counts each state and says how today stands', () => {
+		const cells = [
+			{ date: '2026-07-27', state: 'done' },
+			{ date: '2026-07-28', state: 'missed' },
+			{ date: '2026-07-29', state: 'not_expected' },
+			{ date: '2026-07-30', state: 'done' },
+			{ date: '2026-07-31', state: 'pending' }
+		] as const;
+		expect(heatmapSummary([...cells])).toBe(
+			'Last 5 days: 2 done, 1 missed, 1 not scheduled. Today: not yet.'
+		);
+	});
+
+	it('leaves out states that never occur', () => {
+		expect(heatmapSummary([{ date: '2026-07-31', state: 'done' }])).toBe(
+			'Last 1 day: 1 done. Today: done.'
+		);
+	});
+
+	it('handles an empty history', () => {
+		expect(heatmapSummary([])).toBe('No history yet.');
+	});
+});
+
 describe('weeklyAnchorLabel', () => {
 	it('names the weekday a habit was created on', () => {
 		// 2026-07-28T09:00:00Z is a Tuesday.
@@ -115,5 +142,23 @@ describe('dueLabel', () => {
 	it('falls back to a date once it is more than a week out', () => {
 		expect(dueLabel('2026-09-15', NOW)).toMatch(/^Due /);
 		expect(dueLabel('2026-09-15', NOW)).not.toMatch(/days/);
+	});
+});
+
+describe('safeHref', () => {
+	it('passes http and https URLs through', () => {
+		expect(safeHref('https://github.com/acme/widget')).toBe('https://github.com/acme/widget');
+		expect(safeHref('http://example.com')).toBe('http://example.com');
+	});
+
+	it.each([
+		null,
+		'',
+		'javascript:alert(1)',
+		' JavaScript:alert(1)',
+		'data:text/html,x',
+		'not a url'
+	])('refuses %s', (raw) => {
+		expect(safeHref(raw)).toBeNull();
 	});
 });

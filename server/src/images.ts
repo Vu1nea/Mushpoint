@@ -1,11 +1,16 @@
+import { log } from './logger';
 import { randomUUID } from 'node:crypto';
+import sharp from 'sharp';
 import { AppError } from './error';
+import { serviceKeyHeaders } from './supabaseKey';
 
 export interface ImageStore {
   /** Stores the bytes and returns `<userId>/<uuid>.<ext>`. */
   put(userId: string, bytes: Uint8Array, contentType: string): Promise<string>;
   /** No-op if the object is missing. */
   remove(path: string): Promise<void>;
+  /** Deletes every object under `<userId>/`; no-op when there are none. */
+  removeAllFor(userId: string): Promise<void>;
   /** Same order as `paths`; null where an object cannot be signed. */
   signedUrls(paths: string[], expiresInSeconds: number): Promise<(string | null)[]>;
 }
@@ -32,6 +37,63 @@ export function sniffImageType(bytes: Uint8Array): ImageType | null {
   return null;
 }
 
+/** Checks a multer upload by its bytes; the declared type must agree with them. */
+export function checkedUpload(file: { buffer: Buffer; size: number; mimetype: string } | undefined): {
+  bytes: Uint8Array;
+  type: ImageType;
+} {
+  if (!file || file.size === 0) throw AppError.validation('choose an image to upload');
+  const bytes = new Uint8Array(file.buffer);
+  const type = sniffImageType(bytes);
+  if (type === null || type !== file.mimetype) throw AppError.validation('unsupported image');
+  return { bytes, type };
+}
+
+/** How an upload is shown: a small square avatar, or a picture (vision board, motivation). */
+export type ImageKind = 'avatar' | 'picture';
+
+export const AVATAR_SIZE = 256;
+export const PICTURE_MAX = 1600;
+/** Decoded pixels allowed per frame (about 8000 x 5000); a 5 MB file can claim far more. */
+export const MAX_INPUT_PIXELS = 40_000_000;
+const WEBP_QUALITY = 80;
+
+sharp.cache(false);
+
+/**
+ * Re-encodes a checked upload as WebP: turned upright from its EXIF orientation, sized for how it
+ * is shown, and with all metadata (EXIF, GPS, ICC, XMP) dropped. Animated GIF and WebP stay
+ * animated. Bytes that do not decode as an image are a validation error.
+ */
+export async function normalizeImage(
+  bytes: Uint8Array,
+  kind: ImageKind,
+  maxInputPixels = MAX_INPUT_PIXELS
+): Promise<{ bytes: Uint8Array; type: 'image/webp' }> {
+  try {
+    const { pages = 1 } = await sharp(bytes, { limitInputPixels: maxInputPixels }).metadata();
+    const animated = pages > 1;
+    let image = sharp(bytes, { limitInputPixels: maxInputPixels, animated, failOn: 'error' }).autoOrient();
+    image =
+      kind === 'avatar'
+        ? image.resize(AVATAR_SIZE, AVATAR_SIZE, { fit: 'cover', position: 'attention' })
+        : image.resize(PICTURE_MAX, PICTURE_MAX, { fit: 'inside', withoutEnlargement: true });
+    const out = await image.webp({ quality: WEBP_QUALITY, effort: 4 }).toBuffer();
+    return { bytes: new Uint8Array(out), type: 'image/webp' };
+  } catch (err) {
+    log.warn({ err: err instanceof Error ? err.message : String(err) }, 'upload did not decode as an image');
+    throw AppError.validation('unsupported image');
+  }
+}
+
+/** `checkedUpload`, then `normalizeImage`: what every upload route stores. */
+export async function preparedUpload(
+  file: Parameters<typeof checkedUpload>[0],
+  kind: ImageKind
+): Promise<{ bytes: Uint8Array; type: 'image/webp' }> {
+  return normalizeImage(checkedUpload(file).bytes, kind);
+}
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** True only for `<userId>/<uuid>.<png|jpg|webp|gif>` — no traversal, no other owner. */
@@ -43,6 +105,9 @@ export function isOwnImagePath(userId: string, path: string): boolean {
   ).test(path);
 }
 
+const LIST_PAGE = 1000;
+const DELETE_BATCH = 1000;
+
 /** Supabase Storage REST client (same endpoints as `@supabase/storage-js`). */
 export function createSupabaseImageStore(opts: {
   url: string;
@@ -52,7 +117,7 @@ export function createSupabaseImageStore(opts: {
 }): ImageStore {
   const doFetch = opts.fetch ?? fetch;
   const base = `${opts.url.replace(/\/+$/, '')}/storage/v1`;
-  const auth = { Authorization: `Bearer ${opts.serviceKey}`, apikey: opts.serviceKey };
+  const auth = serviceKeyHeaders(opts.serviceKey);
   const unavailable = () => new AppError('unavailable', 'image storage failed');
 
   const call = async (path: string, init: RequestInit) => {
@@ -60,11 +125,11 @@ export function createSupabaseImageStore(opts: {
     try {
       res = await doFetch(`${base}${path}`, init);
     } catch (err) {
-      console.error('image storage request failed', err);
+      log.error({ err }, 'image storage request failed');
       throw unavailable();
     }
     if (!res.ok) {
-      console.error('image storage answered', res.status, await res.text().catch(() => ''));
+      log.error({ status: res.status, body: await res.text().catch(() => '') }, 'image storage request rejected');
       throw unavailable();
     }
     return res;
@@ -88,6 +153,27 @@ export function createSupabaseImageStore(opts: {
         headers: { ...auth, 'Content-Type': 'application/json' },
         body: JSON.stringify({ prefixes: [path] })
       });
+    },
+    async removeAllFor(userId) {
+      const paths: string[] = [];
+      for (let offset = 0; ; offset += LIST_PAGE) {
+        const res = await call(`/object/list/${opts.bucket}`, {
+          method: 'POST',
+          headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefix: userId, limit: LIST_PAGE, offset })
+        });
+        const page = (await res.json()) as { name: string }[];
+        paths.push(...page.map((o) => `${userId}/${o.name}`));
+        if (page.length < LIST_PAGE) break;
+      }
+      // Storage accepts at most 1000 prefixes per delete.
+      for (let i = 0; i < paths.length; i += DELETE_BATCH) {
+        await call(`/object/${opts.bucket}`, {
+          method: 'DELETE',
+          headers: { ...auth, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefixes: paths.slice(i, i + DELETE_BATCH) })
+        });
+      }
     },
     async signedUrls(paths, expiresInSeconds) {
       if (paths.length === 0) return [];
@@ -119,6 +205,11 @@ export function createMemoryImageStore(): ImageStore & { objects: Map<string, Ui
     },
     async remove(path) {
       objects.delete(path);
+    },
+    async removeAllFor(userId) {
+      for (const key of [...objects.keys()]) {
+        if (key.startsWith(`${userId}/`)) objects.delete(key);
+      }
     },
     async signedUrls(paths, expiresInSeconds) {
       return paths.map((p) =>

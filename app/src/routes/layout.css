@@ -5,10 +5,76 @@
    own class-generating source must be listed explicitly. */
 @source '../../node_modules/mushpoint-design/**/*.{svelte,ts}';
 
+/* Overrides mushpoint-design's keyframes of the same name (later wins). A card
+   that enters from opacity 0 on first paint never reports a First Contentful
+   Paint in Chromium, so Lighthouse fails with NO_FCP on the signed-out pages.
+   Starting at 0.01 is invisible but counts as painted. */
+@keyframes mp-fade-in-up {
+	from {
+		opacity: 0.01;
+		transform: translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 /* Tailwind's reset leaves buttons on the default arrow. In the base layer so a
    cursor utility, like the modal backdrops' cursor-default, still wins. */
 @layer base {
 	button:not(:disabled) {
 		cursor: pointer;
+	}
+}
+
+/* Icon-only buttons are drawn ~22px; `mp-hit` grows their target to at least
+   24px (WCAG 2.5.8) everywhere and 40px on touch screens, without changing how
+   they look. The expander is centered on the button, so neighbours' targets may
+   overlap a little — the later one wins there, which is fine for row actions. */
+@layer components {
+	.mp-hit {
+		position: relative;
+	}
+
+	.mp-hit::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: max(100%, 24px);
+		height: max(100%, 24px);
+		translate: -50% -50%;
+	}
+
+	@media (pointer: coarse) {
+		.mp-hit::after {
+			width: max(100%, 40px);
+			height: max(100%, 40px);
+		}
+	}
+}
+
+/* theme.css zeroes the motion tokens under reduced motion; this catches the
+   rest (Tailwind duration-*, animate-pulse, transition-[left]) so nothing
+   slides, scales or loops. Changes still happen, just instantly. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* iOS zooms the page when focusing a form control under 16px. Unlayered so it
+   beats the text-sm on `field.input` and friends, on touch screens only. */
+@media (pointer: coarse) {
+	input,
+	select,
+	textarea {
+		font-size: 16px;
 	}
 }

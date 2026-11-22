@@ -1,18 +1,23 @@
-import type { ErrorRequestHandler, Request, RequestHandler } from 'express';
+import type { ErrorRequestHandler, RequestHandler } from 'express';
 import multer from 'multer';
 import type { Pool } from 'pg';
+import type { z } from 'zod';
 import type { Verifier } from './auth';
 import type { SqlDriver } from './db/driver';
 import { withUser } from './db/scope';
 import { AppError, type ErrorKind } from './error';
+import { log, type Logger } from './logger';
 import { parseTimezone } from './repo/helpers';
+import { parse } from './schemas';
 
 export interface Ctx {
   userId: string;
   tz: string;
   id(name?: string): number;
-  body<T>(): T;
-  query: Request['query'];
+  /** The JSON body, checked against `schema`; a mismatch is a 400. */
+  body<S extends z.ZodType>(schema: S): z.output<S>;
+  /** The query string, checked against `schema`; a mismatch is a 400. */
+  query<S extends z.ZodType>(schema: S): z.output<S>;
 }
 
 export type Handle = <T>(
@@ -27,10 +32,16 @@ export type Handle = <T>(
   }
 ) => RequestHandler;
 
-/** Verifies the bearer token and stores the user id; Express 5 forwards the rejection. */
-export function authenticate(verify: Verifier): RequestHandler {
+/** Verifies the bearer token and stores the user id; Express 5 forwards the rejection.
+ * With `isDeleted`, a token for a deleted account is refused. */
+export function authenticate(
+  verify: Verifier,
+  isDeleted?: (userId: string) => Promise<boolean>
+): RequestHandler {
   return async (req, res, next) => {
-    res.locals.userId = (await verify(req.header('authorization'))).userId;
+    const { userId } = await verify(req.header('authorization'));
+    if (isDeleted && (await isDeleted(userId))) throw AppError.unauthenticated('account deleted');
+    res.locals.userId = userId;
     next();
   };
 }
@@ -51,18 +62,20 @@ export function makeHandle(pool: Pool): Handle {
           if (!Number.isSafeInteger(n) || n <= 0) throw AppError.validation('invalid id');
           return n;
         },
-        body<T>() {
+        body(schema) {
           const b: unknown = req.body;
           if (typeof b !== 'object' || b === null || Array.isArray(b)) {
             throw AppError.validation('request body must be a JSON object');
           }
-          return b as T;
+          return parse(schema, b);
         },
-        query: req.query
+        query(schema) {
+          return parse(schema, req.query);
+        }
       };
       const result = await withUser(pool, userId, (driver) => fn(driver, ctx));
       if (afterCommit) {
-        await afterCommit(result).catch((err) => console.error('afterCommit failed', err));
+        await afterCommit(result).catch((err) => logFor(res).error({ err }, 'afterCommit failed'));
       }
       if (status === 204) res.status(204).end();
       else res.status(status).json(present ? await present(result) : result);
@@ -80,11 +93,16 @@ const STATUS: Record<ErrorKind, number> = {
 
 const INTERNAL = { kind: 'internal', message: 'internal error' } as const;
 
+/** The request's child logger (carries the request id), or the process logger. */
+export function logFor(res: { locals: Record<string, unknown> }): Logger {
+  return (res.locals.log as Logger | undefined) ?? log;
+}
+
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {
     const status = STATUS[err.kind] ?? 500;
     if (err.kind === 'database' || err.kind === 'internal') {
-      console.error(err);
+      logFor(res).error({ err }, 'request failed');
       res.status(status).json({ kind: err.kind, message: 'internal error' });
     } else {
       res.status(status).json({ kind: err.kind, message: err.message });
@@ -118,6 +136,6 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     }
   }
 
-  console.error(err);
+  logFor(res).error({ err }, 'request failed');
   res.status(500).json(INTERNAL);
 };

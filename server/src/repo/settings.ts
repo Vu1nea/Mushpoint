@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { Settings } from '../types';
-import { now } from './helpers';
+import { nowIso } from './helpers';
 
 /** Themes the app ships with. The frontend maps each name to a token set; this
  * only guards that an unknown name never gets persisted. */
@@ -43,7 +43,7 @@ export async function setTheme(driver: SqlDriver, theme: string): Promise<Settin
 	}
 	await driver.execute("UPDATE settings SET active_theme = ?1, updated_at = ?2 WHERE user_id = current_setting('app.user_id')::uuid", [
 		theme,
-		now()
+		nowIso()
 	]);
 	return get(driver);
 }
@@ -56,7 +56,7 @@ export async function setGraceDays(driver: SqlDriver, days: number): Promise<Set
 	}
 	await driver.execute(
 		"UPDATE settings SET streak_grace_days = ?1, updated_at = ?2 WHERE user_id = current_setting('app.user_id')::uuid",
-		[days, now()]
+		[days, nowIso()]
 	);
 	return get(driver);
 }

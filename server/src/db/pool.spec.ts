@@ -1,3 +1,4 @@
+import { log } from '../logger';
 import { afterAll, expect, it, vi } from 'vitest';
 import { createPool } from './pool';
 
@@ -10,7 +11,7 @@ it('connects and runs a query', async () => {
 });
 
 it('survives an idle client error instead of crashing the process', () => {
-  const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  const spy = vi.spyOn(log, 'error').mockImplementation(() => undefined);
   const p = createPool(process.env.MIGRATE_DATABASE_URL!);
   expect(() => p.emit('error', new Error('terminating connection due to administrator command'))).not.toThrow();
   expect(spy).toHaveBeenCalled();

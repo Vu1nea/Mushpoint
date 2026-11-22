@@ -1,0 +1,14 @@
+{
+  "excludes": [
+    "docs/superpowers/plans/2026-07-*",
+    "docs/superpowers/plans/2026-08-*",
+    "docs/superpowers/specs/2026-07-*",
+    "docs/superpowers/specs/2026-08-*",
+    "docs/plans/goal_tracker_plan.md",
+    "docs/plans/mockup-next-steps.md",
+    "docs/plans/playwright-test-plan.md",
+    "docs/plans/ui-plan.md",
+    "docs/plans/design-system-extraction.md",
+    "docs/Mushtrack Static Design/"
+  ]
+}

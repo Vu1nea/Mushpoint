@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
 import type { VisionItem, VisionItemInput } from '../types';
-import { now, optionalText } from './helpers';
+import { nowIso, optionalText } from './helpers';
 
 const COLUMNS = 'id, image_path, quote_text, position, created_at, updated_at';
 const ORDER = 'ORDER BY position, id';
@@ -62,7 +62,7 @@ export async function create(driver: SqlDriver, input: VisionItemInput): Promise
 	const nextPosition = await driver.select<{ next: number }>(
 		'SELECT COALESCE(MAX(position) + 1, 0) as next FROM vision_items'
 	);
-	const timestamp = now();
+	const timestamp = nowIso();
 
 	const result = await driver.execute(
 		`INSERT INTO vision_items (image_path, quote_text, position, created_at, updated_at)
@@ -82,7 +82,7 @@ export async function update(
 	const { imagePath, quoteText } = requireContent(input);
 	const result = await driver.execute(
 		'UPDATE vision_items SET image_path = ?1, quote_text = ?2, updated_at = ?3 WHERE id = ?4',
-		[imagePath, quoteText, now(), id]
+		[imagePath, quoteText, nowIso(), id]
 	);
 	if (result.rowsAffected === 0) throw AppError.notFound('vision item', id);
 	return get(driver, id);

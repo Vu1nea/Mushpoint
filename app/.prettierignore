@@ -11,5 +11,9 @@ bun.lockb
 # Build output and generated files
 /build/
 /.svelte-kit/
-/src-tauri/target/
-/src-tauri/gen/
+
+# Local design-tool cache
+.impeccable/
+
+# Lighthouse CI reports
+/.lighthouseci/

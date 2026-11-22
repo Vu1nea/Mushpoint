@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import type { TaskSummary } from './api';
-import { filterTasks, groupByStatus, NO_FILTER, pageOf, recentFirst, taskColumn } from './kanban';
+import {
+	filterTasks,
+	groupByStatus,
+	moveTargets,
+	NO_FILTER,
+	pageOf,
+	recentFirst,
+	taskColumn
+} from './kanban';
 
 function task(overrides: Partial<TaskSummary> & Pick<TaskSummary, 'id' | 'status'>): TaskSummary {
 	return {
@@ -210,5 +218,26 @@ describe('taskColumn', () => {
 		});
 
 		expect(taskColumn(habit)).toBe('done');
+	});
+});
+
+describe('moveTargets', () => {
+	it('offers every other column for a one-off task, in board order', () => {
+		expect(moveTargets(task({ id: 1, status: 'todo' }))).toEqual(['in_progress', 'done']);
+		expect(moveTargets(task({ id: 2, status: 'in_progress' }))).toEqual(['todo', 'done']);
+		expect(moveTargets(task({ id: 3, status: 'done' }))).toEqual(['todo', 'in_progress']);
+	});
+
+	it('moves a habit only between To do and Done, from its displayed column', () => {
+		expect(moveTargets(task({ id: 1, status: 'todo', recurrence: 'daily' }))).toEqual(['done']);
+		expect(
+			moveTargets(task({ id: 2, status: 'todo', recurrence: 'daily', completedToday: true }))
+		).toEqual(['todo']);
+	});
+
+	it('offers nothing for a habit not expected today', () => {
+		expect(
+			moveTargets(task({ id: 1, status: 'todo', recurrence: 'weekly', expectedToday: false }))
+		).toEqual([]);
 	});
 });

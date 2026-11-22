@@ -1,12 +1,13 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { createIdea, deleteIdea, promoteIdea, type Goal, type Idea } from '$lib/api';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import IdeaDrawer from '$lib/components/IdeaDrawer.svelte';
-	import TagInput from '$lib/components/TagInput.svelte';
+	import { createIdea, deleteIdea, promoteIdea, type GoalInput, type Idea } from '$lib/api';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import IdeaDrawer from '$lib/components/ideas/IdeaDrawer.svelte';
+	import Spinner from '$lib/components/ui/Spinner.svelte';
+	import TagInput from '$lib/components/ui/TagInput.svelte';
 	import { button, chip, field } from '$lib/components/ui';
 	import { stagger } from '$lib/motion';
 
@@ -69,19 +70,18 @@
 		promotingIdea = null;
 	}
 
-	/** The idea only drops out of the inbox once the new goal exists and the
-	 * promotion is recorded — both must succeed before the page reloads. */
-	async function onGoalCreated(newGoal: Goal) {
-		if (!promotingIdea) return;
-		await run(() => promoteIdea(promotingIdea!.id, newGoal.id));
+	/** The server creates the goal and records the promotion together, so a
+	 * failure leaves the drawer open with nothing created and a retry is safe. */
+	async function createPromotedGoal(input: GoalInput) {
+		if (!promotingIdea) throw new Error('no idea is being promoted');
+		return (await promoteIdea(promotingIdea.id, input)).goal;
 	}
 </script>
 
 <svelte:head><title>Idea Vault · Mushpoint</title></svelte:head>
 
 <header class="mb-6">
-	<h1 class="mb-1 font-display text-3xl font-bold">Idea Vault</h1>
-	<p class="text-sm text-muted">Capture it now, sort it later</p>
+	<h1 class="font-display text-2xl font-bold sm:text-3xl">Idea Vault</h1>
 </header>
 
 {#if data.error}
@@ -110,9 +110,13 @@
 		/>
 		<TagInput bind:tags={quickAdd.tags} ariaLabel="Tags for the new idea" placeholder="Add tags…" />
 	</div>
-	<button type="submit" class={button.primary} disabled={busy}>
-		<Icon name="plus" size={15} weight={2.4} />
-		Add Idea
+	<button type="submit" class={button.primary} disabled={busy} aria-busy={busy}>
+		{#if busy}
+			<Spinner size={15} />
+		{:else}
+			<Icon name="plus" size={15} weight={2.4} />
+		{/if}
+		{busy ? 'Adding…' : 'Add Idea'}
 	</button>
 </form>
 
@@ -158,7 +162,7 @@
 								<div class="mt-2 flex flex-wrap gap-1.5">
 									{#each idea.tags as tag (tag.id)}
 										<span
-											class="rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent"
+											class="rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent-ink"
 										>
 											{tag.name}
 										</span>
@@ -201,7 +205,8 @@
 	categories={data.categories}
 	prefill={promotingIdea ? { title: promotingIdea.title, description: promotingIdea.note } : null}
 	onClose={closePromoteDrawer}
-	onSaved={onGoalCreated}
+	create={createPromotedGoal}
+	onSaved={() => invalidateAll()}
 />
 
 <ConfirmDialog

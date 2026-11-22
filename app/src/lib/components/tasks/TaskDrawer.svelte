@@ -1,0 +1,185 @@
+<script lang="ts">
+	import { tick } from 'svelte';
+	import {
+		createTask,
+		RECURRENCE_OPTIONS,
+		updateTask,
+		type GoalSummary,
+		type Recurrence,
+		type Subgoal,
+		type Task
+	} from '$lib/api';
+	import FormModal from '../ui/FormModal.svelte';
+	import Icon from '../ui/Icon.svelte';
+	import Select from '../ui/Select.svelte';
+	import DatePicker from '../ui/DatePicker.svelte';
+	import { weeklyAnchorLabel } from '$lib/format';
+	import { field } from '../ui';
+
+	interface Props {
+		open: boolean;
+		goals: GoalSummary[];
+		subgoals: Subgoal[];
+		/** Null creates a task; a task edits it in place. */
+		task?: Task | null;
+		/** Seeds a new task's due date, e.g. from a clicked calendar day. Ignored when editing. */
+		prefillDueDate?: string | null;
+		onClose: () => void;
+		onSaved: () => Promise<void> | void;
+	}
+
+	let {
+		open,
+		goals,
+		subgoals,
+		task = null,
+		prefillDueDate = null,
+		onClose,
+		onSaved
+	}: Props = $props();
+
+	let submitting = $state(false);
+	let error = $state<unknown>(null);
+	let titleMissing = $state(false);
+	let shake = $state(false);
+
+	/**
+	 * One control covers both parent kinds: a task can hang off a goal directly or
+	 * off one of its subgoals, so the value carries which table it points at.
+	 */
+	function parentKey(source: Task | null): string {
+		if (source?.subgoalId) return `subgoal:${source.subgoalId}`;
+		if (source?.goalId) return `goal:${source.goalId}`;
+		return '';
+	}
+
+	let form = $state({ title: '', parent: '', dueDate: '', recurrence: '' });
+
+	$effect(() => {
+		if (!open) return;
+		error = null;
+		titleMissing = false;
+		form = {
+			title: task?.title ?? '',
+			parent: parentKey(task),
+			dueDate: task ? (task.dueDate ?? '') : (prefillDueDate ?? ''),
+			recurrence: task?.recurrence ?? ''
+		};
+	});
+
+	const subgoalsByGoal = $derived.by(() => {
+		const grouped = new Map<number, Subgoal[]>();
+		for (const subgoal of subgoals) {
+			grouped.set(subgoal.goalId, [...(grouped.get(subgoal.goalId) ?? []), subgoal]);
+		}
+		return grouped;
+	});
+
+	const parentOptions = $derived.by(() => [
+		{ value: '', label: 'Standalone' },
+		...goals.map((goal) => ({
+			label: goal.title,
+			options: [
+				{ value: `goal:${goal.id}`, label: `${goal.title} (whole goal)` },
+				...(subgoalsByGoal.get(goal.id) ?? []).map((subgoal) => ({
+					value: `subgoal:${subgoal.id}`,
+					label: `↳ ${subgoal.title}`
+				}))
+			]
+		}))
+	]);
+
+	/**
+	 * A weekly habit is expected on the weekday it was created, so an existing task
+	 * can say which day that is. A new one has no creation date to read yet.
+	 */
+	const anchorNote = $derived.by(() => {
+		if (form.recurrence !== 'weekly') return null;
+		if (!task) return 'Weekly habits repeat on the day you create them.';
+
+		const weekday = weeklyAnchorLabel(task.createdAt);
+		return weekday ? `Repeats weekly · ${weekday}` : null;
+	});
+
+	async function submit() {
+		if (!form.title.trim()) {
+			titleMissing = true;
+			// After render, so the field is read with its error message.
+			tick().then(() => document.getElementById('task-title')?.focus());
+			shake = true;
+			return;
+		}
+
+		const [kind, id] = form.parent.split(':');
+		const parentId = id ? Number(id) : null;
+
+		submitting = true;
+		error = null;
+		const input = {
+			title: form.title.trim(),
+			dueDate: form.dueDate || null,
+			goalId: kind === 'goal' ? parentId : null,
+			subgoalId: kind === 'subgoal' ? parentId : null,
+			recurrence: (form.recurrence || null) as Recurrence | null
+		};
+
+		try {
+			// A subgoal task inherits that subgoal's goal in the backend, so only one
+			// of the two ids is ever sent.
+			await (task ? updateTask(task.id, { ...input, status: task.status }) : createTask(input));
+			await onSaved();
+			onClose();
+		} catch (failure) {
+			error = failure;
+		} finally {
+			submitting = false;
+		}
+	}
+</script>
+
+<FormModal
+	{open}
+	title={task ? 'Edit Task' : 'New Task'}
+	submitLabel={task ? 'Save' : 'Create'}
+	{submitting}
+	{error}
+	{onClose}
+	onSubmit={submit}
+>
+	<div>
+		<label class={field.label} for="task-title">Title</label>
+		<input
+			id="task-title"
+			class="{field.input} {titleMissing ? 'border-warn' : ''} {shake ? 'mp-shake' : ''}"
+			bind:value={form.title}
+			oninput={() => (titleMissing = false)}
+			onanimationend={() => (shake = false)}
+			placeholder="Give it a name…"
+			aria-invalid={titleMissing}
+			aria-describedby={titleMissing ? 'task-title-error' : undefined}
+		/>
+		{#if titleMissing}
+			<p id="task-title-error" class="mt-1.5 flex items-center gap-1.5 text-xs text-warn">
+				<Icon name="warning" size={13} weight={2} /> Title is required
+			</p>
+		{/if}
+	</div>
+
+	<div>
+		<label class={field.label} for="task-parent">Parent goal or subgoal (optional)</label>
+		<Select id="task-parent" bind:value={form.parent} options={parentOptions} />
+	</div>
+
+	<div>
+		<label class={field.label} for="task-due">Due date (optional)</label>
+		<DatePicker id="task-due" bind:value={form.dueDate} />
+	</div>
+
+	<div>
+		<label class={field.label} for="task-recurrence">Repeats</label>
+		<Select id="task-recurrence" bind:value={form.recurrence} options={RECURRENCE_OPTIONS} />
+		{#if anchorNote}
+			<p class="mt-1.5 text-xs text-muted">{anchorNote}</p>
+		{/if}
+	</div>
+</FormModal>

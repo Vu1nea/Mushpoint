@@ -1,0 +1,98 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC: catches new CVEs in unchanged code
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: >
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2
+          git /repo --redact --verbose
+
+  image:
+    name: Container scan (trivy)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            context: server
+          - name: web
+            context: app
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t mushpoint-${{ matrix.name }}:ci ${{ matrix.context }}
+      - name: trivy
+        run: >
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+          aquasec/trivy:0.58.1 image --exit-code 1 --severity HIGH,CRITICAL
+          --ignore-unfixed mushpoint-${{ matrix.name }}:ci
+
+  codeql:
+    name: SAST (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3
+
+  zap:
+    name: DAST baseline (OWASP ZAP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start production web image
+        run: |
+          docker build -t mushpoint-web:ci app
+          docker run -d --name web -p 8080:8080 \
+            -v "$PWD/app/static/config.example.json:/usr/share/nginx/html/config.json:ro" \
+            mushpoint-web:ci
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:8080 && break; sleep 1; done
+      - name: ZAP baseline
+        # -I: warnings don't fail this step; the next step decides. Failures still do.
+        run: |
+          mkdir -p zap && chmod 777 zap
+          docker run --rm --network host -v "$PWD/zap:/zap/wrk" ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py -t http://localhost:8080 -r report.html -J report.json -I
+      - name: Fail on any alert that is not an accepted risk
+        # Accepted risks (TODO.md section 4), matched by alert reference so other
+        # findings from the same rule still fail: 10055-6 CSP style-src
+        # 'unsafe-inline', 90004-2 no Cross-Origin-Embedder-Policy.
+        run: |
+          new=$(jq -r '[.site[].alerts[]
+            | select((.riskcode | tonumber) >= 1)
+            | select(.alertRef as $r | ["10055-6", "90004-2"] | index($r) | not)
+            | "\(.alertRef) \(.name)"] | unique | .[]' zap/report.json)
+          if [ -n "$new" ]; then
+            echo "::error::ZAP found alerts that are not accepted risks:"
+            echo "$new"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-baseline
+          path: zap
+          retention-days: 14

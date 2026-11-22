@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { openUrl as openExternal } from '@tauri-apps/plugin-opener';
 	import { browser } from '$app/environment';
 	import { goto, invalidateAll } from '$app/navigation';
 	import {
@@ -13,27 +12,34 @@
 		type Subgoal,
 		type TaskSummary
 	} from '$lib/api';
-	import ConfirmDialog from '$lib/components/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
-	import Checkbox from '$lib/components/Checkbox.svelte';
-	import DatePicker from '$lib/components/DatePicker.svelte';
-	import GanttChart from '$lib/components/GanttChart.svelte';
-	import GoalDrawer from '$lib/components/GoalDrawer.svelte';
-	import GoalStatusSegment from '$lib/components/GoalStatusSegment.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import KanbanBoard from '$lib/components/KanbanBoard.svelte';
-	import ProgressBar from '$lib/components/ProgressBar.svelte';
-	import Select from '$lib/components/Select.svelte';
-	import SubgoalCard from '$lib/components/SubgoalCard.svelte';
-	import SubgoalDrawer from '$lib/components/SubgoalDrawer.svelte';
-	import TaskDrawer from '$lib/components/TaskDrawer.svelte';
-	import TaskRow from '$lib/components/TaskRow.svelte';
-	import { button, field, sectionHeading, segment } from '$lib/components/ui';
-	import { dueLabel, dueTone, percent } from '$lib/format';
+	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import Checkbox from '$lib/components/ui/Checkbox.svelte';
+	import DatePicker from '$lib/components/ui/DatePicker.svelte';
+	import GanttChart from '$lib/components/tasks/GanttChart.svelte';
+	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
+	import GoalStatusSegment from '$lib/components/goals/GoalStatusSegment.svelte';
+	import Icon from '$lib/components/ui/Icon.svelte';
+	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
+	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+	import SubgoalCard from '$lib/components/goals/SubgoalCard.svelte';
+	import SubgoalDrawer from '$lib/components/goals/SubgoalDrawer.svelte';
+	import TaskDrawer from '$lib/components/tasks/TaskDrawer.svelte';
+	import TaskRow from '$lib/components/tasks/TaskRow.svelte';
+	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
+	import Tabs from '$lib/components/ui/Tabs.svelte';
+	import { button, field, sectionHeading } from '$lib/components/ui';
+	import { dueLabel, dueTone, percent, safeHref } from '$lib/format';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
 
 	type GoalView = 'list' | 'kanban' | 'timeline';
+	const GOAL_VIEWS: { value: GoalView; label: string }[] = [
+		{ value: 'list', label: 'List' },
+		{ value: 'kanban', label: 'Kanban' },
+		{ value: 'timeline', label: 'Timeline' }
+	];
 
 	let { data } = $props();
 
@@ -172,30 +178,30 @@
 		</div>
 	{/if}
 
-	<div class="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
+	<div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-[320px_1fr]">
 		<div
-			class="rounded-card border border-subtle bg-surface p-4.5 transition-[opacity,filter] duration-[var(--mp-duration-slow)] lg:sticky lg:top-0 {goal.status ===
+			class="min-w-0 rounded-card border border-subtle bg-surface p-4.5 transition-[opacity,filter] duration-[var(--mp-duration-slow)] lg:sticky lg:top-0 {goal.status ===
 			'archived'
 				? 'opacity-75 grayscale-[0.4]'
 				: ''}"
 		>
 			<div class="flex items-center justify-between gap-2">
 				<span
-					class="rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider uppercase"
+					class="min-w-0 truncate rounded-full bg-background px-2.5 py-1 text-2xs font-bold tracking-wider uppercase"
 					style="color:{accent}"
 				>
 					{goal.category?.name ?? 'Uncategorized'}
 				</span>
 				<div class="flex shrink-0 gap-1">
-					{#if goal.repoUrl}
-						{@const repoUrl = goal.repoUrl}
-						<button
-							type="button"
+					{#if safeHref(goal.repoUrl)}
+						<a
+							href={safeHref(goal.repoUrl)}
+							target="_blank"
+							rel="noopener noreferrer"
 							class={button.icon}
-							onclick={() => openExternal(repoUrl).catch((e) => (actionError = e))}
 						>
 							<Icon name="github" size={14} label="Open repository" />
-						</button>
+						</a>
 					{/if}
 					<button type="button" class={button.icon} onclick={() => (editing = true)}>
 						<Icon name="edit" size={14} label="Edit goal" />
@@ -211,7 +217,9 @@
 				</div>
 			</div>
 
-			<h1 class="mt-3.5 mb-2 flex items-center gap-2 font-display text-2xl leading-tight font-bold">
+			<h1
+				class="mt-3.5 mb-2 flex items-center gap-2 font-display text-2xl leading-tight font-bold wrap-anywhere"
+			>
 				{#if goal.fromIdea}
 					<span title="Promoted from an idea" class="shrink-0 text-muted">
 						<Icon name="idea" size={18} />
@@ -269,118 +277,108 @@
 			</div>
 		</div>
 
-		<div>
-			<div class="mb-3.5 flex gap-1.5">
-				<button
-					type="button"
-					class={segment(view === 'list')}
-					aria-pressed={view === 'list'}
-					onclick={() => setView('list')}
-				>
-					List
-				</button>
-				<button
-					type="button"
-					class={segment(view === 'kanban')}
-					aria-pressed={view === 'kanban'}
-					onclick={() => setView('kanban')}
-				>
-					Kanban
-				</button>
-				<button
-					type="button"
-					class={segment(view === 'timeline')}
-					aria-pressed={view === 'timeline'}
-					onclick={() => setView('timeline')}
-				>
-					Timeline
-				</button>
-			</div>
+		<div class="min-w-0">
+			<Tabs
+				id="goal-view"
+				label="Goal view"
+				tabs={GOAL_VIEWS}
+				value={view}
+				onChange={setView}
+				class="mb-5"
+			/>
 
-			{#if view === 'list'}
-				<section class="mb-8">
-					<h2 class="{sectionHeading} mb-1.5">Subgoals</h2>
-					<p class="mb-3.5 text-sm text-muted">
-						Milestones toward the goal — each one can hold its own tasks and due date.
-					</p>
+			<div
+				role="tabpanel"
+				id={tabPanelId('goal-view', view)}
+				aria-labelledby={tabId('goal-view', view)}
+			>
+				{#if view === 'list'}
+					<section class="mb-8">
+						<h2 class="{sectionHeading} mb-1.5">Subgoals</h2>
+						<p class="mb-3.5 text-sm text-muted">
+							Milestones toward the goal — each one can hold its own tasks and due date.
+						</p>
 
-					<div class="mb-4 flex flex-col gap-2.5">
-						{#each goal.subgoals as subgoal, index (subgoal.id)}
-							<div class="mp-enter" style="--mp-delay:{stagger(index)}">
-								<SubgoalCard
-									{subgoal}
-									onMutated={invalidateAll}
-									onError={(error) => (actionError = error)}
-									onEdit={() => (editingSubgoal = subgoal)}
-									delay={stagger(index)}
-								/>
-							</div>
-						{/each}
-					</div>
-
-					<form class="flex gap-2" onsubmit={addSubgoal}>
-						<input
-							class="{field.dashed} min-w-0 max-w-100 flex-1"
-							bind:value={newSubgoalTitle}
-							placeholder="+ Add subgoal…"
-							aria-label="New subgoal"
-						/>
-						<DatePicker
-							bind:value={newSubgoalDue}
-							ariaLabel="New subgoal due date"
-							dashed
-							class="w-37.5 shrink-0"
-						/>
-					</form>
-				</section>
-
-				<section>
-					<h2 class="{sectionHeading} mb-1.5">Direct tasks</h2>
-					<p class="mb-3.5 text-sm text-muted">
-						Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
-					</p>
-
-					{#if goal.directTasks.length > 0}
-						<ul class="mb-3 flex flex-col rounded-card border border-subtle bg-surface px-4 py-2.5">
-							{#each goal.directTasks as task (task.id)}
-								<TaskRow
-									{task}
-									onMutated={invalidateAll}
-									onError={(error) => (actionError = error)}
-								/>
+						<div class="mb-4 flex flex-col gap-2.5">
+							{#each goal.subgoals as subgoal, index (subgoal.id)}
+								<div class="mp-enter" style="--mp-delay:{stagger(index)}">
+									<SubgoalCard
+										{subgoal}
+										onMutated={invalidateAll}
+										onError={(error) => (actionError = error)}
+										onEdit={() => (editingSubgoal = subgoal)}
+										delay={stagger(index)}
+									/>
+								</div>
 							{/each}
-						</ul>
-					{/if}
+						</div>
 
-					<form class="flex gap-2" onsubmit={addDirectTask}>
-						<input
-							class="{field.dashed} min-w-0 flex-1"
-							bind:value={newTaskTitle}
-							placeholder="+ Add a task…"
-							aria-label="New direct task"
-						/>
-						<Select
-							class="w-37.5 shrink-0"
-							ariaLabel="New direct task repeats"
-							bind:value={newTaskRecurrence}
-							options={RECURRENCE_OPTIONS}
-						/>
-					</form>
-				</section>
-			{:else if view === 'timeline'}
-				<GanttChart {goal} />
-			{:else}
-				<KanbanBoard
-					goalId={goal.id}
-					tasks={boardTasks}
-					subgoals={goal.subgoals}
-					parentChipMode="subgoal-only"
-					onMutated={invalidateAll}
-					onError={(error) => (actionError = error)}
-					onEditTask={editTask}
-					onDeleteTask={(task) => (deletingTask = task)}
-				/>
-			{/if}
+						<form class="flex gap-2" onsubmit={addSubgoal}>
+							<input
+								class="{field.dashed} max-w-100 min-w-0 flex-1"
+								bind:value={newSubgoalTitle}
+								placeholder="+ Add subgoal…"
+								aria-label="New subgoal"
+							/>
+							<DatePicker
+								bind:value={newSubgoalDue}
+								ariaLabel="New subgoal due date"
+								dashed
+								class="w-37.5 shrink-0"
+							/>
+						</form>
+					</section>
+
+					<section>
+						<h2 class="{sectionHeading} mb-1.5">Direct tasks</h2>
+						<p class="mb-3.5 text-sm text-muted">
+							Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
+						</p>
+
+						{#if goal.directTasks.length > 0}
+							<ul
+								class="mb-3 flex flex-col rounded-card border border-subtle bg-surface px-4 py-2.5"
+							>
+								{#each goal.directTasks as task (task.id)}
+									<TaskRow
+										{task}
+										onMutated={invalidateAll}
+										onError={(error) => (actionError = error)}
+									/>
+								{/each}
+							</ul>
+						{/if}
+
+						<form class="flex gap-2" onsubmit={addDirectTask}>
+							<input
+								class="{field.dashed} min-w-0 flex-1"
+								bind:value={newTaskTitle}
+								placeholder="+ Add a task…"
+								aria-label="New direct task"
+							/>
+							<Select
+								class="w-37.5 shrink-0"
+								ariaLabel="New direct task repeats"
+								bind:value={newTaskRecurrence}
+								options={RECURRENCE_OPTIONS}
+							/>
+						</form>
+					</section>
+				{:else if view === 'timeline'}
+					<GanttChart {goal} />
+				{:else}
+					<KanbanBoard
+						goalId={goal.id}
+						tasks={boardTasks}
+						subgoals={goal.subgoals}
+						parentChipMode="subgoal-only"
+						onMutated={invalidateAll}
+						onError={(error) => (actionError = error)}
+						onEditTask={editTask}
+						onDeleteTask={(task) => (deletingTask = task)}
+					/>
+				{/if}
+			</div>
 		</div>
 	</div>
 

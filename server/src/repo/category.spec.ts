@@ -54,6 +54,21 @@ describe('category', () => {
 		await expect(category.get(driver, created.id)).rejects.toMatchObject({ kind: 'not_found' });
 	});
 
+	it('changes a category color on update', async () => {
+		const created = await category.create(driver, input('Painting'));
+		expect(created.colorToken).toBeNull();
+
+		const recolored = await category.update(driver, created.id, {
+			name: 'Painting',
+			colorToken: 'accent-tertiary'
+		});
+		expect(recolored.colorToken).toBe('accent-tertiary');
+		expect((await category.get(driver, created.id)).colorToken).toBe('accent-tertiary');
+
+		const cleared = await category.update(driver, created.id, input('Painting'));
+		expect(cleared.colorToken).toBeNull();
+	});
+
 	it('reports missing categories', async () => {
 		await expect(category.update(driver, 999, input('Nope'))).rejects.toMatchObject({
 			kind: 'not_found'

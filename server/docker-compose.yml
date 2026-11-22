@@ -1,3 +1,5 @@
+name: mushpoint-server
+
 services:
   db:
     image: postgres:16

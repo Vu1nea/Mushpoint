@@ -1,7 +1,7 @@
 import type { SqlDriver } from '../db/driver';
 import { AppError } from '../error';
-import type { Idea, IdeaInput, Tag } from '../types';
-import { now, optionalText, requiredText } from './helpers';
+import type { Goal, GoalInput, Idea, IdeaInput, Tag } from '../types';
+import { nowIso, optionalText, requiredText } from './helpers';
 import * as goal from './goal';
 
 const COLUMNS = 'i.id, i.title, i.note, i.promoted_goal_id, i.created_at, i.updated_at';
@@ -58,7 +58,7 @@ async function resolveTagId(driver: SqlDriver, name: string): Promise<number> {
 
 	const result = await driver.execute('INSERT INTO idea_tags (name, created_at) VALUES (?1, ?2) RETURNING id', [
 		name,
-		now()
+		nowIso()
 	]);
 	return result.lastInsertId;
 }
@@ -122,7 +122,7 @@ export async function get(driver: SqlDriver, id: number): Promise<Idea> {
 
 export async function create(driver: SqlDriver, input: IdeaInput): Promise<Idea> {
 	const title = requiredText('idea title', input.title);
-	const timestamp = now();
+	const timestamp = nowIso();
 
 	const result = await driver.execute(
 		'INSERT INTO ideas (title, note, promoted_goal_id, created_at, updated_at) VALUES (?1, ?2, NULL, ?3, ?3) RETURNING id',
@@ -138,7 +138,7 @@ export async function update(driver: SqlDriver, id: number, input: IdeaInput): P
 
 	const result = await driver.execute(
 		'UPDATE ideas SET title = ?1, note = ?2, updated_at = ?3 WHERE id = ?4',
-		[title, optionalText(input.note), now(), id]
+		[title, optionalText(input.note), nowIso(), id]
 	);
 	if (result.rowsAffected === 0) throw AppError.notFound('idea', id);
 
@@ -152,14 +152,36 @@ export async function remove(driver: SqlDriver, id: number): Promise<void> {
 	if (result.rowsAffected === 0) throw AppError.notFound('idea', id);
 }
 
+/** Links an inbox idea to a goal. Only an unpromoted idea can be promoted: the
+ * `IS NULL` guard makes a second (or concurrent) promotion fail instead of
+ * silently re-pointing the idea at another goal. */
 export async function promote(driver: SqlDriver, id: number, goalId: number): Promise<Idea> {
 	await goal.ensureExists(driver, goalId);
 	const result = await driver.execute(
-		'UPDATE ideas SET promoted_goal_id = ?1, updated_at = ?2 WHERE id = ?3',
-		[goalId, now(), id]
+		'UPDATE ideas SET promoted_goal_id = ?1, updated_at = ?2 WHERE id = ?3 AND promoted_goal_id IS NULL',
+		[goalId, nowIso(), id]
 	);
-	if (result.rowsAffected === 0) throw AppError.notFound('idea', id);
+	if (result.rowsAffected === 0) {
+		await get(driver, id); // throws not_found when the idea is missing
+		throw AppError.validation(`idea ${id} is already promoted`);
+	}
 	return get(driver, id);
+}
+
+/** Creates the goal and records the promotion in the caller's one transaction,
+ * so a failed promotion never leaves a stray goal behind for a retry to
+ * duplicate. The idea is checked first so a refused promotion creates nothing. */
+export async function promoteToNewGoal(
+	driver: SqlDriver,
+	id: number,
+	input: GoalInput
+): Promise<{ idea: Idea; goal: Goal }> {
+	const existing = await get(driver, id);
+	if (existing.promotedGoalId !== null) {
+		throw AppError.validation(`idea ${id} is already promoted`);
+	}
+	const created = await goal.create(driver, input);
+	return { idea: await promote(driver, id, created.id), goal: created };
 }
 
 /** Only tags still attached to an active (unpromoted) idea — a promoted or

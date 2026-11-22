@@ -3,7 +3,13 @@
 import type { CellState, DayCell } from '$lib/api/types';
 import { daysUntil, formatDate } from 'mushpoint-design/utils/format';
 
-export { percent, parseDate, formatDate, daysUntil, isOverdue } from 'mushpoint-design/utils/format';
+export {
+	percent,
+	parseDate,
+	formatDate,
+	daysUntil,
+	isOverdue
+} from 'mushpoint-design/utils/format';
 
 /**
  * How loudly a due date should read. The design colors overdue dates with the
@@ -25,6 +31,22 @@ const CELL_WORDS: Record<CellState, string> = {
 	pending: 'not yet',
 	not_expected: 'not scheduled'
 };
+
+/**
+ * Text alternative for a whole heatmap: "Last 14 days: 9 done, 3 missed,
+ * 1 not scheduled. Today: not yet." The last cell is today; a pending day is
+ * reported only as today's state, not counted.
+ */
+export function heatmapSummary(cells: DayCell[]): string {
+	if (cells.length === 0) return 'No history yet.';
+	const counts = (['done', 'missed', 'not_expected'] as const)
+		.map((state) => [cells.filter((c) => c.state === state).length, CELL_WORDS[state]] as const)
+		.filter(([n]) => n > 0)
+		.map(([n, word]) => `${n} ${word}`);
+	const days = `${cells.length} ${cells.length === 1 ? 'day' : 'days'}`;
+	const today = CELL_WORDS[cells[cells.length - 1].state];
+	return `Last ${days}: ${counts.length ? counts.join(', ') : 'nothing yet'}. Today: ${today}.`;
+}
 
 /** Hover text for one heatmap square: "Jul 30 · done". */
 export function cellTitle(cell: DayCell, now: Date = new Date()): string {
@@ -53,4 +75,16 @@ export function dueLabel(due: string | null, now: Date = new Date()): string {
 	if (days < 0) return `${Math.abs(days)} days overdue`;
 	if (days <= 7) return `Due in ${days} days`;
 	return `Due ${formatDate(due, now)}`;
+}
+
+/** A stored URL safe to put in `href`: only absolute http(s), else null. The
+ * server enforces this on write; this covers rows written before it did. */
+export function safeHref(raw: string | null): string | null {
+	if (!raw) return null;
+	try {
+		const { protocol } = new URL(raw.trim());
+		return protocol === 'http:' || protocol === 'https:' ? raw.trim() : null;
+	} catch {
+		return null;
+	}
 }

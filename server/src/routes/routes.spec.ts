@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from 'node:crypto';
 import type { Express } from 'express';
+import sharp from 'sharp';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../app';
 import { createVerifier } from '../auth';
+import { createMemoryAuthAdmin } from '../authAdmin';
 import { createPool } from '../db/pool';
 import { createMemoryImageStore } from '../images';
+import { USER_TABLES } from '../repo/account';
 import { createTestIdentity } from '../testSupport/auth';
 import { clientFor } from '../testSupport/client';
 import { purgeUsers } from '../testSupport/db';
+import { TEST_PNG } from '../testSupport/png';
 
 const goalBody = {
   categoryId: null,
@@ -21,27 +25,38 @@ const goalBody = {
   motivationImagePath: null,
   repoUrl: null
 };
+const PNG = TEST_PNG;
+const PNG_HEADER_ONLY = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
 const taskBody = { title: 'T', dueDate: null, goalId: null, subgoalId: null, recurrence: null };
 
 const pool = createPool(process.env.DATABASE_URL!);
 const A = randomUUID();
 const B = randomUUID();
+const C = randomUUID();
+const D = randomUUID();
+const E = randomUUID();
 const store = createMemoryImageStore();
+const authAdmin = createMemoryAuthAdmin();
 let app: Express;
 let a:ReturnType<typeof clientFor>;
 let b: ReturnType<typeof clientFor>;
 let tokenA: string;
+let c: ReturnType<typeof clientFor>;
+let d: ReturnType<typeof clientFor>;
+let identity: Awaited<ReturnType<typeof createTestIdentity>>;
 
 beforeAll(async () => {
-  const identity = await createTestIdentity();
-  app = createApp({ pool, verify: createVerifier(identity), images: store });
+  identity = await createTestIdentity();
+  app = createApp({ pool, verify: createVerifier(identity), images: store, authAdmin });
   tokenA = await identity.sign({ sub: A });
   a = clientFor(app, tokenA);
   b = clientFor(app, await identity.sign({ sub: B }));
+  c = clientFor(app, await identity.sign({ sub: C }));
+  d = clientFor(app, await identity.sign({ sub: D }));
 });
 
 afterAll(async () => {
-  await purgeUsers([A, B]);
+  await purgeUsers([A, B, C, D, E]);
   await pool.end();
 });
 
@@ -167,20 +182,28 @@ describe('streaks', () => {
 });
 
 describe('ideas', () => {
-  it('promotes into the owner goal and lists tags', async () => {
-    const goal = await newGoal();
+  it('promotes into a new owner goal once and lists tags', async () => {
     const idea = (await a.post('/api/ideas').send({ title: 'I', note: null, tagNames: ['Spark'] }).expect(200)).body;
     expect((await a.get(`/api/ideas/${idea.id}`).expect(200)).body.id).toBe(idea.id);
     await b.get(`/api/ideas/${idea.id}`).expect(404);
     expect((await a.get('/api/idea-tags').expect(200)).body.map((t: any) => t.name)).toContain('Spark');
     expect((await b.get('/api/idea-tags').expect(200)).body).toEqual([]);
-    await b.post(`/api/ideas/${idea.id}/promote`).send({ goalId: goal.id }).expect(404);
-    const otherGoal = (await b.post('/api/goals').send(goalBody).expect(200)).body;
-    await a.post(`/api/ideas/${idea.id}/promote`).send({ goalId: otherGoal.id }).expect(404);
-    const promoted = (await a.post(`/api/ideas/${idea.id}/promote`).send({ goalId: goal.id }).expect(200)).body;
-    expect(promoted.promotedGoalId).toBe(goal.id);
+    const bGoalsBefore = ids((await b.get('/api/goals').expect(200)).body);
+    await b.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: 'Stolen' }).expect(404);
+    expect(ids((await b.get('/api/goals').expect(200)).body)).toEqual(bGoalsBefore); // rolled back
+    const promoted = (await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: 'From I' }).expect(200)).body;
+    expect(promoted.goal.title).toBe('From I');
+    expect(promoted.idea.promotedGoalId).toBe(promoted.goal.id);
+    expect((await a.get(`/api/goals/${promoted.goal.id}`).expect(200)).body.fromIdea).toBe(true);
+    await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: 'Again' }).expect(400);
     expect(ids((await a.get('/api/ideas').expect(200)).body)).not.toContain(idea.id);
     expect(ids((await a.get('/api/ideas?includePromoted=true').expect(200)).body)).toContain(idea.id);
+  });
+
+  it('a rejected goal body promotes nothing', async () => {
+    const idea = (await a.post('/api/ideas').send({ title: 'Keep', note: null, tagNames: [] }).expect(200)).body;
+    await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, title: '  ' }).expect(400);
+    expect(ids((await a.get('/api/ideas').expect(200)).body)).toContain(idea.id);
   });
 
   it('filters by tag', async () => {
@@ -212,15 +235,15 @@ describe('vision-items', () => {
 });
 
 describe('vision images', () => {
-  const PNG = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
   const upload = async () =>
     (await a.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(200)).body;
 
-  it('uploads an image and returns a path and a signed url', async () => {
+  it('uploads an image, stored re-encoded as WebP, and returns a path and a signed url', async () => {
     const body = await upload();
-    expect(body.imagePath).toMatch(new RegExp(`^${A}/[0-9a-f-]{36}\\.png$`));
+    expect(body.imagePath).toMatch(new RegExp(`^${A}/[0-9a-f-]{36}\\.webp$`));
     expect(body.imageUrl).toEqual(expect.any(String));
-    expect(store.objects.has(body.imagePath)).toBe(true);
+    const stored = await sharp(store.objects.get(body.imagePath)!).metadata();
+    expect([stored.format, stored.width, stored.height]).toEqual(['webp', 64, 48]);
   });
 
   it('requires a token to upload', async () => {
@@ -230,6 +253,7 @@ describe('vision images', () => {
   it.each([
     ['wrong declared type', Buffer.from(PNG), 'a.txt', 'text/plain'],
     ['declared png but not an image', Buffer.from('hello world!'), 'a.png', 'image/png'],
+    ['png header with no image behind it', Buffer.from(PNG_HEADER_ONLY), 'a.png', 'image/png'],
     ['svg', Buffer.from('<svg/>'), 'a.svg', 'image/svg+xml']
   ])('rejects %s', async (_name, buf, filename, contentType) => {
     const res = await a.post('/api/vision-images').attach('file', buf, { filename, contentType }).expect(400);
@@ -248,6 +272,21 @@ describe('vision images', () => {
       .attach('file', Buffer.concat([Buffer.from(PNG), Buffer.alloc(5 * 1024 * 1024)]), { filename: 'big.png', contentType: 'image/png' })
       .expect(400);
     expect(res.body.kind).toBe('validation');
+  });
+
+  it("rejects another user's image path as a goal motivation image", async () => {
+    await a.post('/api/goals').send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+    await a.post('/api/goals').send({ ...goalBody, motivationImagePath: 'https://evil.com/x.png' }).expect(400);
+    const own = (await a.post('/api/goals').send({ ...goalBody, motivationImagePath: `${A}/${randomUUID()}.png` }).expect(200)).body;
+    await a.put(`/api/goals/${own.id}`).send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+    const idea = (await a.post('/api/ideas').send({ title: 'I', note: null, tagNames: [] }).expect(200)).body;
+    await a.post(`/api/ideas/${idea.id}/promote`).send({ ...goalBody, motivationImagePath: `${B}/${randomUUID()}.png` }).expect(400);
+    expect((await a.get(`/api/ideas/${idea.id}`).expect(200)).body.promotedGoalId).toBeNull();
+  });
+
+  it('names the bad field in a validation message', async () => {
+    const res = await a.post('/api/goals').send({ ...goalBody, timeframe: 'bogus' }).expect(400);
+    expect(res.body).toMatchObject({ kind: 'validation', message: expect.stringMatching(/^timeframe: /) });
   });
 
   it("rejects another user's image path on a vision item", async () => {
@@ -332,5 +371,129 @@ describe('hostile input', () => {
   it('rejects a bogus task status with 400', async () => {
     const task = (await a.post('/api/tasks').send(taskBody).expect(200)).body;
     await a.put(`/api/tasks/${task.id}/status`).send({ status: 'bogus' }).expect(400);
+  });
+});
+
+describe('profile', () => {
+  // Unique per run: a crashed run skips cleanup, and a fixed name would then be taken.
+  const NAME = `alpha_${A.slice(0, 8)}`;
+  it('reads and sets a unique username', async () => {
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: null, avatarUrl: null });
+    expect((await a.put('/api/profile/username').send({ username: NAME }).expect(200)).body).toEqual({ username: NAME, avatarUrl: null });
+    expect((await a.get('/api/profile').expect(200)).body).toEqual({ username: NAME, avatarUrl: null });
+    expect((await b.put('/api/profile/username').send({ username: NAME.toUpperCase() }).expect(400)).body).toEqual({
+      kind: 'validation',
+      message: 'that username is taken'
+    });
+    await a.put('/api/profile/username').send({}).expect(400);
+  });
+
+  const attachPng = (client: ReturnType<typeof clientFor>) =>
+    client.put('/api/profile/avatar').attach('file', Buffer.from(PNG), { filename: 'me.png', contentType: 'image/png' });
+  const avatarObjects = (user: string) =>
+    [...store.objects.keys()].filter((k) => k.startsWith(`${user}/`));
+
+  it('sets, replaces and removes a profile picture, deleting the old objects', async () => {
+    // A picked a username in the test above.
+    const before = avatarObjects(A);
+    const first = (await attachPng(a).expect(200)).body;
+    expect(first).toEqual({ username: NAME, avatarUrl: expect.any(String) });
+    expect((await a.get('/api/profile').expect(200)).body.avatarUrl).toEqual(expect.any(String));
+    const [firstPath] = avatarObjects(A).filter((k) => !before.includes(k));
+    const stored = await sharp(store.objects.get(firstPath)!).metadata();
+    expect([firstPath.endsWith('.webp'), stored.format, stored.width, stored.height]).toEqual([true, 'webp', 256, 256]);
+
+    await attachPng(a).expect(200);
+    expect(store.objects.has(firstPath)).toBe(false);
+    expect(avatarObjects(A)).toHaveLength(before.length + 1);
+
+    expect((await a.delete('/api/profile/avatar').expect(200)).body).toEqual({ username: NAME, avatarUrl: null });
+    expect(avatarObjects(A)).toEqual(before);
+  });
+
+  it('refuses a picture before a username, without leaving an object behind', async () => {
+    const before = avatarObjects(B);
+    expect((await attachPng(b).expect(400)).body).toEqual({ kind: 'validation', message: 'pick a username first' });
+    expect(avatarObjects(B)).toEqual(before);
+  });
+
+  it('rejects a non-image avatar and needs a token', async () => {
+    await a.put('/api/profile/avatar').attach('file', Buffer.from('<svg/>'), { filename: 'a.svg', contentType: 'image/svg+xml' }).expect(400);
+    await a.put('/api/profile/avatar').send({}).expect(400);
+    await request(app).put('/api/profile/avatar').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
+  });
+});
+
+describe('account deletion', () => {
+
+  it("removes every row, image and the login, then refuses the user's token", async () => {
+    // C is deleted; D is the bystander. Fresh users keep the shared A/B usable.
+    const username = `u_${randomUUID().slice(0, 8)}`;
+    await c.post('/api/goals').send(goalBody).expect(200);
+    await c.post('/api/tasks').send(taskBody).expect(200);
+    await c.post('/api/ideas').send({ title: 'I', note: null, tagNames: ['t'] }).expect(200);
+    const { imagePath } = (await c
+      .post('/api/vision-images')
+      .attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' })
+      .expect(200)).body;
+    await c.post('/api/vision-items').send({ imagePath, quoteText: null }).expect(200);
+    await c.put('/api/profile/username').send({ username }).expect(200);
+    const dGoal = (await d.post('/api/goals').send(goalBody).expect(200)).body;
+
+    await c.delete('/api/account').expect(204);
+
+    expect(authAdmin.deleted).toEqual([C]);
+    expect([...store.objects.keys()].filter((k) => k.startsWith(`${C}/`))).toEqual([]);
+    const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
+    try {
+      for (const table of USER_TABLES) {
+        const { rows } = await owner.query(`SELECT 1 FROM ${table} WHERE user_id = $1`, [C]);
+        expect(rows, table).toHaveLength(0);
+      }
+    } finally {
+      await owner.end();
+    }
+    expect(ids((await d.get('/api/goals').expect(200)).body)).toContain(dGoal.id);
+
+    expect((await c.get('/api/goals').expect(401)).body).toEqual({ kind: 'unauthenticated', message: 'account deleted' });
+    await c.post('/api/vision-images').attach('file', Buffer.from(PNG), { filename: 'a.png', contentType: 'image/png' }).expect(401);
+    await c.delete('/api/account').expect(204);
+    expect((await d.put('/api/profile/username').send({ username }).expect(200)).body).toEqual({ username, avatarUrl: null });
+  });
+
+  it('records the tombstone before anything else, so a failed deletion leaves the account locked and retryable', async () => {
+    const tombstoned = async () =>
+      (await pool.query('SELECT 1 FROM deleted_users WHERE user_id = $1', [E])).rowCount === 1;
+    const seen: boolean[] = [];
+    let failImages = true;
+    const flakyStore = {
+      ...store,
+      async removeAllFor(userId: string) {
+        seen.push(await tombstoned());
+        if (failImages) throw new Error('storage down');
+        await store.removeAllFor(userId);
+      }
+    };
+    const flakyAuth = createMemoryAuthAdmin();
+    const flakyApp = createApp({ pool, verify: createVerifier(identity), images: flakyStore, authAdmin: flakyAuth });
+    const e = clientFor(flakyApp, await identity.sign({ sub: E }));
+    const goal = (await e.post('/api/goals').send(goalBody).expect(200)).body;
+
+    await e.delete('/api/account').expect(500);
+    expect(seen).toEqual([true]);
+    expect(flakyAuth.deleted).toEqual([]);
+    expect((await e.get('/api/goals').expect(401)).body).toEqual({ kind: 'unauthenticated', message: 'account deleted' });
+    const owner = createPool(process.env.MIGRATE_DATABASE_URL!);
+    try {
+      expect((await owner.query('SELECT 1 FROM goals WHERE id = $1', [goal.id])).rows).toHaveLength(1);
+
+      failImages = false;
+      await e.delete('/api/account').expect(204);
+      expect(flakyAuth.deleted).toEqual([E]);
+      expect((await owner.query('SELECT 1 FROM goals WHERE id = $1', [goal.id])).rows).toHaveLength(0);
+      expect(await tombstoned()).toBe(true);
+    } finally {
+      await owner.end();
+    }
   });
 });

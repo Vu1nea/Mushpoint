@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import DashboardGoalsPanel from '$lib/components/DashboardGoalsPanel.svelte';
-	import DashboardQuickAdd from '$lib/components/DashboardQuickAdd.svelte';
-	import DashboardStreaks from '$lib/components/DashboardStreaks.svelte';
-	import DashboardTasksToday from '$lib/components/DashboardTasksToday.svelte';
-	import DashboardUpcoming from '$lib/components/DashboardUpcoming.svelte';
-	import DashboardVisionPreview from '$lib/components/DashboardVisionPreview.svelte';
-	import ErrorBanner from '$lib/components/ErrorBanner.svelte';
+	import DashboardGoalsPanel from '$lib/components/dashboard/DashboardGoalsPanel.svelte';
+	import DashboardQuickAdd from '$lib/components/dashboard/DashboardQuickAdd.svelte';
+	import DashboardStreaks from '$lib/components/dashboard/DashboardStreaks.svelte';
+	import DashboardTasksToday from '$lib/components/dashboard/DashboardTasksToday.svelte';
+	import DashboardUpcoming from '$lib/components/dashboard/DashboardUpcoming.svelte';
+	import DashboardVisionPreview from '$lib/components/dashboard/DashboardVisionPreview.svelte';
+	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
 
 	let { data } = $props();
 
@@ -20,8 +20,7 @@
 <svelte:head><title>Dashboard · Mushpoint</title></svelte:head>
 
 <header class="mb-6">
-	<h1 class="mb-1 font-display text-3xl font-bold">Dashboard</h1>
-	<p class="text-sm text-muted">Where everything stands right now.</p>
+	<h1 class="font-display text-2xl font-bold sm:text-3xl">Dashboard</h1>
 </header>
 
 {#if data.error}
@@ -59,4 +58,4 @@
 	/>
 </div>
 
-<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter mt-4" />
+<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter mt-4 max-md:hidden" />

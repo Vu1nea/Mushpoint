@@ -82,6 +82,45 @@ describe('idea', () => {
 		expect(await idea.list(driver)).toHaveLength(0);
 	});
 
+	it('refuses to promote an idea that is already promoted', async () => {
+		const created = await idea.create(driver, ideaInput('An idea'));
+		const first = await goal.create(driver, goalInput('First'));
+		const second = await goal.create(driver, goalInput('Second'));
+		await idea.promote(driver, created.id, first.id);
+
+		await expect(idea.promote(driver, created.id, second.id)).rejects.toMatchObject({
+			kind: 'validation'
+		});
+		expect((await idea.get(driver, created.id)).promotedGoalId).toBe(first.id);
+	});
+
+	it('promoteToNewGoal creates the goal and records the promotion together', async () => {
+		const created = await idea.create(driver, ideaInput('An idea'));
+
+		const result = await idea.promoteToNewGoal(driver, created.id, goalInput('From idea'));
+
+		expect(result.goal.title).toBe('From idea');
+		expect(result.idea.promotedGoalId).toBe(result.goal.id);
+		expect(await idea.list(driver)).toHaveLength(0);
+	});
+
+	it('promoteToNewGoal refuses an already-promoted idea before creating a goal', async () => {
+		const created = await idea.create(driver, ideaInput('An idea'));
+		await idea.promoteToNewGoal(driver, created.id, goalInput('First'));
+		const goalsBefore = (await goal.list(driver, null, TEST_TZ)).length;
+
+		await expect(
+			idea.promoteToNewGoal(driver, created.id, goalInput('Second'))
+		).rejects.toMatchObject({ kind: 'validation' });
+		expect(await goal.list(driver, null, TEST_TZ)).toHaveLength(goalsBefore);
+	});
+
+	it('promoteToNewGoal reports a missing idea as not found', async () => {
+		await expect(
+			idea.promoteToNewGoal(driver, 999_999, goalInput('Orphan'))
+		).rejects.toMatchObject({ kind: 'not_found' });
+	});
+
 	it('resurfaces in the inbox when the promoted goal is deleted', async () => {
 		const created = await idea.create(driver, ideaInput('An idea'));
 		const goalCreated = await goal.create(driver, goalInput('A goal'));

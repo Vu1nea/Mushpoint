@@ -1,0 +1,34 @@
+FROM node:24-slim AS build
+WORKDIR /app
+# git: mushpoint-design is a git dependency.
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+COPY package.json package-lock.json .npmrc ./
+RUN npm ci
+COPY . .
+RUN npm run build
+# Send the same policy SvelteKit put in the <meta> tag (with this build's script
+# hash) as a header too, plus frame-ancestors, which <meta> cannot carry.
+RUN CSP=$(grep -o 'http-equiv="content-security-policy" content="[^"]*"' build/index.html \
+      | sed 's/.*content="//; s/"$//') \
+    && test -n "$CSP" \
+    && echo "add_header Content-Security-Policy \"$CSP; frame-ancestors 'none'\" always;" > /app/csp.conf
+
+# Unprivileged variant: runs as a non-root user and listens on 8080.
+FROM nginxinc/nginx-unprivileged:1.31-alpine
+# Mainline: stable 1.30.6 had 5 HIGH nginx CVEs with no 1.30.7 image yet.
+# The upstream tag lags Alpine security fixes (13 HIGH/CRITICAL fixed in
+# musl, zlib, expat, libxslt when last checked), so take them at build time.
+USER root
+RUN apk upgrade --no-cache
+USER 101
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/security-headers.conf /etc/nginx/snippets/security-headers.conf
+COPY --from=build /app/csp.conf /etc/nginx/snippets/csp.conf
+COPY --from=build /app/build /usr/share/nginx/html
+# config.json is per environment: mount it at /usr/share/nginx/html/config.json
+# (a ConfigMap in Kubernetes). The image ships without one, or any
+# precompressed copy that would hide the mounted file.
+RUN rm -f /usr/share/nginx/html/config.json /usr/share/nginx/html/config.json.*
+EXPOSE 8080

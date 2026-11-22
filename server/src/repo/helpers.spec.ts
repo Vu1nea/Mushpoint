@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
-  localDateOf, optionalText, parseDateOrThrow, parseTimezone, requiredText, today
+  localDateOf, MAX_TEXT, optionalText, optionalUrl, parseDateOrThrow, parseTimezone, requiredText, today
 } from './helpers';
 import { AppError } from '../error';
 
@@ -20,6 +20,37 @@ describe('requiredText', () => {
     expect(() => requiredText('goal title', 123 as unknown as string)).toThrow(expect.objectContaining({ kind: 'validation' }));
     expect(() => requiredText('goal title', undefined as unknown as string)).toThrow(expect.objectContaining({ kind: 'validation' }));
   });
+});
+
+describe('text length cap', () => {
+  it('accepts text at the cap', () => {
+    expect(requiredText('title', 'x'.repeat(MAX_TEXT))).toHaveLength(MAX_TEXT);
+    expect(optionalText('x'.repeat(MAX_TEXT))).toHaveLength(MAX_TEXT);
+  });
+
+  it('rejects text over the cap', () => {
+    expect(() => requiredText('title', 'x'.repeat(MAX_TEXT + 1))).toThrow(expect.objectContaining({ kind: 'validation' }));
+    expect(() => optionalText('x'.repeat(MAX_TEXT + 1))).toThrow(expect.objectContaining({ kind: 'validation' }));
+  });
+});
+
+describe('optionalUrl', () => {
+  it('accepts http and https URLs, trimmed', () => {
+    expect(optionalUrl('  https://github.com/acme/widget ')).toBe('https://github.com/acme/widget');
+    expect(optionalUrl('http://example.com')).toBe('http://example.com');
+  });
+
+  it('treats null and blank as absent', () => {
+    expect(optionalUrl(null)).toBeNull();
+    expect(optionalUrl('   ')).toBeNull();
+  });
+
+  it.each(['javascript:alert(1)', ' JavaScript:alert(1)', 'data:text/html,<script>alert(1)</script>', 'vbscript:x', 'not a url', '//evil.com'])(
+    'rejects %s',
+    (raw) => {
+      expect(() => optionalUrl(raw)).toThrow(expect.objectContaining({ kind: 'validation' }));
+    }
+  );
 });
 
 describe('optionalText', () => {

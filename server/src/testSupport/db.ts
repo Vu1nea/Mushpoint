@@ -4,6 +4,7 @@ import type { SqlDriver } from '../db/driver';
 import { createPgDriver } from '../db/pgDriver';
 import { createPool } from '../db/pool';
 import { bootstrapUser } from '../db/scope';
+import { USER_TABLES } from '../repo/account';
 
 export const TEST_TZ = 'UTC';
 
@@ -39,10 +40,8 @@ export async function createTestDb(userId: string = randomUUID()): Promise<TestD
   return db;
 }
 
-const TABLES = [
-  'task_completions', 'idea_tag_links', 'tasks', 'ideas', 'idea_tags',
-  'subgoals', 'goals', 'categories', 'vision_items', 'settings'
-];
+// Account deletion's table list, plus the tombstone it keeps.
+const TABLES = [...USER_TABLES, 'deleted_users'];
 
 /** For tests that commit: removes every row the given users own (owner connection bypasses RLS). */
 export async function purgeUsers(userIds: string[]): Promise<void> {

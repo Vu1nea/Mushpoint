@@ -9,6 +9,8 @@ export default defineConfig({
 	// app source file rather than being esbuild-prebundled as an opaque dep.
 	optimizeDeps: { exclude: ['mushpoint-design'] },
 	ssr: { noExternal: ['mushpoint-design'] },
+	server: { proxy: { '/api': 'http://localhost:3000' } },
+	preview: { proxy: { '/api': 'http://localhost:3000' } },
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

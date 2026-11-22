@@ -1,4 +1,11 @@
-import { listCategories, listGoals, listStreaks, listSubgoals, listTasks, listVisionItems } from '$lib/api';
+import {
+	listCategories,
+	listGoals,
+	listStreaks,
+	listSubgoals,
+	listTasks,
+	listVisionItems
+} from '$lib/api';
 
 export const load = async () => {
 	try {
@@ -12,6 +19,14 @@ export const load = async () => {
 		]);
 		return { categories, goals, subgoals, tasks, streaks, visionItems, error: null };
 	} catch (error) {
-		return { categories: [], goals: [], subgoals: [], tasks: [], streaks: [], visionItems: [], error };
+		return {
+			categories: [],
+			goals: [],
+			subgoals: [],
+			tasks: [],
+			streaks: [],
+			visionItems: [],
+			error
+		};
 	}
 };

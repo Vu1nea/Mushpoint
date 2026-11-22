@@ -56,6 +56,18 @@ describe('memory store', () => {
     await store.remove(path); // missing is a no-op
     expect(store.objects.has(path)).toBe(false);
   });
+
+  it("removeAllFor drops only that user's objects", async () => {
+    const store = createMemoryImageStore();
+    const a = randomUUID();
+    const b = randomUUID();
+    await store.put(a, PNG, 'image/png');
+    await store.put(a, JPEG, 'image/jpeg');
+    const kept = await store.put(b, PNG, 'image/png');
+    await store.removeAllFor(a);
+    expect([...store.objects.keys()]).toEqual([kept]);
+    await store.removeAllFor(a); // none left is a no-op
+  });
 });
 
 describe('supabase store', () => {
@@ -127,5 +139,48 @@ describe('supabase store', () => {
     expect(init.method).toBe('DELETE');
     expect(headers.get('apikey')).toBe(serviceKey);
     expect(JSON.parse(String(init.body))).toEqual({ prefixes: ['u/x.png'] });
+  });
+
+  it("removeAllFor lists the user's folder and deletes every object in one call", async () => {
+    const user = randomUUID();
+    const fetch = vi.fn(async (..._args: Parameters<typeof globalThis.fetch>) => json([]));
+    fetch.mockResolvedValueOnce(json([{ name: 'one.png' }, { name: 'two.jpg' }]));
+    const store = createSupabaseImageStore({ url, serviceKey, bucket: 'vision', fetch: fetch as typeof globalThis.fetch });
+    await store.removeAllFor(user);
+
+    expect(fetch).toHaveBeenCalledTimes(2);
+    const [listTarget, listInit] = fetch.mock.calls[0];
+    expect(String(listTarget)).toBe(`${url}/storage/v1/object/list/vision`);
+    expect(listInit!.method).toBe('POST');
+    expect(new Headers(listInit!.headers).get('apikey')).toBe(serviceKey);
+    expect(JSON.parse(String(listInit!.body))).toMatchObject({ prefix: user, limit: 1000, offset: 0 });
+    const [delTarget, delInit] = fetch.mock.calls[1];
+    expect(String(delTarget)).toBe(`${url}/storage/v1/object/vision`);
+    expect(delInit!.method).toBe('DELETE');
+    expect(JSON.parse(String(delInit!.body))).toEqual({ prefixes: [`${user}/one.png`, `${user}/two.jpg`] });
+  });
+
+  it('removeAllFor deletes in batches of at most 1000 objects', async () => {
+    const user = randomUUID();
+    const names = Array.from({ length: 2500 }, (_, i) => ({ name: `${i}.png` }));
+    const fetch = vi.fn(async (_target: Parameters<typeof globalThis.fetch>[0], init?: RequestInit) => {
+      if (init?.method !== 'POST') return json([]);
+      const { limit, offset } = JSON.parse(String(init.body)) as { limit: number; offset: number };
+      return json(names.slice(offset, offset + limit));
+    });
+    const store = createSupabaseImageStore({ url, serviceKey, bucket: 'vision', fetch: fetch as typeof globalThis.fetch });
+    await store.removeAllFor(user);
+
+    const deletes = fetch.mock.calls
+      .filter(([, init]) => init?.method === 'DELETE')
+      .map(([, init]) => (JSON.parse(String(init!.body)) as { prefixes: string[] }).prefixes);
+    expect(deletes.map((p) => p.length)).toEqual([1000, 1000, 500]);
+    expect(deletes.flat()).toEqual(names.map((n) => `${user}/${n.name}`));
+  });
+
+  it('removeAllFor sends no delete when the folder is empty', async () => {
+    const { store, fetch } = setup(json([]));
+    await store.removeAllFor(randomUUID());
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
