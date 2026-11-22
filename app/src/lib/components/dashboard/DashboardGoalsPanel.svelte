@@ -3,7 +3,7 @@
 	import Pill from 'mushpoint-design/svelte/Pill.svelte';
 	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import { goto } from '$app/navigation';
-	import type { Category, GoalSummary } from '$lib/api';
+	import { GOAL_STATUS_LABELS, type Category, type GoalSummary } from '$lib/api';
 	import { dueLabel, percent } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';
 	import { categoryColor } from '$lib/theme/category';
@@ -58,7 +58,11 @@
 					{#if goal.fromIdea}
 						<Icon name="idea" size={12} label="Promoted from an idea" />
 					{/if}
-					<span class="truncate">{goal.title}</span>
+					<a
+						href="/goals/{goal.id}"
+						class="truncate focus-visible:outline-2 focus-visible:outline-accent"
+						onclick={(event) => event.stopPropagation()}>{goal.title}</a
+					>
 				</span>
 			{:else if key === 'progress'}
 				<span class="flex items-center gap-2">
@@ -72,7 +76,7 @@
 			{:else if key === 'due'}
 				<span class="text-xs text-muted">{dueLabel(goal.dueDate)}</span>
 			{:else}
-				<Pill tone={statusTone(goal.status)}>Active</Pill>
+				<Pill tone={statusTone(goal.status)}>{GOAL_STATUS_LABELS[goal.status]}</Pill>
 			{/if}
 		{/snippet}
 	</DataTable>

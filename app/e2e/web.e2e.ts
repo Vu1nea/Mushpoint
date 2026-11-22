@@ -56,6 +56,13 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		await expect(summary).toContainText('Active goals');
 		await expect(page.getByRole('table', { name: 'Active goals' })).toContainText('E2E goal');
 		await expect(page.getByRole('table', { name: 'Tasks due today' })).toContainText('E2E task');
+		// The daily task is a habit, so its streak row carries the completion heatmap.
+		await expect(
+			page
+				.getByRole('listitem')
+				.filter({ hasText: 'E2E task' })
+				.getByRole('img', { name: /Completion history/ })
+		).toBeVisible();
 	});
 
 	await test.step('A uploads an image to the vision board', async () => {

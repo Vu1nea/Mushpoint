@@ -3,6 +3,7 @@
 	import { RECURRENCE_LABELS, type StreakCard as StreakCardData } from '$lib/api';
 	import { topStreaks } from '$lib/dashboard';
 	import Icon from '../ui/Icon.svelte';
+	import StreakHeatmap from '../streaks/StreakHeatmap.svelte';
 
 	interface Props {
 		streaks: StreakCardData[];
@@ -33,16 +34,19 @@
 	{:else}
 		<ul class="divide-y divide-subtle">
 			{#each top as card (card.task.id)}
-				<li class="flex items-center gap-3 px-4 py-2.5 text-sm">
-					<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
-					<span class="min-w-0 flex-1">
-						<span class="block truncate">{card.task.title}</span>
-						<span class="block text-xs text-muted">
-							{card.task.recurrence ? RECURRENCE_LABELS[card.task.recurrence] : 'One-off'}
+				<li class="flex flex-col gap-2 px-4 py-2.5 text-sm">
+					<div class="flex items-center gap-3">
+						<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
+						<span class="min-w-0 flex-1">
+							<span class="block truncate">{card.task.title}</span>
+							<span class="block text-xs text-muted">
+								{card.task.recurrence ? RECURRENCE_LABELS[card.task.recurrence] : 'One-off'}
+							</span>
 						</span>
-					</span>
-					<b class="tabular-nums">{card.current}</b>
-					<span class="text-xs text-muted">best {card.longest}</span>
+						<b class="tabular-nums">{card.current}</b>
+						<span class="text-xs text-muted">best {card.longest}</span>
+					</div>
+					<StreakHeatmap cells={card.cells} />
 				</li>
 			{/each}
 		</ul>
