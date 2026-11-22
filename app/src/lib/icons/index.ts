@@ -26,7 +26,8 @@ export type AppIconName =
 	| 'eye'
 	| 'eye-off'
 	| 'chevrons-right'
-	| 'chevrons-left';
+	| 'chevrons-left'
+	| 'search';
 
 export type IconName = DesignIconName | AppIconName;
 
@@ -45,7 +46,8 @@ const appIcons: Record<AppIconName, string> = {
 	'eye-off': `<path d="M10.6 5.6A9.6 9.6 0 0112 5.5c6 0 9.5 6.5 9.5 6.5a16.6 16.6 0 01-2.6 3.4M6.6 6.6C3.9 8.3 2.5 12 2.5 12S6 18.5 12 18.5a9.3 9.3 0 004.4-1.1"/><path d="M9.9 9.9a3 3 0 004.2 4.2M3 3l18 18"/>`,
 	// Double chevron for year steps; each stroke matches the design's `chevron-right`.
 	'chevrons-right': `<path d="M5 5l7 7-7 7"/><path d="M12 5l7 7-7 7"/>`,
-	'chevrons-left': `<path d="M19 5l-7 7 7 7"/><path d="M12 5l-7 7 7 7"/>`
+	'chevrons-left': `<path d="M19 5l-7 7 7 7"/><path d="M12 5l-7 7 7 7"/>`,
+	search: `<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>`
 };
 
 function isAppIcon(name: IconName): name is AppIconName {

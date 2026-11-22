@@ -25,6 +25,15 @@ test('the sidebar links to every built screen', async ({ page }) => {
 	await expect(page).toHaveURL(/\/tasks/);
 	await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible();
 
+	for (const [label, path] of [
+		['Dashboard', /\/$/],
+		['Idea Vault', /\/ideas/],
+		['Vision Board', /\/vision-board/]
+	] as const) {
+		await page.getByRole('link', { name: label, exact: true }).click();
+		await expect(page).toHaveURL(path);
+	}
+
 	await page.getByRole('link', { name: 'Settings' }).click();
 	await expect(page).toHaveURL(/\/settings/);
 	await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
@@ -84,4 +93,44 @@ test('the task drawer offers every cadence', async ({ page }) => {
 	for (const option of ["Doesn't repeat", 'Daily', 'Weekdays', 'Weekly']) {
 		await expect(page.getByRole('option', { name: option })).toBeVisible();
 	}
+});
+
+test('Ctrl+K opens the command palette and Enter opens the first match', async ({ page }) => {
+	const title = `Palette goal ${Date.now()}`;
+
+	await page.goto('/goals');
+	await page.getByRole('button', { name: 'New Goal' }).click();
+	const form = page.getByRole('dialog', { name: 'New Goal' });
+	await form.getByLabel('Title').fill(title);
+	await form.getByRole('button', { name: 'Create' }).click();
+	await expect(form).toBeHidden();
+
+	await page.goto('/tasks');
+	await page.keyboard.press('Control+k');
+	const palette = page.getByRole('dialog', { name: 'Search' });
+	await expect(palette).toBeVisible();
+
+	await page.getByRole('combobox').fill(title);
+	await expect(palette.getByRole('option', { name: new RegExp(title) })).toBeVisible();
+
+	await page.keyboard.press('Enter');
+	await expect(page).toHaveURL(/\/goals\/\d+$/);
+	await expect(palette).toBeHidden();
+});
+
+test('the palette opens from the search button and Escape closes it', async ({ page }) => {
+	await page.goto('/goals');
+
+	const button = page.getByRole('button', { name: 'Search', exact: true });
+	await button.click();
+	const palette = page.getByRole('dialog', { name: 'Search' });
+	await expect(palette).toBeVisible();
+	await expect(palette.getByText('Type to search')).toBeVisible();
+
+	await page.getByRole('combobox').fill('zzz-no-such-item');
+	await expect(palette.getByText('No results')).toBeVisible();
+
+	await page.keyboard.press('Escape');
+	await expect(palette).toBeHidden();
+	await expect(button).toBeFocused();
 });
