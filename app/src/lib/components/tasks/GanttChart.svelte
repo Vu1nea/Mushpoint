@@ -20,7 +20,7 @@
 </script>
 
 {#if chart.rows.length === 0}
-	<p class="border-y border-subtle px-4 py-8 text-center text-sm text-muted">
+	<p class="border-y border-subtle py-8 text-center text-sm text-muted">
 		Give a subgoal or direct task a due date to see it here.
 	</p>
 {:else}

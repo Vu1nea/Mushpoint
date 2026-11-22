@@ -19,6 +19,8 @@ const PNG = Buffer.from(
 /** Deletes a row through its menu when it exists; a no-op when it is already gone. */
 async function removeRow(page: Page, path: string, table: string | RegExp, title: string) {
 	await page.goto(path);
+	// The SPA renders its page only once its load has resolved; count after that.
+	await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 	const rows = page.getByRole('table', { name: table }).getByRole('row').filter({ hasText: title });
 	if ((await rows.count()) === 0) return;
 	await rows.getByRole('button', { name: `Actions for ${title}` }).click();
@@ -114,6 +116,7 @@ test('the task list filters by status, offers Edit and Delete, and contains a lo
 	} finally {
 		// The row is gone on the happy path; this only runs the delete if a step failed.
 		await page.goto('/tasks');
+		await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
 		const leftover = page
 			.getByRole('table', { name: 'Tasks' })
 			.getByRole('row')

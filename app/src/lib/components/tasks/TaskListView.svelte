@@ -107,6 +107,7 @@
 					<span class="shrink-0" onclick={(event) => event.stopPropagation()}>
 						<DashboardTaskToggle
 							{task}
+							disabled={isInertToday(task)}
 							{onMutated}
 							{onError}
 							onDone={(value) => (ticked[task.id] = value)}
