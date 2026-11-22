@@ -19,7 +19,7 @@
 		: 'pt-5 md:pt-7'}"
 >
 	<div class="min-w-0">
-		<h1 class="font-display text-2xl font-bold text-content">{title}</h1>
+		<h1 class="font-display text-2xl font-bold text-content md:text-3xl">{title}</h1>
 		{#if subtitle}
 			<p class="mt-1 text-sm text-muted">
 				{#if typeof subtitle === 'string'}{subtitle}{:else}{@render subtitle()}{/if}

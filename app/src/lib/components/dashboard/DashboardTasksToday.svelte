@@ -71,7 +71,7 @@
 <section class={className}>
 	<div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 page-gutter pt-1 pb-4">
 		<div class="min-w-0">
-			<h2 class="font-display text-xl font-bold text-content">Tasks today</h2>
+			<h2 class="font-display text-xl font-semibold text-content">Tasks today</h2>
 			{#if summary || overdue.length > 0}
 				<p class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted">
 					{#if summary}<span>{summary}</span>{/if}
