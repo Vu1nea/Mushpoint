@@ -28,6 +28,7 @@
 		type DueFilter
 	} from '$lib/kanban';
 	import { motion, stagger } from '$lib/motion';
+	import { isInertToday } from '$lib/taskList';
 	import { optimistic } from '$lib/optimistic';
 	import Icon from '../ui/Icon.svelte';
 	import Select from 'mushpoint-design/svelte/Select.svelte';
@@ -342,7 +343,7 @@
 
 			{#each paged[status].items as task, index (task.id)}
 				{@const parent = parentLabel(task)}
-				{@const inert = busy || Boolean(task.recurrence && !task.expectedToday)}
+				{@const inert = busy || isInertToday(task)}
 				{@const targets = moveTargets(task)}
 				<article
 					aria-label={task.title}

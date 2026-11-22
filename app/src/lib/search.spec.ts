@@ -71,6 +71,11 @@ describe('searchItems', () => {
 		expect(searchItems('r', data, 2)).toHaveLength(2);
 	});
 
+	it('returns nothing for a zero or negative limit', () => {
+		expect(searchItems('r', data, 0)).toEqual([]);
+		expect(searchItems('r', data, -1)).toEqual([]);
+	});
+
 	it('does not throw on a 200-char title', () => {
 		const long = 'a'.repeat(200);
 		const hits = searchItems('aaa', { goals: [goal(9, long)], tasks: [], ideas: [] });

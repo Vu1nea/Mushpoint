@@ -43,5 +43,5 @@ export function searchItems(
 		if (at === 0) prefix.push(hit);
 		else if (at > 0) inner.push(hit);
 	}
-	return [...prefix, ...inner].slice(0, limit);
+	return [...prefix, ...inner].slice(0, Math.max(0, limit));
 }

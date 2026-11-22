@@ -6,7 +6,10 @@
 	import type { GoalSummary, TaskSummary } from '$lib/api';
 	import { todaysTasks } from '$lib/dashboard';
 	import { dueLabel, dueTone } from '$lib/format';
+	import { taskColumn } from '$lib/kanban';
 	import { statusTone } from '$lib/statusTone';
+	import { displayColumn, isInertToday } from '$lib/taskList';
+	import { TASK_STATUS_LABELS } from '$lib/api';
 	import DashboardTaskToggle from './DashboardTaskToggle.svelte';
 
 	interface Props {
@@ -24,8 +27,14 @@
 	const today = $derived(todaysTasks(tasks));
 	const goalTitle = $derived(new Map(goals.map((goal) => [goal.id, goal.title])));
 
-	const isDone = (task: TaskSummary) =>
-		task.recurrence ? task.completedToday : task.status === 'done';
+	/** Ticks as just set, so the strike-through, pill and counts agree before the refresh lands. */
+	let ticked = $state<Record<number, boolean>>({});
+	/** The checkbox state, but only while it differs from server data. */
+	const shownColumn = (task: TaskSummary) => {
+		const tick = ticked[task.id];
+		return displayColumn(task, tick === (taskColumn(task) === 'done') ? undefined : tick);
+	};
+	const isDone = (task: TaskSummary) => shownColumn(task) === 'done';
 
 	let filter = $state<Filter>('all');
 
@@ -51,13 +60,6 @@
 		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const },
 		{ key: 'status', label: 'Status', width: '7.5rem' }
 	];
-
-	const statusLabel = (task: TaskSummary) =>
-		isDone(task) ? 'Done' : task.status === 'in_progress' ? 'In progress' : 'To do';
-	const tone = (task: TaskSummary) => (isDone(task) ? statusTone('done') : statusTone(task.status));
-
-	/** Ticks as just set, so a title strikes through before the refresh lands. */
-	let ticked = $state<Record<number, boolean>>({});
 </script>
 
 <section class={className}>
@@ -73,12 +75,13 @@
 				<div class="flex items-center gap-2.5">
 					<DashboardTaskToggle
 						{task}
+						disabled={isInertToday(task)}
 						{onMutated}
 						{onError}
 						onDone={(value) => (ticked[task.id] = value)}
 					/>
 					<div class="min-w-0">
-						<p class="truncate {ticked[task.id] ? 'text-muted line-through' : ''}">{task.title}</p>
+						<p class="truncate {isDone(task) ? 'text-muted line-through' : ''}">{task.title}</p>
 						{#if task.goalId && goalTitle.get(task.goalId)}
 							<a
 								href="/goals/{task.goalId}"
@@ -94,7 +97,7 @@
 					{task.recurrence ? 'Repeats' : dueLabel(task.dueDate)}
 				</span>
 			{:else}
-				<Pill tone={tone(task)}>{statusLabel(task)}</Pill>
+				<Pill tone={statusTone(shownColumn(task))}>{TASK_STATUS_LABELS[shownColumn(task)]}</Pill>
 			{/if}
 		{/snippet}
 	</DataTable>

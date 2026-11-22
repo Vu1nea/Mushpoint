@@ -14,7 +14,13 @@
 	import { taskColumn } from '$lib/kanban';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';
-	import { displayColumn, filterTasks, statusCounts, type TaskListStatus } from '$lib/taskList';
+	import {
+		displayColumn,
+		filterTasks,
+		isInertToday,
+		statusCounts,
+		type TaskListStatus
+	} from '$lib/taskList';
 	import DashboardTaskToggle from '../dashboard/DashboardTaskToggle.svelte';
 	import { DUE_CLASSES, field } from '../ui';
 
@@ -109,6 +115,9 @@
 					<p class="truncate {shownColumn(task) === 'done' ? 'text-muted line-through' : ''}">
 						{task.title}
 					</p>
+					{#if isInertToday(task)}
+						<p class="truncate text-xs text-muted">Not due today</p>
+					{/if}
 					{#if fullLine(task)}
 						<p class="truncate text-xs text-muted md:hidden">{fullLine(task)}</p>
 					{/if}

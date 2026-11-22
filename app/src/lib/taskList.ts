@@ -42,3 +42,11 @@ export function displayColumn(task: TaskSummary, tick: boolean | undefined): Tas
 	if (task.recurrence) return 'todo';
 	return task.status === 'done' ? 'todo' : task.status;
 }
+
+/**
+ * A habit that is not scheduled today: it has nothing to tick, and the board
+ * shows its card inert for the same reason.
+ */
+export function isInertToday(task: TaskSummary): boolean {
+	return Boolean(task.recurrence && !task.expectedToday);
+}

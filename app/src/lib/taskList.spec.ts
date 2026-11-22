@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { TaskStatus, TaskSummary } from './api/types';
-import { displayColumn, filterTasks, statusCounts } from './taskList';
+import { displayColumn, filterTasks, isInertToday, statusCounts } from './taskList';
 
 function task(id: number, title: string, status: TaskStatus = 'todo'): TaskSummary {
 	return {
@@ -119,5 +119,25 @@ describe('displayColumn', () => {
 		expect(displayColumn(task(1, 'a', 'in_progress'), false)).toBe('in_progress');
 		expect(displayColumn(rec(true), false)).toBe('todo');
 		expect(displayColumn(task(1, 'a', 'done'), false)).toBe('todo');
+	});
+});
+
+describe('isInertToday', () => {
+	const recurring = (expectedToday: boolean): TaskSummary => ({
+		...task(1, 'a'),
+		recurrence: 'daily',
+		expectedToday
+	});
+
+	it('is true for a recurring task that is not expected today', () => {
+		expect(isInertToday(recurring(false))).toBe(true);
+	});
+
+	it('is false for a recurring task expected today', () => {
+		expect(isInertToday(recurring(true))).toBe(false);
+	});
+
+	it('is false for a task that does not repeat', () => {
+		expect(isInertToday({ ...task(1, 'a'), expectedToday: false })).toBe(false);
 	});
 });

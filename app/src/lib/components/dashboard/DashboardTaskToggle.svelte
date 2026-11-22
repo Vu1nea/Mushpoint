@@ -10,9 +10,11 @@
 		onError: (error: unknown) => void;
 		/** Reports the tick as the user sees it, so the row can restyle at once. */
 		onDone?: (done: boolean) => void;
+		/** Nothing to tick, for example a habit that is not scheduled today. */
+		disabled?: boolean;
 	}
 
-	let { task, onMutated, onError, onDone }: Props = $props();
+	let { task, onMutated, onError, onDone, disabled = false }: Props = $props();
 
 	/** A habit has no lasting status: ticking it logs today's completion instead
 	 * of writing `status = 'done'`, so it stays in sync with the board and streaks. */
@@ -42,4 +44,4 @@
 	}
 </script>
 
-<Checkbox checked={done} label="Mark {task.title} done" onchange={toggle} />
+<Checkbox checked={done} label="Mark {task.title} done" {disabled} onchange={toggle} />
