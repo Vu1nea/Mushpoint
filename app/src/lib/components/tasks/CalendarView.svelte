@@ -409,12 +409,12 @@
 	<section class="mt-4 md:hidden" aria-label="Tasks on {longDayLabel(day)}">
 		<h3 class="mb-2 text-sm font-semibold">{longDayLabel(day)}</h3>
 		{#if selectedTasks.length > 0}
-			<ul class="mb-2.5 flex flex-col gap-1.5">
+			<ul class="mb-2.5 flex flex-col">
 				{#each selectedTasks as task (task.id)}
 					<li>
 						<button
 							type="button"
-							class="flex min-h-11 w-full items-center gap-2 rounded-control border border-subtle bg-surface px-3 py-2 text-left text-sm transition-colors hover:bg-accent/10 {DUE_CLASSES[
+							class="flex min-h-11 w-full items-center gap-2 border-b border-subtle px-1 py-2 text-left text-sm transition-colors hover:bg-accent/10 {DUE_CLASSES[
 								dueTone(task.dueDate)
 							]}"
 							onclick={() => onEditTask(task)}
