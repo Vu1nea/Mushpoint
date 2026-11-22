@@ -100,6 +100,7 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 
 			await pageB.goto('/tasks');
 			await expect(pageB.getByRole('heading', { name: 'Tasks' })).toBeVisible();
+			await pageB.getByRole('tab', { name: 'Board' }).click();
 			await expect(pageB.getByRole('heading', { name: 'To do' })).toBeVisible();
 			await expect(pageB.getByText('E2E task')).toHaveCount(0);
 

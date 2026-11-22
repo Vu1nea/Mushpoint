@@ -58,6 +58,29 @@ describe('filterTasks', () => {
 	});
 });
 
+describe('recurring tasks follow the board column rule', () => {
+	const daily = (id: number, completedToday: boolean): TaskSummary => ({
+		...task(id, `Daily ${id}`),
+		recurrence: 'daily',
+		completedToday
+	});
+	const list = [daily(10, true), daily(11, false), task(12, 'Plain done', 'done')];
+
+	it('counts a recurring task completed today as done', () => {
+		expect(statusCounts(list)).toEqual({ all: 3, todo: 1, in_progress: 0, done: 2 });
+	});
+
+	it('excludes it from the To do filter and includes it in Done', () => {
+		expect(filterTasks(list, { status: 'todo', query: '' }).map((t) => t.id)).toEqual([11]);
+		expect(filterTasks(list, { status: 'done', query: '' }).map((t) => t.id)).toEqual([10, 12]);
+	});
+
+	it('shows a recurring task not completed today as to do, like the board', () => {
+		const t = { ...daily(13, false), status: 'in_progress' as const };
+		expect(statusCounts([t]).todo).toBe(1);
+	});
+});
+
 describe('statusCounts', () => {
 	it('counts per status and in total', () => {
 		expect(statusCounts(tasks)).toEqual({ all: 4, todo: 1, in_progress: 1, done: 2 });

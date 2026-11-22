@@ -11,6 +11,7 @@
 		type SubgoalDetail,
 		type TaskSummary
 	} from '$lib/api';
+	import { taskColumn } from '$lib/kanban';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';
 	import { filterTasks, statusCounts, type TaskListStatus } from '$lib/taskList';
@@ -56,13 +57,11 @@
 		{ key: 'actions', label: '', width: '3rem', align: 'end' as const }
 	];
 
-	const subLine = (task: TaskSummary) =>
-		[
-			task.goalId ? goalTitle.get(task.goalId) : undefined,
-			task.subgoalId ? subgoalTitle.get(task.subgoalId) : undefined
-		]
-			.filter(Boolean)
-			.join(' / ');
+	const goalOf = (task: TaskSummary) => (task.goalId ? goalTitle.get(task.goalId) : undefined);
+	const subgoalOf = (task: TaskSummary) =>
+		task.subgoalId ? subgoalTitle.get(task.subgoalId) : undefined;
+	const fullLine = (task: TaskSummary) =>
+		[goalOf(task), subgoalOf(task)].filter(Boolean).join(' / ');
 
 	/** Ticks as just set, so a title strikes through before the refresh lands. */
 	let ticked = $state<Record<number, boolean>>({});
@@ -103,8 +102,11 @@
 				</span>
 				<div class="min-w-0">
 					<p class="truncate {ticked[task.id] ? 'text-muted line-through' : ''}">{task.title}</p>
-					{#if subLine(task)}
-						<p class="truncate text-xs text-muted">{subLine(task)}</p>
+					{#if fullLine(task)}
+						<p class="truncate text-xs text-muted md:hidden">{fullLine(task)}</p>
+					{/if}
+					{#if subgoalOf(task)}
+						<p class="truncate text-xs text-muted max-md:hidden">{subgoalOf(task)}</p>
 					{/if}
 				</div>
 			</div>
@@ -117,7 +119,9 @@
 				{task.dueDate ? dueLabel(task.dueDate) : ''}
 			</span>
 		{:else if key === 'status'}
-			<Pill tone={statusTone(task.status)}>{TASK_STATUS_LABELS[task.status]}</Pill>
+			{@const column = taskColumn(task)}
+			{@const shown = ticked[task.id] ? 'done' : column === 'done' ? 'todo' : column}
+			<Pill tone={statusTone(shown)}>{TASK_STATUS_LABELS[shown]}</Pill>
 		{:else}
 			<RowMenu
 				label="Actions for {task.title}"

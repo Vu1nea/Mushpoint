@@ -1,3 +1,4 @@
+import { taskColumn } from './kanban';
 import type { TaskStatus, TaskSummary } from './api/types';
 
 export type TaskListStatus = 'all' | TaskStatus;
@@ -15,7 +16,7 @@ export function filterTasks(
 	const needle = query.trim().toLowerCase();
 	return tasks.filter(
 		(task) =>
-			(status === 'all' || task.status === status) &&
+			(status === 'all' || taskColumn(task) === status) &&
 			(needle === '' || task.title.toLowerCase().includes(needle))
 	);
 }
@@ -27,6 +28,6 @@ export function statusCounts(tasks: TaskSummary[]): Record<TaskListStatus, numbe
 		in_progress: 0,
 		done: 0
 	};
-	for (const task of tasks) counts[task.status] += 1;
+	for (const task of tasks) counts[taskColumn(task)] += 1;
 	return counts;
 }

@@ -15,6 +15,7 @@
 	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import { button } from '$lib/components/ui';
+	import { taskColumn } from '$lib/kanban';
 	import { optimistic } from '$lib/optimistic';
 
 	let { data } = $props();
@@ -32,7 +33,7 @@
 	] as const;
 	type TaskView = (typeof TASK_VIEWS)[number]['value'];
 	let view = $state<TaskView>('list');
-	const openCount = $derived(data.tasks.filter((task) => task.status !== 'done').length);
+	const openCount = $derived(data.tasks.filter((task) => taskColumn(task) !== 'done').length);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
