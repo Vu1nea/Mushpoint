@@ -43,7 +43,7 @@ test('the sidebar collapses to an icon rail', async ({ page }) => {
 	const wordmark = page.getByText('Mushpoint', { exact: true });
 	await expect(wordmark).toBeVisible();
 
-	await page.getByRole('button', { name: 'Toggle sidebar' }).click();
+	await page.getByRole('button', { name: 'Collapse', exact: true }).click();
 
 	await expect(wordmark).toBeHidden();
 	await expect(page.getByRole('link', { name: 'Goal Tracker' })).toBeVisible();

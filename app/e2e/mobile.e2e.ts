@@ -74,7 +74,7 @@ test('the desktop sidebar is hidden on phones', async ({ page }) => {
 	await page.goto('/goals');
 	await settle(page);
 
-	await expect(page.getByRole('button', { name: 'Toggle sidebar' })).toBeHidden();
+	await expect(page.getByRole('button', { name: 'Collapse', exact: true })).toBeHidden();
 	await expect(page.getByRole('link', { name: 'Goal Tracker', exact: true })).toBeHidden();
 	await expect(page.getByRole('link', { name: 'Task Manager', exact: true })).toBeHidden();
 });
