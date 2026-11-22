@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Stat from 'mushpoint-design/svelte/Stat.svelte';
+	import { button } from 'mushpoint-design/utils/ui';
 	import { invalidateAll } from '$app/navigation';
 	import DashboardGoalsPanel from '$lib/components/dashboard/DashboardGoalsPanel.svelte';
 	import DashboardQuickAdd from '$lib/components/dashboard/DashboardQuickAdd.svelte';
@@ -6,7 +8,9 @@
 	import DashboardTasksToday from '$lib/components/dashboard/DashboardTasksToday.svelte';
 	import DashboardUpcoming from '$lib/components/dashboard/DashboardUpcoming.svelte';
 	import DashboardVisionPreview from '$lib/components/dashboard/DashboardVisionPreview.svelte';
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import { dashboardStats } from '$lib/dashboard';
 
 	let { data } = $props();
 
@@ -15,47 +19,69 @@
 	const onError = (error: unknown) => {
 		actionError = error;
 	};
+
+	const stats = $derived(dashboardStats(data.goals, data.tasks, data.streaks));
+
+	const subtitle = $derived(
+		[
+			new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' }),
+			stats.dueToday > 0 ? `${stats.dueToday} due today` : ''
+		]
+			.filter(Boolean)
+			.join(' · ')
+	);
 </script>
 
 <svelte:head><title>Dashboard · Mushpoint</title></svelte:head>
 
-<header class="mb-6">
-	<h1 class="font-display text-2xl font-bold sm:text-3xl">Dashboard</h1>
-</header>
+<PageHeader title="Dashboard" {subtitle}>
+	{#snippet actions()}
+		<DashboardQuickAdd onAdded={invalidateAll} {onError} class="max-md:hidden" />
+		<a href="/goals" class={button.primary}>New goal</a>
+	{/snippet}
+</PageHeader>
 
 {#if data.error}
-	<div class="mb-6"><ErrorBanner error={data.error} /></div>
+	<div class="px-4 pb-4 md:px-8"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="mb-6"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
+	<div class="px-4 pb-4 md:px-8">
+		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
+	</div>
 {/if}
 
-<div class="grid grid-cols-1 gap-4 lg:auto-rows-[minmax(160px,320px)] lg:grid-cols-12">
-	<DashboardGoalsPanel
-		goals={data.goals}
-		categories={data.categories}
-		class="mp-enter lg:col-span-7 lg:col-start-1 lg:row-start-1"
-	/>
-	<DashboardVisionPreview
-		items={data.visionItems}
-		class="mp-enter lg:col-span-5 lg:col-start-8 lg:row-start-1"
-	/>
-	<DashboardTasksToday
-		tasks={data.tasks}
-		onMutated={invalidateAll}
-		{onError}
-		class="mp-enter lg:col-span-4 lg:col-start-1 lg:row-start-2"
-	/>
-	<DashboardStreaks
-		streaks={data.streaks}
-		class="mp-enter lg:col-span-4 lg:col-start-5 lg:row-start-2"
-	/>
-	<DashboardUpcoming
-		goals={data.goals}
-		subgoals={data.subgoals}
-		tasks={data.tasks}
-		class="mp-enter lg:col-span-4 lg:col-start-9 lg:row-start-2"
-	/>
+<div
+	class="mp-enter grid grid-cols-3 gap-4 border-b border-subtle px-4 pb-4 md:flex md:gap-12 md:px-8"
+	role="group"
+	aria-label="Summary"
+>
+	<Stat label="Active goals" value={stats.activeGoals} />
+	<Stat label="Due today" value={stats.dueToday} />
+	<Stat label="Best streak (days)" value={stats.bestStreak} />
 </div>
 
-<DashboardQuickAdd onAdded={invalidateAll} {onError} class="mp-enter mt-4 max-md:hidden" />
+<DashboardTasksToday
+	tasks={data.tasks}
+	goals={data.goals}
+	onMutated={invalidateAll}
+	{onError}
+	class="mp-enter border-b border-subtle pb-2"
+/>
+
+<div class="mp-enter grid border-b border-subtle md:grid-cols-2 md:divide-x md:divide-subtle">
+	<DashboardStreaks streaks={data.streaks} class="max-md:border-b max-md:border-subtle" />
+	<DashboardVisionPreview items={data.visionItems} />
+</div>
+
+<DashboardGoalsPanel
+	goals={data.goals}
+	categories={data.categories}
+	class="mp-enter border-b border-subtle pb-2"
+/>
+
+<DashboardUpcoming
+	goals={data.goals}
+	subgoals={data.subgoals}
+	tasks={data.tasks}
+	class="mp-enter pb-2"
+/>

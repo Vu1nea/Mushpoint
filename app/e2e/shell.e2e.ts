@@ -16,6 +16,32 @@ test('the root route lands on the Dashboard', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
 
+test('a new user sees the stat strip and an empty message in every section', async ({ page }) => {
+	await page.goto('/');
+
+	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+	await expect(page.getByRole('link', { name: 'New goal' })).toBeVisible();
+
+	const summary = page.getByRole('group', { name: 'Summary' });
+	for (const label of ['Active goals', 'Due today', 'Best streak (days)']) {
+		await expect(summary.getByText(label)).toBeVisible();
+	}
+	await expect(summary.getByRole('definition').filter({ hasText: /^0$/ })).toHaveCount(3);
+
+	for (const title of ['Tasks today', 'Streaks', 'Vision board', 'Goals', 'Upcoming']) {
+		await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible();
+	}
+	for (const message of [
+		'Nothing due today.',
+		'No habits tracked yet.',
+		/Nothing pinned yet/,
+		'No active goals yet.',
+		'Nothing due soon.'
+	]) {
+		await expect(page.getByText(message)).toBeVisible();
+	}
+});
+
 test('the sidebar links to every built screen', async ({ page }) => {
 	await page.goto('/goals');
 

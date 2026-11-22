@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { StreakCard as StreakCardData } from '$lib/api';
+	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import { RECURRENCE_LABELS, type StreakCard as StreakCardData } from '$lib/api';
 	import { topStreaks } from '$lib/dashboard';
 	import Icon from '../ui/Icon.svelte';
-	import StreakCard from '../streaks/StreakCard.svelte';
-	import { sectionHeading } from '../ui';
 
 	interface Props {
 		streaks: StreakCardData[];
@@ -15,27 +14,37 @@
 	const top = $derived(topStreaks(streaks));
 </script>
 
-<section class="flex flex-col rounded-card border border-subtle bg-surface p-4.5 {className}">
-	<div class="mb-3 flex items-center justify-between gap-2">
-		<h2 class={sectionHeading}>Streaks</h2>
-		{#if streaks.length > top.length}
-			<a
-				href="/tasks"
-				class="flex items-center gap-0.5 text-xs font-semibold text-muted hover:text-content"
-			>
-				View all
-				<Icon name="chevron-right" size={12} />
-			</a>
-		{/if}
-	</div>
+<section class={className}>
+	<SectionHeader title="Streaks" count={streaks.length}>
+		{#snippet actions()}
+			{#if streaks.length > top.length}
+				<a
+					href="/tasks"
+					class="text-xs font-semibold text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
+				>
+					View all
+				</a>
+			{/if}
+		{/snippet}
+	</SectionHeader>
 
 	{#if top.length === 0}
-		<p class="flex-1 py-8 text-center text-md text-muted">No habits tracked yet.</p>
+		<p class="px-4 py-3 text-sm text-muted">No habits tracked yet.</p>
 	{:else}
-		<div class="grid gap-3 sm:grid-cols-2">
+		<ul class="divide-y divide-subtle">
 			{#each top as card (card.task.id)}
-				<StreakCard {card} />
+				<li class="flex items-center gap-3 px-4 py-2.5 text-sm">
+					<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
+					<span class="min-w-0 flex-1">
+						<span class="block truncate">{card.task.title}</span>
+						<span class="block text-xs text-muted">
+							{card.task.recurrence ? RECURRENCE_LABELS[card.task.recurrence] : 'One-off'}
+						</span>
+					</span>
+					<b class="tabular-nums">{card.current}</b>
+					<span class="text-xs text-muted">best {card.longest}</span>
+				</li>
 			{/each}
-		</div>
+		</ul>
 	{/if}
 </section>

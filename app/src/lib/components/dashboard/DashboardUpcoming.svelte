@@ -1,8 +1,9 @@
 <script lang="ts">
+	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import type { GoalSummary, Subgoal, TaskSummary } from '$lib/api';
 	import { buildUpcomingFeed } from '$lib/dashboard';
 	import { dueLabel, dueTone } from '$lib/format';
-	import { DUE_CLASSES, sectionHeading } from '../ui';
+	import { DUE_CLASSES } from '../ui';
 
 	interface Props {
 		goals: GoalSummary[];
@@ -18,22 +19,23 @@
 	const upcoming = $derived(buildUpcomingFeed(goals, subgoals, tasks).slice(0, 8));
 </script>
 
-<section
-	class="flex min-h-0 flex-col overflow-y-auto rounded-card border border-subtle bg-surface p-4.5 {className}"
->
-	<h2 class="{sectionHeading} mb-3">Upcoming</h2>
+<section class={className}>
+	<SectionHeader title="Upcoming" count={upcoming.length} />
 
 	{#if upcoming.length === 0}
-		<p class="flex-1 py-8 text-center text-md text-muted">Nothing due soon.</p>
+		<p class="px-4 py-3 text-sm text-muted">Nothing due soon.</p>
 	{:else}
-		<ul class="flex flex-col gap-2.5">
+		<ul class="divide-y divide-subtle">
 			{#each upcoming as item (`${item.kind}-${item.id}`)}
-				<li class="flex items-center gap-2.5 text-sm">
-					<span class="w-14 shrink-0 text-2xs font-bold tracking-wider text-muted uppercase">
+				<li class="flex items-center gap-3 px-4 py-2 text-sm">
+					<span class="w-16 shrink-0 text-2xs font-bold tracking-wider text-muted uppercase">
 						{KIND_LABELS[item.kind]}
 					</span>
 					{#if item.href}
-						<a href={item.href} class="min-w-0 flex-1 truncate">
+						<a
+							href={item.href}
+							class="min-w-0 flex-1 truncate focus-visible:outline-2 focus-visible:outline-accent"
+						>
 							{item.title}
 							{#if item.parentLabel}
 								<span class="text-muted">· {item.parentLabel}</span>

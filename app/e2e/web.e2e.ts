@@ -50,6 +50,12 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		await checkbox.click();
 		// Optimistic: checked straight away, before the server round trip settles.
 		await expect(checkbox).toBeChecked({ timeout: 1000 });
+
+		// The flat dashboard counts the goal and the daily task in its stat strip.
+		const summary = page.getByRole('group', { name: 'Summary' });
+		await expect(summary).toContainText('Active goals');
+		await expect(page.getByRole('table', { name: 'Active goals' })).toContainText('E2E goal');
+		await expect(page.getByRole('table', { name: 'Tasks due today' })).toContainText('E2E task');
 	});
 
 	await test.step('A uploads an image to the vision board', async () => {

@@ -103,6 +103,6 @@
 			<ErrorBanner {error} onDismiss={() => (error = null)} />
 		{/if}
 
-		<DashboardQuickAdd bare onAdded={added} onError={(e) => (error = e)} />
+		<DashboardQuickAdd stacked onAdded={added} onError={(e) => (error = e)} />
 	</div>
 {/if}
