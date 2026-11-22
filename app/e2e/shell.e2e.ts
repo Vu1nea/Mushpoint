@@ -276,3 +276,85 @@ test('the palette opens from the search button and Escape closes it', async ({ p
 	await expect(palette).toBeHidden();
 	await expect(button).toBeFocused();
 });
+
+test('the ideas screen is one h1 over a table, with an empty message for a new user', async ({
+	page
+}) => {
+	await page.goto('/ideas');
+
+	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ideas');
+	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+	await expect(page.getByRole('button', { name: 'New Idea' })).toBeVisible();
+	await expect(page.getByRole('searchbox', { name: 'Search ideas' })).toBeVisible();
+	await expect(page.getByRole('table', { name: 'Ideas' }).getByText(/No ideas yet/)).toBeVisible();
+});
+
+test('ideas are rows with tag chips; search, tag filter and the row menu work', async ({
+	page
+}, testInfo) => {
+	test.skip(testInfo.project.name !== 'desktop', 'creates ideas; desktop project only');
+	const suffix = Math.random().toString(36).slice(2, 8);
+	const title = `Idea ${suffix}`;
+	const other = `Other ${suffix}`;
+	const tag = `tag${suffix}`;
+
+	await page.goto('/ideas');
+	for (const [name, tags] of [
+		[title, [tag, 'alpha']],
+		[other, []]
+	] as const) {
+		await page.getByLabel('New idea title').fill(name);
+		const tagField = page.getByLabel('Tags for the new idea');
+		for (const t of tags) {
+			await tagField.fill(t);
+			await tagField.press('Enter');
+		}
+		await page.getByRole('button', { name: 'Add Idea' }).click();
+		await expect(page.getByRole('table', { name: 'Ideas' }).getByText(name)).toBeVisible();
+	}
+
+	const table = page.getByRole('table', { name: 'Ideas' });
+	const row = table.getByRole('row').filter({ hasText: title });
+	await expect(row).toBeVisible();
+	await expect(row.getByText(tag, { exact: true })).toBeVisible();
+
+	// Search narrows the rows by title and by tag name; no match shows the empty message.
+	const search = page.getByRole('searchbox', { name: 'Search ideas' });
+	await search.fill(suffix.toUpperCase());
+	await expect(table.getByRole('row').filter({ hasText: other })).toBeVisible();
+	await search.fill(tag);
+	await expect(table.getByRole('row').filter({ hasText: other })).toHaveCount(0);
+	await expect(row).toBeVisible();
+	await search.fill('no-such-idea-zzz');
+	await expect(table.getByText('No ideas match.')).toBeVisible();
+	await search.fill('');
+
+	// The tag filter drives the URL.
+	await page
+		.getByRole('navigation', { name: 'Filter ideas by tag' })
+		.getByRole('link', { name: tag, exact: true })
+		.click();
+	await expect(page).toHaveURL(/tag=/);
+	await expect(table.getByRole('row').filter({ hasText: other })).toHaveCount(0);
+	await expect(row).toBeVisible();
+
+	await row.getByRole('button', { name: `Actions for ${title}` }).click();
+	const menu = page.getByRole('menu');
+	for (const item of ['Edit', 'Promote to goal', 'Delete']) {
+		await expect(menu.getByRole('menuitem', { name: item })).toBeVisible();
+	}
+	await page.keyboard.press('Escape');
+
+	// Clean up so later tests still see an empty account.
+	await page.goto('/ideas');
+	for (const name of [title, other]) {
+		await table
+			.getByRole('row')
+			.filter({ hasText: name })
+			.getByRole('button', { name: `Actions for ${name}` })
+			.click();
+		await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
+		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+		await expect(table.getByRole('row').filter({ hasText: name })).toHaveCount(0);
+	}
+});
