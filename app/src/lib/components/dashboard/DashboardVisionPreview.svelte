@@ -37,11 +37,11 @@
 			class="grid grid-cols-4 gap-2 page-gutter py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
 		>
 			{#each preview as item (item.id)}
-				<div class="aspect-square min-w-0 overflow-hidden rounded-control bg-surface-raised">
+				<div class="aspect-square min-w-0 overflow-hidden rounded-control">
 					{#if item.imageUrl}
 						<VisionImage src={item.imageUrl} alt="" class="size-full object-cover object-center" />
 					{:else}
-						<p class="line-clamp-5 p-2 font-display text-xs leading-snug font-semibold">
+						<p class="line-clamp-4 font-display text-xs leading-snug font-semibold text-content">
 							{item.quoteText}
 						</p>
 					{/if}
