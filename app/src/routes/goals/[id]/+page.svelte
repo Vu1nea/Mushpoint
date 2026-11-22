@@ -67,6 +67,13 @@
 	const boardTasks = $derived(
 		data.goal ? [...data.goal.directTasks, ...data.goal.subgoals.flatMap((s) => s.tasks)] : []
 	);
+	/** Archived goals read dimmed. Only static summary blocks get the filter: it makes a
+	 * containing block for fixed descendants, so never wrap the task views or popups. */
+	const dim = $derived(
+		`transition-[opacity,filter] duration-[var(--mp-duration-slow)] ${
+			data.goal?.status === 'archived' ? 'opacity-75 grayscale-[0.4]' : ''
+		}`
+	);
 	const stats = $derived(
 		data.goal
 			? goalStats(data.goal, data.goal.subgoals, boardTasks)
@@ -174,56 +181,53 @@
 {:else if data.goal}
 	{@const goal = data.goal}
 
-	<div
-		class="transition-[opacity,filter] duration-[var(--mp-duration-slow)] {goal.status ===
-		'archived'
-			? 'opacity-75 grayscale-[0.4]'
-			: ''}"
-	>
-		<div class="px-4 pt-4 md:px-8">
-			<a
-				href="/goals"
-				class="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-content"
-			>
-				<Icon name="chevron-right" size={13} weight={2.4} class="rotate-180" /> Back to Goals
-			</a>
-		</div>
-
-		<PageHeader
-			title={goal.title}
-			subtitle={[
-				goal.category?.name ?? 'Uncategorized',
-				TIMEFRAME_LABELS[goal.timeframe],
-				dueLabel(goal.dueDate),
-				goal.fromIdea ? 'Promoted from an idea' : ''
-			]
-				.filter(Boolean)
-				.join(' · ')}
-		>
-			{#snippet actions()}
-				{#if safeHref(goal.repoUrl)}
-					<a
-						href={safeHref(goal.repoUrl)}
-						target="_blank"
-						rel="noopener noreferrer"
-						class="{button.icon} mp-hit"
-					>
-						<Icon name="github" size={14} label="Open repository" />
-					</a>
-				{/if}
-				<button type="button" class="{button.icon} mp-hit" onclick={() => (editing = true)}>
-					<Icon name="edit" size={14} label="Edit goal" />
-				</button>
-				<button
-					type="button"
-					class="{button.icon} mp-hit"
-					disabled={busy}
-					onclick={() => (confirmingDelete = true)}
+	<div>
+		<div class={dim}>
+			<div class="px-4 pt-4 md:px-8">
+				<a
+					href="/goals"
+					class="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-content"
 				>
-					<Icon name="trash" size={14} label="Delete goal" />
-				</button>
-			{/snippet}
-		</PageHeader>
+					<Icon name="chevron-right" size={13} weight={2.4} class="rotate-180" /> Back to Goals
+				</a>
+			</div>
+
+			<PageHeader
+				title={goal.title}
+				subtitle={[
+					goal.category?.name ?? 'Uncategorized',
+					TIMEFRAME_LABELS[goal.timeframe],
+					dueLabel(goal.dueDate),
+					goal.fromIdea ? 'Promoted from an idea' : ''
+				]
+					.filter(Boolean)
+					.join(' · ')}
+			>
+				{#snippet actions()}
+					{#if safeHref(goal.repoUrl)}
+						<a
+							href={safeHref(goal.repoUrl)}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="{button.icon} mp-hit"
+						>
+							<Icon name="github" size={14} label="Open repository" />
+						</a>
+					{/if}
+					<button type="button" class="{button.icon} mp-hit" onclick={() => (editing = true)}>
+						<Icon name="edit" size={14} label="Edit goal" />
+					</button>
+					<button
+						type="button"
+						class="{button.icon} mp-hit"
+						disabled={busy}
+						onclick={() => (confirmingDelete = true)}
+					>
+						<Icon name="trash" size={14} label="Delete goal" />
+					</button>
+				{/snippet}
+			</PageHeader>
+		</div>
 
 		{#if actionError}
 			<div class="px-4 pb-4 md:px-8">
@@ -232,7 +236,7 @@
 		{/if}
 
 		<div
-			class="grid grid-cols-2 gap-4 px-4 pb-4 md:flex md:gap-12 md:px-8"
+			class="grid grid-cols-2 gap-4 px-4 pb-4 md:flex md:gap-12 md:px-8 {dim}"
 			role="group"
 			aria-label="Summary"
 		>
@@ -265,7 +269,7 @@
 			</div>
 		</div>
 
-		<section class="border-b border-subtle pb-4">
+		<section class="border-b border-subtle pb-4 {dim}">
 			<SectionHeader title="Motivation" />
 			<div class="px-4 pt-3 md:px-8">
 				{#if goal.motivationText}

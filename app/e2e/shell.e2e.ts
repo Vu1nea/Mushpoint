@@ -60,6 +60,32 @@ test('the goals screen is one h1 over a table, with an empty message for a new u
 	await expect(table.getByText(/No goals here yet/)).toBeVisible();
 });
 
+test('a goal can be deleted from the list menu', async ({ page }, testInfo) => {
+	test.skip(testInfo.project.name !== 'desktop', 'creates a goal; desktop project only');
+	const title = `Delete goal ${crypto.randomUUID().slice(0, 8)}`;
+
+	await page.goto('/goals');
+	await page.getByRole('button', { name: 'New Goal' }).click();
+	const form = page.getByRole('dialog', { name: 'New Goal' });
+	await form.getByLabel('Title').fill(title);
+	await form.getByRole('button', { name: 'Create' }).click();
+	await expect(form).toBeHidden();
+
+	const table = page.getByRole('table', { name: /goals$/ });
+	const row = table.getByRole('row').filter({ hasText: title });
+	await expect(row).toBeVisible();
+
+	await row.getByRole('button', { name: `Actions for ${title}` }).click();
+	await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
+
+	const dialog = page.getByRole('dialog');
+	await expect(dialog).toContainText('Its subgoals are removed.');
+	await expect(dialog).toContainText('stay as standalone tasks');
+	await dialog.getByRole('button', { name: 'Delete' }).click();
+	await expect(dialog).toBeHidden();
+	await expect(page.getByText(title)).toHaveCount(0);
+});
+
 test('the sidebar links to every built screen', async ({ page }) => {
 	await page.goto('/goals');
 

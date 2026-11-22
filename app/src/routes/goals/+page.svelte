@@ -206,7 +206,7 @@
 	{/if}
 {/snippet}
 
-{#if visible.length === 0}
+{#if visible.length === 0 && !data.error}
 	<DataTable
 		{columns}
 		rows={[] as GoalSummary[]}
@@ -216,7 +216,7 @@
 	>
 		{#snippet cell()}{/snippet}
 	</DataTable>
-{:else}
+{:else if visible.length > 0}
 	{#each grouped as [name, group] (name)}
 		<section class="mb-6">
 			<SectionHeader title={name} count={group.goals.length} />
@@ -247,7 +247,7 @@
 <ConfirmDialog
 	open={deletingGoal !== null}
 	title="Delete “{deletingGoal?.title ?? ''}”?"
-	body="This also removes its subgoals. Tasks linked to the goal stay, unlinked. This cannot be undone."
+	body="Its subgoals are removed. Tasks, including those in its subgoals, stay as standalone tasks. This cannot be undone."
 	{busy}
 	onConfirm={removeGoal}
 	onCancel={() => (deletingGoal = null)}
