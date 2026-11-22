@@ -8,7 +8,7 @@
 	import { statusTone } from '$lib/statusTone';
 	import { categoryColor } from '$lib/theme/category';
 	import Icon from '../ui/Icon.svelte';
-	import ProgressBar from '../ui/ProgressBar.svelte';
+	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
 
 	interface Props {
 		goals: GoalSummary[];

@@ -8,12 +8,12 @@
 	import Toolbar from 'mushpoint-design/svelte/Toolbar.svelte';
 	import { deleteGoal, GOAL_STATUS_LABELS, TIMEFRAME_LABELS, type GoalSummary } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
-	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
+	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
+	import Select from 'mushpoint-design/svelte/Select.svelte';
 	import { button, DUE_CLASSES } from '$lib/components/ui';
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';

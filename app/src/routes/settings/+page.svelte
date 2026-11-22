@@ -5,7 +5,7 @@
 	import { setStreakGraceDays } from '$lib/api/settings';
 	import AccountSettings from '$lib/components/account/AccountSettings.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';

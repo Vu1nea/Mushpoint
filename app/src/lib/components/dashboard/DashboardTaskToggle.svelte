@@ -2,7 +2,7 @@
 	import { setTaskCompletion, setTaskStatus, type TaskSummary } from '$lib/api';
 	import { taskColumn } from '$lib/kanban';
 	import { optimistic } from '$lib/optimistic';
-	import Checkbox from '../ui/Checkbox.svelte';
+	import Checkbox from 'mushpoint-design/svelte/Checkbox.svelte';
 
 	interface Props {
 		task: TaskSummary;

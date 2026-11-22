@@ -14,7 +14,7 @@
 	import { ACCEPTED_IMAGE_TYPES } from '$lib/images';
 	import Avatar from './Avatar.svelte';
 	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
-	import ErrorBanner from '../ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Spinner from '../ui/Spinner.svelte';
 	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import { button, field } from '../ui';

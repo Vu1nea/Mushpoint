@@ -4,7 +4,7 @@
 	import { deleteTask, setTaskCompletion, type TaskSummary } from '$lib/api';
 	import CalendarView from '$lib/components/tasks/CalendarView.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';

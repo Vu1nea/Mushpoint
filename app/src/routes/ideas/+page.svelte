@@ -6,13 +6,13 @@
 	import Pill from 'mushpoint-design/svelte/Pill.svelte';
 	import RowMenu from 'mushpoint-design/svelte/RowMenu.svelte';
 	import Toolbar from 'mushpoint-design/svelte/Toolbar.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import IdeaDrawer from '$lib/components/ideas/IdeaDrawer.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import TagInput from '$lib/components/ui/TagInput.svelte';
+	import TagInput from 'mushpoint-design/svelte/TagInput.svelte';
 	import { button, chip, field } from '$lib/components/ui';
 	import { formatDate } from '$lib/format';
 	import { filterIdeas, tagSummary } from '$lib/ideaList';

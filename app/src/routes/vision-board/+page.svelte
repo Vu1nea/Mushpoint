@@ -2,7 +2,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { deleteVisionItem, reorderVisionItems, type VisionItemView } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { button } from '$lib/components/ui';

@@ -2,7 +2,7 @@
 	import { AppError } from '$lib/api/error';
 	import { resendConfirmation, signUp } from '$lib/auth/session.svelte';
 	import AuthSheet from '$lib/components/auth/AuthSheet.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';

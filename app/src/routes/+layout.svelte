@@ -5,7 +5,7 @@
 	import { afterNavigate, invalidateAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
 	import mushIcon from '$lib/assets/mush-icon.webp';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import CommandPalette from '$lib/components/shell/CommandPalette.svelte';
 	import MobileMenuSheet from '$lib/components/shell/MobileMenuSheet.svelte';
 	import MobileQuickAdd from '$lib/components/shell/MobileQuickAdd.svelte';

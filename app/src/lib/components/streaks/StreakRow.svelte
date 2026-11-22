@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { RECURRENCE_LABELS, type StreakCard } from '$lib/api';
-	import Checkbox from '../ui/Checkbox.svelte';
+	import Checkbox from 'mushpoint-design/svelte/Checkbox.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import StreakHeatmap from './StreakHeatmap.svelte';
 

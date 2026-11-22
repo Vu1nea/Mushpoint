@@ -13,19 +13,19 @@
 		type TaskSummary
 	} from '$lib/api';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
-	import Checkbox from '$lib/components/ui/Checkbox.svelte';
-	import DatePicker from '$lib/components/ui/DatePicker.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
+	import Checkbox from 'mushpoint-design/svelte/Checkbox.svelte';
+	import DatePicker from 'mushpoint-design/svelte/DatePicker.svelte';
 	import GanttChart from '$lib/components/tasks/GanttChart.svelte';
 	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
 	import GoalStatusSegment from '$lib/components/goals/GoalStatusSegment.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
-	import ProgressBar from '$lib/components/ui/ProgressBar.svelte';
+	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
 	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import Stat from 'mushpoint-design/svelte/Stat.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
+	import Select from 'mushpoint-design/svelte/Select.svelte';
 	import SubgoalRow from '$lib/components/goals/SubgoalRow.svelte';
 	import SubgoalDrawer from '$lib/components/goals/SubgoalDrawer.svelte';
 	import TaskDrawer from '$lib/components/tasks/TaskDrawer.svelte';

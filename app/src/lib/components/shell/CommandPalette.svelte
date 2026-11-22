@@ -10,7 +10,7 @@
 	import { motion } from '$lib/motion';
 	import { searchItems, type SearchHit } from '$lib/search';
 	import { createRequestCounter, moveIndex } from '$lib/shell/paletteNav';
-	import ErrorBanner from '../ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import Spinner from '../ui/Spinner.svelte';
 

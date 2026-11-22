@@ -4,7 +4,7 @@
 	import { invalidateAll } from '$app/navigation';
 	import { motion } from '$lib/motion';
 	import DashboardQuickAdd from '../dashboard/DashboardQuickAdd.svelte';
-	import ErrorBanner from '../ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Icon from '../ui/Icon.svelte';
 
 	let open = $state(false);

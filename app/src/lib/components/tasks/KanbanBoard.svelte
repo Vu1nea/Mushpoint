@@ -30,7 +30,7 @@
 	import { motion, stagger } from '$lib/motion';
 	import { optimistic } from '$lib/optimistic';
 	import Icon from '../ui/Icon.svelte';
-	import Select from '../ui/Select.svelte';
+	import Select from 'mushpoint-design/svelte/Select.svelte';
 	import Tabs from '../ui/Tabs.svelte';
 	import { tabId, tabPanelId } from '../ui/tabIds';
 	import { button, field, sectionHeading } from '../ui';

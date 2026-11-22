@@ -9,7 +9,7 @@
 	import DashboardUpcoming from '$lib/components/dashboard/DashboardUpcoming.svelte';
 	import DashboardVisionPreview from '$lib/components/dashboard/DashboardVisionPreview.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import { dashboardStats } from '$lib/dashboard';
 
 	let { data } = $props();
