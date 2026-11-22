@@ -22,6 +22,9 @@ export default defineConfig({
 		}
 	],
 	testMatch: '**/*.e2e.{ts,js}',
+	// One retry on CI only: every test signs in against a live Supabase project,
+	// and a slow sign-in on a shared runner (seen on Firefox) is not a code bug.
+	retries: process.env.CI ? 1 : 0,
 	// Set explicitly: Playwright only infers baseURL from a single webServer, and
 	// there are two, so page.goto('/login') would have no host.
 	use: { baseURL: 'http://localhost:4173' },
