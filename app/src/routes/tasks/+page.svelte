@@ -9,6 +9,7 @@
 	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import { withTodayDone } from '$lib/streakToggle';
 	import StreakRow from '$lib/components/streaks/StreakRow.svelte';
 	import TaskListView from '$lib/components/tasks/TaskListView.svelte';
 	import TaskDrawer from '$lib/components/tasks/TaskDrawer.svelte';
@@ -33,7 +34,6 @@
 	] as const;
 	type TaskView = (typeof TASK_VIEWS)[number]['value'];
 	let view = $state<TaskView>('list');
-	const openCount = $derived(data.tasks.filter((task) => taskColumn(task) !== 'done').length);
 
 	async function run(action: () => Promise<unknown>) {
 		busy = true;
@@ -98,7 +98,7 @@
 
 <svelte:head><title>Tasks · Mushpoint</title></svelte:head>
 
-<PageHeader title="Tasks" subtitle="{openCount} open">
+<PageHeader title="Tasks">
 	{#snippet actions()}
 		<button type="button" class="{button.primary} shrink-0" onclick={() => newTask()}>
 			<Icon name="plus" size={15} weight={2.4} />
@@ -116,16 +116,16 @@
 	</div>
 {/if}
 
-<section class="section-gutter border-y border-subtle">
-	<SectionHeader title="Streaks" count={data.streaks.length} />
+<section class="section-gutter border-b border-subtle [&>:first-child]:border-b-0">
+	<SectionHeader title="Streaks" />
 	{#if data.streaks.length === 0}
 		<p class="page-gutter py-3 text-sm text-muted">No habits tracked yet.</p>
 	{:else}
-		<ul class="divide-y divide-subtle">
+		<ul class="flex flex-wrap gap-3 page-gutter py-3">
 			{#each data.streaks as card (card.task.id)}
 				<StreakRow
 					card={card.task.id in pendingToday
-						? { ...card, doneToday: pendingToday[card.task.id] }
+						? withTodayDone(card, pendingToday[card.task.id])
 						: card}
 					onToggle={(done) => toggleToday(card.task, done)}
 				/>

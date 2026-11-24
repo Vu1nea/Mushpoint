@@ -6,7 +6,7 @@ export const load = async () => {
 		// full parent list without a second round trip per card.
 		const [tasks, streaks, goals, subgoals] = await Promise.all([
 			listTasks(),
-			listStreaks(),
+			listStreaks(42),
 			listGoals(),
 			listSubgoals()
 		]);
