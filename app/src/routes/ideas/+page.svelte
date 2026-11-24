@@ -106,21 +106,7 @@
 
 <svelte:head><title>Ideas · Mushpoint</title></svelte:head>
 
-<PageHeader
-	title="Ideas"
-	subtitle="{data.ideas.length} {data.ideas.length === 1 ? 'idea' : 'ideas'}"
->
-	{#snippet actions()}
-		<button
-			type="button"
-			class="{button.primary} shrink-0"
-			onclick={() => document.getElementById('new-idea-title')?.focus()}
-		>
-			<Icon name="plus" size={15} weight={2.4} />
-			New Idea
-		</button>
-	{/snippet}
-</PageHeader>
+<PageHeader title="Ideas" />
 
 {#if data.error}
 	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
@@ -131,18 +117,18 @@
 	</div>
 {/if}
 
-<div class="mb-4 border-y border-subtle">
+<div class="mb-4">
 	<form class="flex flex-col gap-3 page-gutter py-3 md:flex-row md:items-start" onsubmit={addIdea}>
 		<div class="flex min-w-0 flex-1 flex-col gap-2">
 			<input
 				id="new-idea-title"
-				class="{field.dashed} w-full"
+				class="{field.input} w-full"
 				bind:value={quickAdd.title}
 				placeholder="Capture an idea…"
 				aria-label="New idea title"
 			/>
 			<input
-				class="{field.dashed} w-full text-sm"
+				class="{field.input} w-full"
 				bind:value={quickAdd.note}
 				placeholder="Optional note…"
 				aria-label="New idea note"
