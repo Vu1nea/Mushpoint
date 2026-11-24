@@ -34,15 +34,15 @@
 	}
 
 	const row = $derived(
-		`flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap font-medium text-muted transition-colors hover:bg-surface-raised hover:text-content disabled:opacity-50 ${open ? '' : 'justify-center'}`
+		`flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap font-medium text-muted transition-colors hover:bg-surface hover:text-content disabled:opacity-50 ${open ? '' : 'justify-center'}`
 	);
 </script>
 
-<div class="flex flex-col gap-px border-t border-subtle px-2.5 py-2">
+<div class="flex flex-col gap-px">
 	<!-- The single way into Settings: your name opens your account settings. -->
 	<a
 		href="/settings"
-		class="{row} {current ? 'bg-surface-raised' : ''}"
+		class="{row} {current ? 'bg-surface' : ''}"
 		aria-current={current ? 'page' : undefined}
 		title={open ? `${name} · Settings` : undefined}
 	>

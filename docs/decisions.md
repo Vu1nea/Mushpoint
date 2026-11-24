@@ -64,3 +64,26 @@ the project outgrows Supabase's plan limits, or running Postgres becomes a learn
 own. The move is a dump and restore plus a new `DATABASE_URL`; nothing in the code changes.
 
 Either way, backups and a tested restore are open items in `TODO.md` (section 8).
+
+## 3. One flat sheet instead of nested cards
+
+**Chosen:** the UI moved from cards inside cards to one flat sheet on a canvas, separated by
+hairlines, with dense rows. The reference is a Linear/Plane-style dashboard plus a reports-table
+layout. The `mushpoint-design` kit owns the tokens and primitives (`Sheet`, `SectionHeader`,
+`Stat`, `Pill`, `Segmented`, `Toolbar`, `Breadcrumb`, `DataTable`, `RowMenu`). The coquette and
+nocturne palettes stay, with one new `text-faint` token. The tasks page gained a List view,
+now the default. The vision board lost its tilt, polaroid frames, tape and sticky-note colours.
+Rounded surfaces with a shadow remain only for dialogs, popovers, drawers and draggable task
+cards.
+
+**Alternative:** keep the card layout and restyle it. Rejected: nested borders and shadows made
+every screen busy and wasted vertical space on dense lists.
+
+**Pinning:** the app pins the kit by commit on its `feature/flat-redesign` branch until that
+branch is merged to the kit's main and the pin is repointed.
+
+**Testing:** e2e was not run locally for this work (it needs the Supabase test project); unit
+tests, type check and lint pass, and CI on `dev` runs the e2e suite.
+
+**Revisit if:** dense rows hurt touch use on phones, or the kit branch stays unmerged long
+enough that the pin should move to main.

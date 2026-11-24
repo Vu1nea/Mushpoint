@@ -2,7 +2,7 @@
 	import { createIdea, createTask } from '$lib/api';
 	import Icon from '../ui/Icon.svelte';
 	import Spinner from '../ui/Spinner.svelte';
-	import { button, field, segment } from '../ui';
+	import { field, segment } from '../ui';
 
 	/** No goals here: a goal-sized thought starts as an idea and is promoted
 	 * once its timeframe, category and motivation are worked out. */
@@ -12,16 +12,20 @@
 		onAdded: () => Promise<void> | void;
 		onError: (error: unknown) => void;
 		class?: string;
-		/** Drops the card chrome, for use inside a sheet that already is one. */
-		bare?: boolean;
+		/** Stack the controls, for narrow containers such as the mobile sheet. */
+		stacked?: boolean;
 	}
 
-	let { onAdded, onError, class: className = '', bare = false }: Props = $props();
+	let { onAdded, onError, class: className = '', stacked = false }: Props = $props();
 
 	const KINDS: { value: QuickAddKind; label: string; icon: QuickAddKind }[] = [
 		{ value: 'idea', label: 'Idea', icon: 'idea' },
 		{ value: 'task', label: 'Task', icon: 'task' }
 	];
+
+	/** Outlined, so the page keeps one filled button (New goal). */
+	const addButton =
+		'inline-flex items-center justify-center gap-1.5 rounded-control border border-accent-ink bg-transparent px-4.5 py-2.75 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-ink/10 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 
 	let kind = $state<QuickAddKind>('idea');
 	let title = $state('');
@@ -57,11 +61,13 @@
 
 <form
 	onsubmit={submit}
-	class="flex flex-col items-stretch gap-2 {bare
-		? ''
-		: 'rounded-card border border-subtle bg-surface p-2.5 sm:flex-row sm:items-center'} {className}"
+	class="flex gap-2 {stacked ? 'flex-col items-stretch' : 'items-center'} {className}"
 >
-	<div class="flex w-full shrink-0 gap-1.5 sm:w-auto" role="group" aria-label="Quick-add type">
+	<div
+		class="flex gap-1.5 {stacked ? 'w-full' : 'shrink-0'}"
+		role="group"
+		aria-label="Quick-add type"
+	>
 		{#each KINDS as option (option.value)}
 			<button
 				type="button"
@@ -88,7 +94,7 @@
 
 	<button
 		type="submit"
-		class={button.primary}
+		class={addButton}
 		disabled={submitting || !title.trim()}
 		aria-busy={submitting}
 	>

@@ -24,10 +24,10 @@ interface ThemePreview {
  */
 export const THEME_PREVIEWS: Record<ThemeName, ThemePreview> = {
 	nocturne: {
-		bg: '#14152b',
-		surface: '#1f2147',
+		bg: '#05060f',
+		surface: '#0e0e17',
 		text: '#f2f1fb',
-		accents: ['#7b6fc4', '#4fd1c5', '#5ba8d4']
+		accents: ['#bbb0f4', '#4fd1c5', '#5ba8d4']
 	},
 	coquette: {
 		bg: '#fff8f5',

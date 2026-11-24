@@ -3,10 +3,10 @@
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { AppError } from '$lib/api/error';
 	import { completeCallback, setNewPassword, type CallbackResult } from '$lib/auth/session.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import AuthSheet from '$lib/components/auth/AuthSheet.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
 
@@ -55,20 +55,11 @@
 
 <svelte:head><title>Mushpoint</title></svelte:head>
 
-<div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img
-		src={mushIcon}
-		alt=""
-		width="40"
-		height="40"
-		class="mb-4 size-10 rounded-full object-cover"
-		aria-hidden="true"
-	/>
-
+<AuthSheet>
 	{#if status === 'working'}
 		<p class="text-sm text-muted" role="status">Signing you in…</p>
 	{:else if status === 'recovery'}
-		<h1 class="mb-1 font-display text-2xl font-bold">Choose a new password</h1>
+		<h1 class="mb-1 font-display text-xl font-bold">Choose a new password</h1>
 		<p class="mb-6 text-sm text-muted">You'll stay signed in afterwards</p>
 
 		{#if error}
@@ -104,11 +95,11 @@
 			</button>
 		</form>
 	{:else}
-		<h1 class="mb-1 font-display text-2xl font-bold">This link didn't work</h1>
+		<h1 class="mb-1 font-display text-xl font-bold">This link didn't work</h1>
 		<p class="mb-6 text-sm text-muted">
 			It may have expired, been used already, or been opened in a different browser than the one you
 			requested it from.
 		</p>
 		<a class="{button.primary} w-full" href="/login">Go to sign in</a>
 	{/if}
-</div>
+</AuthSheet>

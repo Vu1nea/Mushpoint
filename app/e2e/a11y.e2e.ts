@@ -75,7 +75,7 @@ for (const theme of THEMES) {
 			await page.goto('/tasks');
 			await page.waitForLoadState('networkidle');
 			await useTheme(page, theme);
-			await page.getByRole('button', { name: 'New Task' }).click();
+			await page.getByRole('button', { name: 'New Task', exact: true }).click();
 			const drawer = page.getByRole('dialog', { name: 'New Task' });
 
 			await drawer.getByRole('button', { name: 'Due date (optional)' }).click();

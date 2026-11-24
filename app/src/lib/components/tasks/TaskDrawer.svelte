@@ -11,8 +11,8 @@
 	} from '$lib/api';
 	import FormModal from '../ui/FormModal.svelte';
 	import Icon from '../ui/Icon.svelte';
-	import Select from '../ui/Select.svelte';
-	import DatePicker from '../ui/DatePicker.svelte';
+	import Select from 'mushpoint-design/svelte/Select.svelte';
+	import DatePicker from 'mushpoint-design/svelte/DatePicker.svelte';
 	import { weeklyAnchorLabel } from '$lib/format';
 	import { field } from '../ui';
 

@@ -14,9 +14,10 @@
 	import { ACCEPTED_IMAGE_TYPES } from '$lib/images';
 	import Avatar from './Avatar.svelte';
 	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
-	import ErrorBanner from '../ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Spinner from '../ui/Spinner.svelte';
-	import { button, field, sectionHeading } from '../ui';
+	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import { button, field } from '../ui';
 
 	interface Props {
 		username: string | null;
@@ -187,15 +188,15 @@
 </script>
 
 {#if error}
-	<div class="mb-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
+	<div class="mb-4 px-4"><ErrorBanner {error} onDismiss={() => (error = null)} /></div>
 {/if}
 {#if notice}
-	<p class="mb-4 text-sm text-muted" role="status">{notice}</p>
+	<p class="mb-4 px-4 text-sm text-muted" role="status">{notice}</p>
 {/if}
 
-<section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Profile</h2>
-	<div class="mb-5 flex items-center gap-4">
+<section class="mb-6 border-b border-subtle pb-6">
+	<SectionHeader title="Profile" />
+	<div class="my-5 flex items-center gap-4 px-4">
 		<Avatar name={username ?? auth.email ?? ''} url={avatarUrl} class="size-16 text-2xl" />
 		<div class="flex min-w-0 flex-col gap-1.5">
 			<div class="flex flex-wrap gap-2">
@@ -226,7 +227,7 @@
 			onchange={pickAvatar}
 		/>
 	</div>
-	<form class="flex flex-col gap-4" onsubmit={saveProfile}>
+	<form class="flex flex-col gap-4 px-4" onsubmit={saveProfile}>
 		<label>
 			<span class={field.label}>Username</span>
 			<input
@@ -276,9 +277,9 @@
 	</form>
 </section>
 
-<section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Password</h2>
-	<form class="flex flex-col gap-4" onsubmit={savePassword}>
+<section class="mb-6 border-b border-subtle pb-6">
+	<SectionHeader title="Password" />
+	<form class="mt-5 flex flex-col gap-4 px-4" onsubmit={savePassword}>
 		<label>
 			<span class={field.label}>Current password</span>
 			<input
@@ -321,9 +322,9 @@
 	</form>
 </section>
 
-<section class="mb-8">
-	<h2 class="{sectionHeading} mb-3">Your data</h2>
-	<div class="flex flex-wrap items-center gap-4 rounded-card border border-subtle p-4.5">
+<section class="mb-6">
+	<SectionHeader title="Your data" />
+	<div class="flex flex-wrap items-center gap-4 px-4 pt-4">
 		<div class="min-w-48 flex-1">
 			<div class="mb-0.5 text-md font-semibold">Download your data</div>
 			<p class="text-xs text-muted">
@@ -344,9 +345,9 @@
 	</div>
 </section>
 
-<section>
-	<h2 class="{sectionHeading} mb-3">Danger zone</h2>
-	<div class="flex flex-wrap items-center gap-4 rounded-card border border-danger/40 p-4.5">
+<section class="border-t border-danger/40 pt-6 pb-6">
+	<SectionHeader title="Danger zone" />
+	<div class="flex flex-wrap items-center gap-4 px-4 pt-4">
 		<div class="min-w-48 flex-1">
 			<div class="mb-0.5 text-md font-semibold">Delete account</div>
 			<div class="text-xs text-muted">Removes your login and everything you track</div>

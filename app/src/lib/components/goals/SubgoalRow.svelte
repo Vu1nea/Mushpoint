@@ -12,11 +12,11 @@
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { motion } from '$lib/motion';
 	import { optimistic } from '$lib/optimistic';
-	import Checkbox from '../ui/Checkbox.svelte';
+	import Checkbox from 'mushpoint-design/svelte/Checkbox.svelte';
 	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
 	import Icon from '../ui/Icon.svelte';
-	import ProgressBar from '../ui/ProgressBar.svelte';
-	import Select from '../ui/Select.svelte';
+	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
+	import Select from 'mushpoint-design/svelte/Select.svelte';
 	import TaskRow from '../tasks/TaskRow.svelte';
 	import { button, field } from '../ui';
 
@@ -89,8 +89,8 @@
 	}
 </script>
 
-<article class="overflow-hidden rounded-card border border-subtle bg-surface">
-	<div class="group flex items-center gap-2.5 px-4 py-3.5 sm:gap-3.5">
+<li class="list-none">
+	<div class="group flex min-h-11 items-center gap-2.5 py-2 sm:gap-3.5">
 		<button
 			type="button"
 			class="flex min-w-0 flex-1 items-center gap-2.5 text-left sm:gap-3.5"
@@ -104,21 +104,22 @@
 				class="text-muted transition-transform duration-200 {expanded ? 'rotate-90' : ''}"
 			/>
 			<div class="min-w-0 flex-1">
-				<p class="mb-1.5 truncate text-md font-semibold">{subgoal.title}</p>
-				<div class="max-w-[280px]">
-					<ProgressBar
-						value={subgoal.progress}
-						label="{subgoal.title} progress"
-						showValue={false}
-						height={6}
-						color="var(--mp-accent-secondary)"
-						{delay}
-					/>
-				</div>
+				<p class="mb-1 truncate text-sm font-semibold">{subgoal.title}</p>
+				<ProgressBar
+					value={subgoal.progress}
+					label="{subgoal.title} progress"
+					showValue={false}
+					height={5}
+					color="var(--mp-accent-secondary)"
+					{delay}
+				/>
 			</div>
-			<span class="shrink-0 text-xs text-muted tabular-nums">{percent(subgoal.progress)}</span>
+			<span class="w-10 shrink-0 text-right text-xs text-muted tabular-nums"
+				>{percent(subgoal.progress)}</span
+			>
 			<span
-				class="shrink-0 text-right text-2xs sm:min-w-[70px] {dueTone(subgoal.dueDate) === 'overdue'
+				class="shrink-0 text-right text-xs whitespace-nowrap sm:w-32 {dueTone(subgoal.dueDate) ===
+				'overdue'
 					? 'text-warn'
 					: 'text-muted'}"
 			>
@@ -153,10 +154,7 @@
 	/>
 
 	{#if expanded}
-		<div
-			class="flex flex-col gap-2 pt-0 pr-4 pb-4 pl-4 sm:pl-11"
-			transition:slide={{ duration: motion(180) }}
-		>
+		<div class="flex flex-col gap-2 pb-3 pl-6 sm:pl-8" transition:slide={{ duration: motion(180) }}>
 			{#if subgoal.tasks.length > 0}
 				<ul class="flex flex-col">
 					{#each subgoal.tasks as task (task.id)}
@@ -192,4 +190,4 @@
 			</form>
 		</div>
 	{/if}
-</article>
+</li>

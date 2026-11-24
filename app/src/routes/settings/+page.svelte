@@ -5,12 +5,16 @@
 	import { setStreakGraceDays } from '$lib/api/settings';
 	import AccountSettings from '$lib/components/account/AccountSettings.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
 	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
-	import { button, field, sectionHeading } from '$lib/components/ui';
+	import { button, field } from '$lib/components/ui';
+	import { row } from 'mushpoint-design/utils/ui';
+	import Pill from 'mushpoint-design/svelte/Pill.svelte';
+	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import { stagger } from '$lib/motion';
 	import { CATEGORY_COLOR_TOKENS, categoryColor } from '$lib/theme/category';
 	import {
@@ -125,30 +129,27 @@
 
 <svelte:head><title>Settings · Mushpoint</title></svelte:head>
 
-<!-- Centered column: max-w-115 fits two theme cards per row. -->
-<div class="mx-auto w-full max-w-115">
-	<header class="mb-6">
-		<h1 class="font-display text-2xl font-bold sm:text-3xl">Settings</h1>
-	</header>
+<PageHeader title="Settings" />
 
-	{#if actionError}
-		<div class="mb-4">
-			<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
-		</div>
-	{/if}
-	{#if data.error}
-		<div class="mb-4"><ErrorBanner error={data.error} /></div>
-	{/if}
+{#if actionError}
+	<div class="page-gutter pb-4">
+		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
+	</div>
+{/if}
+{#if data.error}
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
+{/if}
 
-	<Tabs
-		tabs={TABS}
-		value={tab}
-		onChange={selectTab}
-		id="settings"
-		label="Settings sections"
-		class="mb-6"
-	/>
+<Tabs
+	tabs={TABS}
+	value={tab}
+	onChange={selectTab}
+	id="settings"
+	label="Settings sections"
+	class="page-margin mb-2"
+/>
 
+<div class="max-w-2xl md:px-4">
 	{#if tab === 'account'}
 		<div {...panel('account')}>
 			<AccountSettings
@@ -158,9 +159,9 @@
 		</div>
 	{:else if tab === 'appearance'}
 		<div {...panel('appearance')}>
-			<section class="mb-8">
-				<h2 class="{sectionHeading} mb-3">Theme</h2>
-				<div class="grid grid-cols-2 gap-3.5 sm:flex sm:flex-wrap">
+			<section class="border-b border-subtle pb-6 last:border-b-0">
+				<SectionHeader title="Theme" />
+				<div class="grid grid-cols-2 gap-3.5 px-4 pt-4 sm:flex sm:flex-wrap">
 					{#each THEMES as name (name)}
 						{@const preview = THEME_PREVIEWS[name]}
 						<button
@@ -168,7 +169,7 @@
 							disabled={busy}
 							onclick={() => pickTheme(name)}
 							aria-pressed={theme.current === name}
-							class="min-w-0 rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 sm:w-55 {theme.current ===
+							class="min-w-0 rounded-2xl border-2 p-1 transition-transform duration-150 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:w-55 {theme.current ===
 							name
 								? 'border-accent'
 								: 'border-transparent'}"
@@ -192,12 +193,15 @@
 		</div>
 	{:else}
 		<div {...panel('tracking')}>
-			<section class="mb-8">
-				<h2 class="{sectionHeading} mb-3">Categories</h2>
-				<div class="flex flex-col gap-2">
+			<section class="mb-6 border-b border-subtle pb-6">
+				<SectionHeader title="Categories" count={data.categories.length} />
+				<p class="px-4 pt-3 pb-2 text-xs text-muted">
+					Group goals by category. Deleting one leaves its goals uncategorized.
+				</p>
+				<div>
 					{#each data.categories as category, index (category.id)}
 						<div
-							class="mp-enter flex items-center gap-2.5 rounded-card border border-subtle bg-surface px-3.5 py-2.5"
+							class="{row} mp-enter flex items-center gap-2.5 px-4 py-2"
 							style="--mp-delay:{stagger(index, 30)}"
 						>
 							{#if editingId === category.id}
@@ -218,7 +222,7 @@
 										</button>
 									</div>
 									<div
-										class="flex items-center gap-2"
+										class="flex flex-wrap items-center gap-2"
 										role="radiogroup"
 										aria-label="Color for {category.name}"
 									>
@@ -233,7 +237,7 @@
 												title={option.label}
 												disabled={busy}
 												onclick={() => (editingColor = option.token)}
-												class="size-5 rounded-full border-2 transition-transform duration-150 hover:scale-110 {selected
+												class="mp-hit size-5 rounded-full border-2 transition-transform duration-150 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
 													? 'border-current'
 													: 'border-transparent'}"
 												style="background:{categoryColor(option.token)}"
@@ -244,7 +248,7 @@
 							{:else}
 								<button
 									type="button"
-									class="size-2.5 rounded-full outline-offset-2 transition-transform duration-150 hover:scale-150"
+									class="mp-hit size-2.5 rounded-full outline-offset-2 transition-transform duration-150 hover:scale-150 focus-visible:outline-2 focus-visible:outline-accent"
 									style="background:{categoryColor(category.colorToken)}"
 									title="Change color"
 									aria-label="Change color of {category.name}"
@@ -252,14 +256,18 @@
 								></button>
 								<span class="min-w-0 flex-1 text-md wrap-anywhere">{category.name}</span>
 								{#if category.isDefault}
-									<span class="text-2xs text-muted">default</span>
+									<Pill tone="neutral">default</Pill>
 								{/if}
-								<button type="button" class={button.bare} onclick={() => startEditing(category)}>
+								<button
+									type="button"
+									class="{button.bare} mp-hit"
+									onclick={() => startEditing(category)}
+								>
 									<Icon name="edit" size={14} label="Edit {category.name}" />
 								</button>
 								<button
 									type="button"
-									class={button.bare}
+									class="{button.bare} mp-hit"
 									disabled={busy}
 									onclick={() => (deleting = { id: category.id, name: category.name })}
 								>
@@ -269,7 +277,7 @@
 						</div>
 					{/each}
 
-					<form onsubmit={addCategory}>
+					<form class="px-4 pt-3" onsubmit={addCategory}>
 						<input
 							class="{field.dashed} w-full"
 							bind:value={newCategoryName}
@@ -280,9 +288,9 @@
 				</div>
 			</section>
 
-			<section class="mb-8">
-				<h2 class="{sectionHeading} mb-3">Streaks</h2>
-				<div class="flex items-center gap-4 rounded-card border border-subtle bg-surface p-4.5">
+			<section class="pb-6">
+				<SectionHeader title="Streaks" />
+				<div class="flex items-center gap-4 px-4 pt-4">
 					<div class="min-w-0 flex-1">
 						<div class="mb-0.5 text-md font-semibold">Grace period</div>
 						<div class="text-xs text-muted">
@@ -291,7 +299,7 @@
 					</div>
 					<button
 						type="button"
-						class={button.icon}
+						class="{button.icon} mp-hit"
 						disabled={busy || !data.settings || grace === 0}
 						onclick={() => nudgeGrace(-1)}
 					>
@@ -307,7 +315,7 @@
 					</span>
 					<button
 						type="button"
-						class={button.icon}
+						class="{button.icon} mp-hit"
 						disabled={busy || !data.settings || grace === 7}
 						onclick={() => nudgeGrace(1)}
 					>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import Sheet from 'mushpoint-design/svelte/Sheet.svelte';
 	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { button } from '$lib/components/ui';
 
@@ -15,7 +16,7 @@
 <svelte:head><title>{notFound ? 'Not found' : 'Error'} · Mushpoint</title></svelte:head>
 
 <div class="mp-enter flex min-h-[70vh] items-center justify-center">
-	<div class="flex max-w-md flex-col items-center text-center">
+	<Sheet class="flex w-full max-w-md flex-col items-center p-6 text-center sm:p-8">
 		<img
 			src={mushIcon}
 			alt=""
@@ -54,7 +55,7 @@
 				</button>
 			{/if}
 		</div>
-	</div>
+	</Sheet>
 </div>
 
 <style>

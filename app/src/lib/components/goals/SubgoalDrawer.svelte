@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { updateSubgoal, type Subgoal } from '$lib/api';
-	import DatePicker from '../ui/DatePicker.svelte';
+	import DatePicker from 'mushpoint-design/svelte/DatePicker.svelte';
 	import FormModal from '../ui/FormModal.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import { field } from '../ui';

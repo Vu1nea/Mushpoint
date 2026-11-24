@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.webp';
 	import { safeNext } from '$lib/auth/routes';
 	import { EMAIL_NOT_CONFIRMED, resendConfirmation, signIn } from '$lib/auth/session.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import AuthSheet from '$lib/components/auth/AuthSheet.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
 	import { button, field } from '$lib/components/ui';
@@ -51,16 +51,8 @@
 
 <svelte:head><title>Sign in · Mushpoint</title></svelte:head>
 
-<div class="mp-enter w-full max-w-sm rounded-card border border-subtle bg-surface p-7">
-	<img
-		src={mushIcon}
-		alt=""
-		width="40"
-		height="40"
-		class="mb-4 size-10 rounded-full object-cover"
-		aria-hidden="true"
-	/>
-	<h1 class="mb-1 font-display text-2xl font-bold">Sign in</h1>
+<AuthSheet>
+	<h1 class="mb-1 font-display text-xl font-bold">Sign in</h1>
 	<p class="mb-6 text-sm text-muted">Welcome back to Mushpoint</p>
 
 	{#if deleted === '1'}
@@ -123,8 +115,10 @@
 		</button>
 	</form>
 
-	<div class="mt-5 flex flex-wrap justify-between gap-x-4 gap-y-2 text-sm">
+	<div
+		class="mt-6 flex flex-wrap justify-between gap-x-4 gap-y-2 border-t border-subtle pt-4 text-sm"
+	>
 		<a class="text-muted hover:text-content" href="/forgot-password">Forgot password?</a>
 		<a class="font-semibold text-accent-ink" href="/signup">Create an account</a>
 	</div>
-</div>
+</AuthSheet>

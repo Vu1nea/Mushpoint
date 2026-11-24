@@ -2,14 +2,20 @@
 	import { invalidateAll } from '$app/navigation';
 	import { createIdea, deleteIdea, promoteIdea, type GoalInput, type Idea } from '$lib/api';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
+	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
+	import Pill from 'mushpoint-design/svelte/Pill.svelte';
+	import RowMenu from 'mushpoint-design/svelte/RowMenu.svelte';
+	import Toolbar from 'mushpoint-design/svelte/Toolbar.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
 	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import IdeaDrawer from '$lib/components/ideas/IdeaDrawer.svelte';
+	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import TagInput from '$lib/components/ui/TagInput.svelte';
+	import TagInput from 'mushpoint-design/svelte/TagInput.svelte';
 	import { button, chip, field } from '$lib/components/ui';
-	import { stagger } from '$lib/motion';
+	import { formatDate } from '$lib/format';
+	import { filterIdeas, tagSummary } from '$lib/ideaList';
 
 	let { data } = $props();
 
@@ -22,6 +28,25 @@
 
 	let promoteDrawerOpen = $state(false);
 	let promotingIdea = $state<Idea | null>(null);
+
+	let query = $state('');
+	/** The tag filter is server-side (`?tag=`), so only the query narrows here. */
+	const rows = $derived(filterIdeas(data.ideas, { query, tag: null }));
+	const empty = $derived(
+		data.ideas.length > 0
+			? 'No ideas match.'
+			: data.activeTag
+				? `No ideas tagged “${data.activeTag}” yet.`
+				: 'No ideas yet. Capture one above.'
+	);
+
+	const columns = [
+		{ key: 'title', label: 'Idea' },
+		{ key: 'tags', label: 'Tags', width: '14rem', hideBelow: 'md' as const },
+		{ key: 'created', label: 'Created', width: '8rem', hideBelow: 'md' as const },
+		{ key: 'actions', label: '', width: '3.5rem', align: 'end' as const }
+	];
+	const MAX_TAGS = 3;
 
 	let quickAdd = $state({ title: '', note: '', tags: [] as string[] });
 
@@ -54,6 +79,7 @@
 	}
 
 	async function removeIdea() {
+		if (busy) return;
 		const idea = deletingIdea;
 		if (!idea) return;
 		deletingIdea = null;
@@ -78,119 +104,139 @@
 	}
 </script>
 
-<svelte:head><title>Idea Vault · Mushpoint</title></svelte:head>
+<svelte:head><title>Ideas · Mushpoint</title></svelte:head>
 
-<header class="mb-6">
-	<h1 class="font-display text-2xl font-bold sm:text-3xl">Idea Vault</h1>
-</header>
+<PageHeader title="Ideas" />
 
 {#if data.error}
-	<div class="mb-6"><ErrorBanner error={data.error} /></div>
+	<div class="page-gutter pb-4"><ErrorBanner error={data.error} /></div>
 {/if}
 {#if actionError}
-	<div class="mb-6"><ErrorBanner error={actionError} onDismiss={() => (actionError = null)} /></div>
-{/if}
-
-<form
-	class="mb-6 flex flex-col gap-3 rounded-card border border-subtle bg-surface p-4 sm:flex-row sm:items-start"
-	onsubmit={addIdea}
->
-	<div class="flex flex-1 flex-col gap-2">
-		<input
-			class="{field.dashed} w-full"
-			bind:value={quickAdd.title}
-			placeholder="Capture an idea…"
-			aria-label="New idea title"
-		/>
-		<input
-			class="{field.dashed} w-full text-sm"
-			bind:value={quickAdd.note}
-			placeholder="Optional note…"
-			aria-label="New idea note"
-		/>
-		<TagInput bind:tags={quickAdd.tags} ariaLabel="Tags for the new idea" placeholder="Add tags…" />
+	<div class="page-gutter pb-4">
+		<ErrorBanner error={actionError} onDismiss={() => (actionError = null)} />
 	</div>
-	<button type="submit" class={button.primary} disabled={busy} aria-busy={busy}>
-		{#if busy}
-			<Spinner size={15} />
-		{:else}
-			<Icon name="plus" size={15} weight={2.4} />
-		{/if}
-		{busy ? 'Adding…' : 'Add Idea'}
-	</button>
-</form>
-
-{#if data.tags.length > 0}
-	<nav class="mb-6 flex flex-wrap gap-2" aria-label="Filter ideas by tag">
-		<a
-			href="/ideas"
-			aria-current={!data.activeTag ? 'page' : undefined}
-			class={chip(!data.activeTag)}
-		>
-			All
-		</a>
-		{#each data.tags as tag (tag.id)}
-			<a
-				href="/ideas?tag={encodeURIComponent(tag.name)}"
-				aria-current={data.activeTag === tag.name ? 'page' : undefined}
-				class={chip(data.activeTag === tag.name)}
-			>
-				{tag.name}
-			</a>
-		{/each}
-	</nav>
 {/if}
 
-{#if data.ideas.length === 0 && !data.error}
-	<p class="px-5 py-12 text-center text-md text-muted">
-		{data.activeTag
-			? `No ideas tagged “${data.activeTag}” yet.`
-			: 'No ideas yet — capture one above.'}
-	</p>
-{:else}
-	<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each data.ideas as idea, index (idea.id)}
-			<li class="mp-enter" style="--mp-delay:{stagger(index)}">
-				<article class="h-full rounded-card border border-subtle bg-surface p-4">
-					<div class="flex items-start gap-3">
-						<div class="min-w-0 flex-1">
-							<p class="truncate text-base font-semibold">{idea.title}</p>
-							{#if idea.note}
-								<p class="mt-1 line-clamp-2 text-sm text-muted">{idea.note}</p>
-							{/if}
-							{#if idea.tags.length > 0}
-								<div class="mt-2 flex flex-wrap gap-1.5">
-									{#each idea.tags as tag (tag.id)}
-										<span
-											class="rounded-full bg-accent/15 px-2.5 py-0.5 text-2xs font-semibold text-accent-ink"
-										>
-											{tag.name}
-										</span>
-									{/each}
-								</div>
-							{/if}
-						</div>
-						<div class="flex shrink-0 gap-1">
-							<button type="button" class={button.icon} onclick={() => edit(idea)}>
-								<Icon name="edit" size={14} label="Edit {idea.title}" />
-							</button>
-							<button type="button" class={button.icon} onclick={() => promote(idea)}>
-								<Icon name="goal" size={14} label="Promote {idea.title} to a goal" />
-							</button>
-							<button
-								type="button"
-								class={button.icon}
-								disabled={busy}
-								onclick={() => (deletingIdea = idea)}
-							>
-								<Icon name="trash" size={14} label="Delete {idea.title}" />
-							</button>
-						</div>
+<div class="mb-4">
+	<form class="flex flex-col gap-3 page-gutter py-3 md:flex-row md:items-start" onsubmit={addIdea}>
+		<div class="flex min-w-0 flex-1 flex-col gap-2">
+			<input
+				id="new-idea-title"
+				class="{field.input} w-full"
+				bind:value={quickAdd.title}
+				placeholder="Capture an idea…"
+				aria-label="New idea title"
+			/>
+			<input
+				class="{field.input} w-full"
+				bind:value={quickAdd.note}
+				placeholder="Optional note…"
+				aria-label="New idea note"
+			/>
+			<TagInput
+				bind:tags={quickAdd.tags}
+				ariaLabel="Tags for the new idea"
+				placeholder="Add tags…"
+			/>
+		</div>
+		<button type="submit" class="{button.primary} shrink-0" disabled={busy} aria-busy={busy}>
+			{#if busy}
+				<Spinner size={15} />
+			{:else}
+				<Icon name="plus" size={15} weight={2.4} />
+			{/if}
+			{busy ? 'Adding…' : 'Add Idea'}
+		</button>
+	</form>
+</div>
+
+<div class="page-gutter pb-3">
+	<Toolbar>
+		<input
+			type="search"
+			class="{field.input} max-w-64 min-w-40 flex-1"
+			placeholder="Search ideas"
+			aria-label="Search ideas"
+			bind:value={query}
+		/>
+		{#if data.tags.length > 0}
+			<nav class="flex flex-wrap items-center gap-1" aria-label="Filter ideas by tag">
+				<a
+					href="/ideas"
+					aria-current={!data.activeTag ? 'page' : undefined}
+					class={chip(!data.activeTag)}
+				>
+					All
+				</a>
+				{#each data.tags as tag (tag.id)}
+					<a
+						href="/ideas?tag={encodeURIComponent(tag.name)}"
+						aria-current={data.activeTag === tag.name ? 'page' : undefined}
+						class={chip(data.activeTag === tag.name)}
+					>
+						{tag.name}
+					</a>
+				{/each}
+			</nav>
+		{/if}
+	</Toolbar>
+</div>
+
+{#if !data.error}
+	<div class="page-gutter">
+		<DataTable
+			{columns}
+			{rows}
+			rowKey={(idea) => idea.id}
+			{empty}
+			ariaLabel="Ideas"
+			onRowClick={edit}
+		>
+			{#snippet cell(idea, key)}
+				{#if key === 'title'}
+					<div class="min-w-0">
+						<button
+							type="button"
+							class="block max-w-full truncate text-left focus-visible:outline-2 focus-visible:outline-accent"
+							onclick={(event) => {
+								event.stopPropagation();
+								edit(idea);
+							}}>{idea.title}</button
+						>
+						{#if idea.note}
+							<p class="truncate text-xs text-muted">{idea.note}</p>
+						{/if}
 					</div>
-				</article>
-			</li>
-		{/each}
-	</ul>
+				{:else if key === 'tags'}
+					{@const summary = tagSummary(idea.tags, MAX_TAGS)}
+					<span class="flex flex-wrap items-center gap-1">
+						{#each summary.shown as tag (tag.id)}
+							<Pill tone="neutral">{tag.name}</Pill>
+						{/each}
+						{#if summary.more > 0}
+							<span class="text-xs text-muted">+{summary.more}</span>
+						{/if}
+					</span>
+				{:else if key === 'created'}
+					<span class="text-xs text-muted">{formatDate(idea.createdAt)}</span>
+				{:else}
+					<RowMenu
+						label="Actions for {idea.title}"
+						items={[
+							{ label: 'Edit', icon: 'edit', onSelect: () => edit(idea) },
+							{ label: 'Promote to goal', onSelect: () => promote(idea) },
+							{
+								label: 'Delete',
+								icon: 'trash',
+								danger: true,
+								onSelect: () => (deletingIdea = idea)
+							}
+						]}
+					/>
+				{/if}
+			{/snippet}
+		</DataTable>
+	</div>
 {/if}
 
 <IdeaDrawer

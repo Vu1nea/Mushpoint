@@ -80,3 +80,4 @@ playwright-report
 # Kubernetes secrets filled in from deploy/secret.example.yaml
 deploy/secret.yaml
 deploy/*.env
+ideas-expansion.md

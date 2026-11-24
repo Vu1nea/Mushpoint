@@ -4,21 +4,19 @@
 
 	import { afterNavigate, invalidateAll } from '$app/navigation';
 	import { navigating, page } from '$app/state';
-	import mushIcon from '$lib/assets/mush-icon.webp';
-	import ErrorBanner from '$lib/components/ui/ErrorBanner.svelte';
-	import Icon from '$lib/components/ui/Icon.svelte';
-	import MadeByCredit from '$lib/components/shell/MadeByCredit.svelte';
+	import ErrorBanner from 'mushpoint-design/svelte/ErrorBanner.svelte';
+	import CommandPalette from '$lib/components/shell/CommandPalette.svelte';
 	import MobileMenuSheet from '$lib/components/shell/MobileMenuSheet.svelte';
 	import MobileQuickAdd from '$lib/components/shell/MobileQuickAdd.svelte';
 	import MobileTabBar from '$lib/components/shell/MobileTabBar.svelte';
 	import MobileTopBar from '$lib/components/shell/MobileTopBar.svelte';
-	import SidebarUser from '$lib/components/shell/SidebarUser.svelte';
+	import Sidebar from '$lib/components/shell/Sidebar.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import ThemeSwitch from '$lib/components/shell/ThemeSwitch.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
 	import { isPublicRoute } from '$lib/auth/routes';
+	import { shouldTogglePalette } from '$lib/shell/paletteNav';
 	import { theme } from '$lib/theme/theme.svelte';
 
 	let { children, data } = $props();
@@ -68,6 +66,11 @@
 
 	onMount(() => {
 		sidebarOpen = localStorage.getItem(SIDEBAR_KEY) !== 'false';
+
+		// The dashboard's search button asks for the palette with this event.
+		const open = () => (paletteOpen = true);
+		window.addEventListener('mushpoint:open-palette', open);
+		return () => window.removeEventListener('mushpoint:open-palette', open);
 	});
 
 	let retrying = $state(false);
@@ -90,6 +93,18 @@
 	const isCurrent = (href: string) =>
 		href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
 
+	let paletteOpen = $state(false);
+
+	/** Ctrl+K / Cmd+K toggles the command palette from anywhere in the shell. */
+	function onGlobalKeydown(event: KeyboardEvent) {
+		if (bare || data.error) return;
+		const otherModal = document.querySelector('[aria-modal="true"]:not([data-palette])') !== null;
+		if (shouldTogglePalette(event, paletteOpen, otherModal)) {
+			event.preventDefault();
+			paletteOpen = !paletteOpen;
+		}
+	}
+
 	let menuOpen = $state(false);
 	let menuButton = $state<HTMLButtonElement>();
 
@@ -102,8 +117,12 @@
 	// A route change (link, back button, redirect) always dismisses the menu.
 	afterNavigate(() => {
 		menuOpen = false;
+		paletteOpen = false;
 	});
 </script>
+
+<!-- The dashboard's search button asks for the palette with this event. -->
+<svelte:window onkeydown={onGlobalKeydown} />
 
 {#if navigating.to}
 	<div
@@ -139,84 +158,14 @@
 	</main>
 {:else}
 	<div class="flex h-dvh w-full overflow-hidden bg-background font-sans text-content">
-		<!-- Desktop only; phones get the top bar, tab bar and menu sheet instead. -->
-		<aside
-			class="duration-250ms hidden shrink-0 flex-col overflow-hidden border-r border-subtle bg-surface transition-[width] ease-out md:flex"
-			style="width:{sidebarOpen ? '236px' : '76px'}"
-		>
-			<div
-				class="flex items-center gap-2.5 overflow-hidden px-3.5 pt-4 pb-3 whitespace-nowrap {sidebarOpen
-					? ''
-					: 'justify-center'}"
-			>
-				<img
-					src={mushIcon}
-					alt=""
-					width="32"
-					height="32"
-					class="size-8 shrink-0 rounded-full object-cover"
-					aria-hidden="true"
-				/>
-				{#if sidebarOpen}
-					<span class="font-display text-base font-bold tracking-[0.2px]">Mushpoint</span>
-				{/if}
-			</div>
-
-			{#if sidebarOpen}
-				<p class="px-4 pt-1 pb-1.5 text-2xs text-muted">Workspace</p>
-			{/if}
-
-			<nav class="flex flex-1 flex-col gap-px overflow-y-auto px-2.5 py-1">
-				{#each MAIN_NAV as item (item.href)}
-					<a
-						href={item.href}
-						aria-current={isCurrent(item.href) ? 'page' : undefined}
-						class="mb-0.5 flex items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 whitespace-nowrap transition-colors
-						{sidebarOpen ? '' : 'justify-center'}
-						{isCurrent(item.href)
-							? 'bg-surface-raised font-semibold text-content'
-							: 'font-medium text-muted hover:bg-surface-raised hover:text-content'}"
-					>
-						<Icon name={item.icon} size={16} label={sidebarOpen ? undefined : item.label} />
-						{#if sidebarOpen}
-							<span class="text-sm">{item.label}</span>
-						{/if}
-					</a>
-				{/each}
-			</nav>
-
-			<div class="px-2.5 pb-2">
-				<button
-					type="button"
-					class="flex w-full items-center gap-2.5 overflow-hidden rounded-control px-2.75 py-1.75 font-medium whitespace-nowrap text-muted transition-colors hover:bg-surface-raised hover:text-content {sidebarOpen
-						? ''
-						: 'justify-center'}"
-					aria-expanded={sidebarOpen}
-					onclick={toggleSidebar}
-				>
-					<Icon
-						name={sidebarOpen ? 'chevrons-left' : 'chevrons-right'}
-						size={16}
-						label={sidebarOpen ? undefined : 'Expand sidebar'}
-					/>
-					{#if sidebarOpen}<span class="text-sm">Collapse</span>{/if}
-				</button>
-			</div>
-
-			<SidebarUser
-				open={sidebarOpen}
-				username={data.profile?.username ?? null}
-				avatarUrl={data.profile?.avatarUrl ?? null}
-				current={isCurrent('/settings')}
-			/>
-
-			<div class="flex flex-col gap-1 border-t border-subtle px-3.5 py-3">
-				<ThemeSwitch showLabel={sidebarOpen} />
-				{#if sidebarOpen}
-					<MadeByCredit />
-				{/if}
-			</div>
-		</aside>
+		<Sidebar
+			open={sidebarOpen}
+			items={MAIN_NAV}
+			{isCurrent}
+			onToggle={toggleSidebar}
+			username={data.profile?.username ?? null}
+			avatarUrl={data.profile?.avatarUrl ?? null}
+		/>
 
 		<div class="relative flex min-w-0 flex-1 flex-col overflow-hidden">
 			<MobileTopBar
@@ -226,19 +175,25 @@
 				onMenu={() => (menuOpen = true)}
 				bind:menuButton
 			/>
-			<!-- On phones the bottom padding clears the fixed tab bar (3.5rem) and the home
-			     indicator; the scroll padding keeps a focused control from scrolling under
-			     it (WCAG 2.4.11). -->
-			<main
-				class="flex-1 scroll-pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] overflow-y-auto px-4 pt-5 pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:scroll-pb-0 md:px-11 md:pt-9 md:pb-15"
+			<!-- Pages sit directly on the canvas, separated from the chrome by hairlines, not a
+			     raised panel. The page scrolls inside. On phones the bottom padding clears the
+			     fixed tab bar (3.5rem) and the home indicator; the scroll padding keeps a focused
+			     control from scrolling under it (WCAG 2.4.11). -->
+			<div
+				class="flex min-h-0 flex-1 flex-col overflow-hidden md:border-t md:border-l md:border-subtle"
 			>
-				{@render children()}
-			</main>
+				<main
+					class="min-h-0 flex-1 scroll-pb-[calc(3.5rem+env(safe-area-inset-bottom)+0.5rem)] overflow-y-auto pb-[calc(3.5rem+env(safe-area-inset-bottom)+2rem)] md:scroll-pb-0 md:pb-15"
+				>
+					{@render children()}
+				</main>
+			</div>
 		</div>
 	</div>
 
 	<MobileTabBar items={TABS} {isCurrent} />
 	<MobileQuickAdd />
+	<CommandPalette open={paletteOpen} onClose={() => (paletteOpen = false)} />
 	<MobileMenuSheet
 		open={menuOpen}
 		username={data.profile?.username ?? null}

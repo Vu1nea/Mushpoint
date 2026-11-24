@@ -1,7 +1,7 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
-import DatePicker from './DatePicker.svelte';
-import Select from './Select.svelte';
+import DatePicker from 'mushpoint-design/svelte/DatePicker.svelte';
+import Select from 'mushpoint-design/svelte/Select.svelte';
 
 describe('Select', () => {
 	// Ids come from $props.id(), unique per instance within one page (each SSR

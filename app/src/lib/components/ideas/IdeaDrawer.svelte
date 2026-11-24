@@ -4,7 +4,7 @@
 	import { createIdea, updateIdea, type Idea } from '$lib/api';
 	import FormModal from '../ui/FormModal.svelte';
 	import Icon from '../ui/Icon.svelte';
-	import TagInput from '../ui/TagInput.svelte';
+	import TagInput from 'mushpoint-design/svelte/TagInput.svelte';
 	import { field } from '../ui';
 
 	interface Props {

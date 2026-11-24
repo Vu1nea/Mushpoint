@@ -8,7 +8,7 @@
 	} from '$lib/api';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { optimistic } from '$lib/optimistic';
-	import Checkbox from '../ui/Checkbox.svelte';
+	import Checkbox from 'mushpoint-design/svelte/Checkbox.svelte';
 	import ConfirmDialog from '../ui/ConfirmDialog.svelte';
 	import Icon from '../ui/Icon.svelte';
 	import { button } from '../ui';

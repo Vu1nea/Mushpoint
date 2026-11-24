@@ -20,11 +20,11 @@
 </script>
 
 {#if chart.rows.length === 0}
-	<p class="rounded-card border border-subtle bg-surface px-4 py-8 text-center text-sm text-muted">
+	<p class="border-y border-subtle py-8 text-center text-sm text-muted">
 		Give a subgoal or direct task a due date to see it here.
 	</p>
 {:else}
-	<div class="rounded-card border border-subtle bg-surface p-4">
+	<div class="border-y border-subtle py-4">
 		<div class="mb-2 flex justify-between text-2xs text-muted tabular-nums md:pl-[34%]">
 			<span>{chart.start}</span>
 			<span>{chart.end}</span>
