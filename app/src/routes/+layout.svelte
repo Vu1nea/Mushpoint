@@ -12,13 +12,11 @@
 	import MobileTopBar from '$lib/components/shell/MobileTopBar.svelte';
 	import Sidebar from '$lib/components/shell/Sidebar.svelte';
 	import Spinner from '$lib/components/ui/Spinner.svelte';
-	import TopBar from '$lib/components/shell/TopBar.svelte';
 	import { button } from '$lib/components/ui';
 	import type { IconName } from '$lib/icons';
 	import { auth } from '$lib/auth/session.svelte';
 	import { isPublicRoute } from '$lib/auth/routes';
 	import { shouldTogglePalette } from '$lib/shell/paletteNav';
-	import { crumbsFor } from '$lib/shell/crumbs';
 	import { theme } from '$lib/theme/theme.svelte';
 
 	let { children, data } = $props();
@@ -68,6 +66,11 @@
 
 	onMount(() => {
 		sidebarOpen = localStorage.getItem(SIDEBAR_KEY) !== 'false';
+
+		// The dashboard's search button asks for the palette with this event.
+		const open = () => (paletteOpen = true);
+		window.addEventListener('mushpoint:open-palette', open);
+		return () => window.removeEventListener('mushpoint:open-palette', open);
 	});
 
 	let retrying = $state(false);
@@ -118,6 +121,7 @@
 	});
 </script>
 
+<!-- The dashboard's search button asks for the palette with this event. -->
 <svelte:window onkeydown={onGlobalKeydown} />
 
 {#if navigating.to}
@@ -170,12 +174,6 @@
 				{menuOpen}
 				onMenu={() => (menuOpen = true)}
 				bind:menuButton
-			/>
-			<TopBar
-				crumbs={crumbsFor(page.url.pathname)}
-				onSearch={() => (paletteOpen = true)}
-				name={data.profile?.username ?? auth.email ?? ''}
-				avatarUrl={data.profile?.avatarUrl ?? null}
 			/>
 			<!-- Pages sit directly on the canvas, separated from the chrome by hairlines, not a
 			     raised panel. The page scrolls inside. On phones the bottom padding clears the

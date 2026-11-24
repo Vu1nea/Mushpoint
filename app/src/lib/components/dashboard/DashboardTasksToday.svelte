@@ -1,12 +1,12 @@
 <script lang="ts">
 	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
-	import Pill from 'mushpoint-design/svelte/Pill.svelte';
 	import Segmented from 'mushpoint-design/svelte/Segmented.svelte';
 	import type { GoalSummary, TaskSummary } from '$lib/api';
-	import { overdueTasks, todaysTasks } from '$lib/dashboard';
+	import { todaysTasks } from '$lib/dashboard';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { taskColumn } from '$lib/kanban';
 	import { displayColumn, isInertToday } from '$lib/taskList';
+	import DashboardSectionTitle from './DashboardSectionTitle.svelte';
 	import DashboardTaskToggle from './DashboardTaskToggle.svelte';
 
 	interface Props {
@@ -22,7 +22,6 @@
 	let { tasks, goals, onMutated, onError, class: className = '' }: Props = $props();
 
 	const today = $derived(todaysTasks(tasks));
-	const overdue = $derived(overdueTasks(tasks));
 	const goalTitle = $derived(new Map(goals.map((goal) => [goal.id, goal.title])));
 
 	/** Ticks as just set, so the strike-through, pill and counts agree before the refresh lands. */
@@ -34,11 +33,16 @@
 	};
 	const isDone = (task: TaskSummary) => shownColumn(task) === 'done';
 
+	/** The dashboard shows a short list; the full one lives on the tasks page. */
+	const LIMIT = 5;
+
 	let filter = $state<Filter>('all');
 
 	const open = $derived(today.filter((task) => !isDone(task)));
 	const finished = $derived(today.filter(isDone));
-	const rows = $derived(filter === 'open' ? open : filter === 'done' ? finished : today);
+	const rows = $derived(
+		(filter === 'open' ? open : filter === 'done' ? finished : today).slice(0, LIMIT)
+	);
 	const empty = $derived(
 		filter === 'open'
 			? 'No open tasks today.'
@@ -56,40 +60,27 @@
 	// The checkbox carries the done state, so there is no separate status column here.
 	const columns = [
 		{ key: 'title', label: 'Task' },
-		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const }
+		{ key: 'due', label: 'Due', width: '5.5rem' }
 	];
-
-	const summary = $derived(
-		today.length === 0
-			? ''
-			: open.length === 0
-				? 'All done for today.'
-				: `${open.length} left, ${finished.length} done`
-	);
 </script>
 
-<section class={className}>
-	<div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 page-gutter pt-1 pb-4">
-		<div class="min-w-0">
-			<h2 class="font-display text-xl font-semibold text-content">Tasks today</h2>
-			{#if summary || overdue.length > 0}
-				<p class="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm text-muted">
-					{#if summary}<span>{summary}</span>{/if}
-					{#if overdue.length > 0}
-						<a
-							href="/tasks"
-							class="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-						>
-							<Pill tone="danger">{overdue.length} overdue</Pill>
-						</a>
-					{/if}
-				</p>
-			{/if}
-		</div>
+<section class="dash-card {className}">
+	<DashboardSectionTitle title="Tasks today" tier="lead">
+		{#snippet actions()}
+			<a
+				href="/tasks"
+				class="text-xs font-semibold text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
+			>
+				View all
+			</a>
+		{/snippet}
+	</DashboardSectionTitle>
+
+	<div class="dash-pad pb-2">
 		<Segmented ariaLabel="Filter today's tasks" {options} bind:value={filter} />
 	</div>
 
-	<div class="page-gutter">
+	<div class="dash-table relative dash-pad pb-2">
 		<DataTable {columns} {rows} rowKey={(task) => task.id} {empty} ariaLabel="Tasks due today">
 			{#snippet cell(task, key)}
 				{#if key === 'title'}

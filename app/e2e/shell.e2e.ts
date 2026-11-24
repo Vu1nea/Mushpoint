@@ -24,7 +24,15 @@ test('a new user sees an empty message in every dashboard section', async ({ pag
 	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 	await expect(page.getByRole('link', { name: 'New goal' })).toBeVisible();
 
-	for (const title of ['Tasks today', 'Streaks', 'Vision board', 'Goals', 'Upcoming']) {
+	for (const title of [
+		'Tasks today',
+		'Streaks',
+		'Vision board',
+		'Goals',
+		'Overdue',
+		'Goal deadlines',
+		'Upcoming'
+	]) {
 		// SectionHeader puts its count inside the heading, so match the title as a prefix.
 		await expect(page.getByRole('heading', { name: new RegExp(`^${title}`) })).toBeVisible();
 	}
@@ -33,7 +41,9 @@ test('a new user sees an empty message in every dashboard section', async ({ pag
 		'No habits tracked yet.',
 		/Nothing pinned yet/,
 		'No active goals yet.',
-		'Nothing due soon.'
+		'Nothing overdue.',
+		/No tasks were due in this period/,
+		'Nothing due this month.'
 	]) {
 		await expect(page.getByText(message)).toBeVisible();
 	}

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
-	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import DashboardSectionTitle from './DashboardSectionTitle.svelte';
 	import { goto } from '$app/navigation';
 	import type { Category, GoalSummary } from '$lib/api';
-	import { dueLabel, percent } from '$lib/format';
+	import { percent } from '$lib/format';
 	import { categoryColor } from '$lib/theme/category';
 	import Icon from '../ui/Icon.svelte';
 	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
@@ -16,6 +16,9 @@
 
 	let { goals, categories, class: className = '' }: Props = $props();
 
+	/** A short list here; "View all" opens the rest. */
+	const shown = $derived(goals.slice(0, 5));
+
 	const colorOf = $derived.by(() => {
 		const byId = new Map(categories.map((category) => [category.id, category]));
 		return (goal: GoalSummary) =>
@@ -24,13 +27,12 @@
 
 	const columns = [
 		{ key: 'title', label: 'Goal' },
-		{ key: 'progress', label: 'Progress', width: '9rem' },
-		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const }
+		{ key: 'progress', label: 'Progress', width: '7.5rem' }
 	];
 </script>
 
-<section class="section-gutter {className}">
-	<SectionHeader title="Goals" count={goals.length}>
+<section class="dash-card {className}">
+	<DashboardSectionTitle title="Goals" tier="lead">
 		{#snippet actions()}
 			<a
 				href="/goals"
@@ -39,12 +41,12 @@
 				View all
 			</a>
 		{/snippet}
-	</SectionHeader>
+	</DashboardSectionTitle>
 
-	<div class="page-gutter">
+	<div class="dash-table relative dash-pad pb-2">
 		<DataTable
 			{columns}
-			rows={goals}
+			rows={shown}
 			rowKey={(goal) => goal.id}
 			empty="No active goals yet."
 			ariaLabel="Active goals"
@@ -76,8 +78,6 @@
 							{percent(goal.progress)}
 						</span>
 					</span>
-				{:else}
-					<span class="text-xs text-muted">{dueLabel(goal.dueDate)}</span>
 				{/if}
 			{/snippet}
 		</DataTable>

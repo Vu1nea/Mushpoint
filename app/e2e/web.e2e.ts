@@ -246,11 +246,11 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 		await page.goto('/goals');
 		await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
 		const table = page.getByRole('table', { name: /goals$/ });
-		for (const column of ['Goal', 'Progress', 'Due', 'Status']) {
+		for (const column of ['Goal', 'Category', 'Progress', 'Due']) {
 			await expect(table.getByRole('columnheader', { name: column, exact: true })).toBeVisible();
 		}
 		const row = table.getByRole('row').filter({ hasText: 'E2E goal' });
-		// Category and timeframe share the sub-line under the title.
+		// Category has its own column.
 		await expect(row).toContainText('Uncategorized');
 		await expect(row.getByRole('link', { name: 'E2E goal' })).toHaveAttribute(
 			'href',

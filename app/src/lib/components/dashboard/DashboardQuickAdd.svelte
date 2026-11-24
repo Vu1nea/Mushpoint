@@ -2,7 +2,7 @@
 	import { createIdea, createTask } from '$lib/api';
 	import Icon from '../ui/Icon.svelte';
 	import Spinner from '../ui/Spinner.svelte';
-	import { button, field, segment } from '../ui';
+	import { field, segment } from '../ui';
 
 	/** No goals here: a goal-sized thought starts as an idea and is promoted
 	 * once its timeframe, category and motivation are worked out. */
@@ -22,6 +22,10 @@
 		{ value: 'idea', label: 'Idea', icon: 'idea' },
 		{ value: 'task', label: 'Task', icon: 'task' }
 	];
+
+	/** Outlined, so the page keeps one filled button (New goal). */
+	const addButton =
+		'inline-flex items-center justify-center gap-1.5 rounded-control border border-accent-ink bg-transparent px-4.5 py-2.75 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-ink/10 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent';
 
 	let kind = $state<QuickAddKind>('idea');
 	let title = $state('');
@@ -90,7 +94,7 @@
 
 	<button
 		type="submit"
-		class={button.primary}
+		class={addButton}
 		disabled={submitting || !title.trim()}
 		aria-busy={submitting}
 	>

@@ -21,13 +21,16 @@ export type AppIconName =
 	| 'vision'
 	| 'settings'
 	| 'flame'
+	| 'crown'
 	| 'user'
 	| 'signout'
 	| 'eye'
 	| 'eye-off'
+	| 'chevron-left'
 	| 'chevrons-right'
 	| 'chevrons-left'
-	| 'search';
+	| 'search'
+	| 'filter';
 
 export type IconName = DesignIconName | AppIconName;
 
@@ -40,14 +43,17 @@ const appIcons: Record<AppIconName, string> = {
 	vision: `<rect x="3.5" y="3.5" width="8" height="8" rx="1.5"/><rect x="12.5" y="3.5" width="8" height="5" rx="1.5"/><rect x="12.5" y="10.5" width="8" height="10" rx="1.5"/><rect x="3.5" y="13.5" width="8" height="7" rx="1.5"/>`,
 	settings: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 00.3 1.8l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.6 1.6 0 00-1.8-.3 1.6 1.6 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.6 1.6 0 00-1-1.5 1.6 1.6 0 00-1.8.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H3a2 2 0 110-4h.2a1.6 1.6 0 001.5-1 1.6 1.6 0 00-.3-1.8l-.1-.1a2 2 0 112.8-2.8l.1.1a1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V3a2 2 0 114 0v.2a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H21a2 2 0 110 4h-.2a1.6 1.6 0 00-1.5 1z"/>`,
 	flame: `<path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c1.5 1 2 3 2 4.5A5.5 5.5 0 0112 21a5.5 5.5 0 01-5.5-5.5C6.5 10 9 7 12 2z"/>`,
+	crown: `<path d="M3 7l4.5 4L12 5l4.5 6L21 7l-2 11H5L3 7z"/><path d="M5 21h14"/>`,
 	user: `<circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0115 0"/>`,
 	signout: `<path d="M9.5 20.5H6a2.5 2.5 0 01-2.5-2.5V6A2.5 2.5 0 016 3.5h3.5"/><path d="M16 16.5l4.5-4.5L16 7.5M20.5 12H9.5"/>`,
 	eye: `<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>`,
 	'eye-off': `<path d="M10.6 5.6A9.6 9.6 0 0112 5.5c6 0 9.5 6.5 9.5 6.5a16.6 16.6 0 01-2.6 3.4M6.6 6.6C3.9 8.3 2.5 12 2.5 12S6 18.5 12 18.5a9.3 9.3 0 004.4-1.1"/><path d="M9.9 9.9a3 3 0 004.2 4.2M3 3l18 18"/>`,
+	'chevron-left': `<path d="M15 5l-7 7 7 7"/>`,
 	// Double chevron for year steps; each stroke matches the design's `chevron-right`.
 	'chevrons-right': `<path d="M5 5l7 7-7 7"/><path d="M12 5l7 7-7 7"/>`,
 	'chevrons-left': `<path d="M19 5l-7 7 7 7"/><path d="M12 5l-7 7 7 7"/>`,
-	search: `<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>`
+	search: `<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>`,
+	filter: `<path d="M4 5h16l-6 7.5V19l-4-2v-4.5L4 5z"/>`
 };
 
 function isAppIcon(name: IconName): name is AppIconName {

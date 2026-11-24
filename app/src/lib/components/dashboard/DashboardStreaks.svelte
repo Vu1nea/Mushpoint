@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
+	import DashboardSectionTitle from './DashboardSectionTitle.svelte';
 	import { RECURRENCE_LABELS, type StreakCard as StreakCardData } from '$lib/api';
 	import { topStreaks } from '$lib/dashboard';
 	import Icon from '../ui/Icon.svelte';
@@ -15,26 +15,24 @@
 	const top = $derived(topStreaks(streaks));
 </script>
 
-<section class="section-gutter {className}">
-	<SectionHeader title="Streaks" count={streaks.length}>
+<section class="dash-card {className}">
+	<DashboardSectionTitle title="Streaks" tier="lead">
 		{#snippet actions()}
-			{#if streaks.length > top.length}
-				<a
-					href="/tasks"
-					class="text-xs font-semibold text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
-				>
-					View all
-				</a>
-			{/if}
+			<a
+				href="/tasks"
+				class="text-xs font-semibold text-muted hover:text-content focus-visible:outline-2 focus-visible:outline-accent"
+			>
+				View all
+			</a>
 		{/snippet}
-	</SectionHeader>
+	</DashboardSectionTitle>
 
 	{#if top.length === 0}
-		<p class="page-gutter py-3 text-sm text-muted">No habits tracked yet.</p>
+		<p class="dash-pad py-3 text-sm text-muted">No habits tracked yet.</p>
 	{:else}
 		<ul class="divide-y divide-subtle">
 			{#each top as card (card.task.id)}
-				<li class="flex flex-col gap-2 page-gutter py-2.5 text-sm">
+				<li class="flex flex-col gap-2 dash-pad py-2.5 text-sm">
 					<div class="flex items-center gap-3">
 						<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
 						<span class="min-w-0 flex-1">

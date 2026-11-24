@@ -32,6 +32,15 @@
 	}
 }
 
+/* Goal rows. The kit bleeds every table row 12px past the gutter with square
+   corners, so text sits on the page edge and the hover fill is a hard-edged strip.
+   Keep the rows inside the gutter instead: the cells' own 12px padding insets the
+   text, and the fill gets rounded corners. Unlayered, so it beats the kit's -mx-3. */
+.goal-rows [role='row'] {
+	margin-inline: 0;
+	border-radius: var(--radius-control);
+}
+
 @utility page-margin {
 	margin-inline: calc(var(--spacing) * 4);
 
@@ -46,16 +55,6 @@
 @media (min-width: 48rem) {
 	.section-gutter > :first-child {
 		padding-inline: calc(var(--spacing) * 8);
-	}
-}
-
-/* The dashboard's right rail is only 22rem wide, so the page gutter eats too much of it.
-   Inside `.compact-gutter` the gutter is the phone size again, from xl up (where the rail
-   exists). Unlayered, so it beats the layered `page-gutter` utility and the kit's px-4. */
-@media (min-width: 80rem) {
-	.compact-gutter .page-gutter,
-	.compact-gutter .section-gutter > :first-child {
-		padding-inline: calc(var(--spacing) * 4);
 	}
 }
 
@@ -116,4 +115,29 @@
 	textarea {
 		font-size: 16px;
 	}
+}
+
+/* Dashboard cards: one raised surface per section so each reads as its own thought.
+   Padding lives on the card's children (`dash-pad`), tables run edge to edge inside. */
+@utility dash-card {
+	background-color: var(--color-surface);
+	border-radius: var(--radius-card);
+	overflow: hidden;
+}
+
+@utility dash-pad {
+	padding-inline: calc(var(--spacing) * 5);
+}
+
+/* Dashboard lists don't need column titles: the cells explain themselves. The kit's
+   DataTable always renders its header row, so keep it for screen readers and take it
+   out of the layout. */
+.dash-table [role='row']:first-child {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	border: 0;
 }

@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildUpcomingFeed,
 	dashboardStats,
+	dayKey,
+	itemsByDueDay,
+	monthCells,
+	onTimeByDay,
 	overdueTasks,
 	todaysTasks,
 	topStreaks
@@ -160,7 +164,12 @@ describe('dashboardStats', () => {
 	});
 
 	it('returns zeros for no data', () => {
-		expect(dashboardStats([], [], [], NOW)).toEqual({ activeGoals: 0, dueToday: 0, bestStreak: 0 });
+		expect(dashboardStats([], [], [], NOW)).toEqual({
+			activeGoals: 0,
+			dueToday: 0,
+			overdue: 0,
+			bestStreak: 0
+		});
 	});
 
 	it('counts only active goals', () => {
@@ -209,5 +218,60 @@ describe('overdueTasks', () => {
 			{ ...baseTask, id: 3, dueDate: '2026-06-01', recurrence: 'daily' as const }
 		];
 		expect(overdueTasks(tasks, now)).toEqual([]);
+	});
+});
+
+describe('calendar helpers', () => {
+	it('dayKey is the local YYYY-MM-DD', () => {
+		expect(dayKey(new Date(2026, 10, 5))).toBe('2026-11-05');
+	});
+
+	it('monthCells pads to a Monday start and lists every day', () => {
+		// 1 Nov 2026 is a Sunday: six empty cells before it.
+		const cells = monthCells(2026, 10);
+		expect(cells.slice(0, 6).every((cell) => cell === null)).toBe(true);
+		expect(cells[6]?.getDate()).toBe(1);
+		expect(cells.filter(Boolean)).toHaveLength(30);
+	});
+
+	it('itemsByDueDay groups by day and skips undated items', () => {
+		const goals = [
+			{ id: 1, dueDate: '2026-11-05' },
+			{ id: 2, dueDate: '2026-11-05' },
+			{ id: 3, dueDate: null }
+		] as { id: number; dueDate: string | null }[];
+		const byDay = itemsByDueDay(goals);
+		expect(byDay.get('2026-11-05')?.map((item) => item.id)).toEqual([1, 2]);
+		expect(byDay.size).toBe(1);
+	});
+});
+
+describe('onTimeByDay', () => {
+	const now = new Date(2026, 10, 10, 12);
+	const task = (id: number, dueDate: string | null, status: string, updatedAt: string) =>
+		({ id, dueDate, status, updatedAt, recurrence: null }) as unknown as TaskSummary;
+
+	it('covers the last N days, oldest first, with null where nothing was due', () => {
+		const days = onTimeByDay([], 3, now);
+		expect(days.map((day) => day.date)).toEqual(['2026-11-08', '2026-11-09', '2026-11-10']);
+		expect(days.every((day) => day.rate === null)).toBe(true);
+	});
+
+	it('counts a done task finished on or before its due day', () => {
+		const days = onTimeByDay(
+			[
+				task(1, '2026-11-09', 'done', new Date(2026, 10, 9, 8).toISOString()),
+				task(2, '2026-11-09', 'done', new Date(2026, 10, 10, 8).toISOString()),
+				task(3, '2026-11-09', 'todo', new Date(2026, 10, 1).toISOString())
+			],
+			2,
+			now
+		);
+		expect(days[0]).toMatchObject({ due: 3, onTime: 1, rate: 33 });
+	});
+
+	it('skips habits', () => {
+		const habit = { ...task(1, '2026-11-10', 'done', now.toISOString()), recurrence: 'daily' };
+		expect(onTimeByDay([habit as TaskSummary], 1, now)[0].due).toBe(0);
 	});
 });
