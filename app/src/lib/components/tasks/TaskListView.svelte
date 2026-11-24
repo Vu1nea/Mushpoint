@@ -2,11 +2,8 @@
 	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
 	import Pill from 'mushpoint-design/svelte/Pill.svelte';
 	import RowMenu from 'mushpoint-design/svelte/RowMenu.svelte';
-	import Segmented from 'mushpoint-design/svelte/Segmented.svelte';
-	import Toolbar from 'mushpoint-design/svelte/Toolbar.svelte';
 	import {
 		TASK_STATUS_LABELS,
-		TASK_STATUSES,
 		type GoalSummary,
 		type SubgoalDetail,
 		type TaskSummary
@@ -14,18 +11,15 @@
 	import { taskColumn } from '$lib/kanban';
 	import { dueLabel, dueTone } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';
-	import {
-		displayColumn,
-		filterTasks,
-		isInertToday,
-		statusCounts,
-		type TaskListStatus
-	} from '$lib/taskList';
+	import { displayColumn, filterTasks, isInertToday, type TaskListStatus } from '$lib/taskList';
 	import DashboardTaskToggle from '../dashboard/DashboardTaskToggle.svelte';
-	import { DUE_CLASSES, field } from '../ui';
+	import { DUE_CLASSES } from '../ui';
 
 	interface Props {
 		tasks: TaskSummary[];
+		/** Set by the toolbar above the task views. */
+		status: TaskListStatus;
+		query: string;
 		goals: GoalSummary[];
 		subgoals: Pick<SubgoalDetail, 'id' | 'title'>[];
 		onMutated: () => Promise<void> | void;
@@ -34,32 +28,29 @@
 		onDeleteTask: (task: TaskSummary) => void;
 	}
 
-	let { tasks, goals, subgoals, onMutated, onError, onEditTask, onDeleteTask }: Props = $props();
-
-	let status = $state<TaskListStatus>('all');
-	let query = $state('');
+	let {
+		tasks,
+		status,
+		query,
+		goals,
+		subgoals,
+		onMutated,
+		onError,
+		onEditTask,
+		onDeleteTask
+	}: Props = $props();
 
 	const rows = $derived(filterTasks(tasks, { status, query }));
-	const counts = $derived(statusCounts(tasks));
 	const goalTitle = $derived(new Map(goals.map((goal) => [goal.id, goal.title])));
 	const subgoalTitle = $derived(new Map(subgoals.map((subgoal) => [subgoal.id, subgoal.title])));
-
-	const options = $derived([
-		{ value: 'all' as const, label: 'All', count: counts.all },
-		...TASK_STATUSES.map((value) => ({
-			value,
-			label: TASK_STATUS_LABELS[value],
-			count: counts[value]
-		}))
-	]);
 
 	const empty = $derived(tasks.length === 0 ? 'No tasks yet.' : 'No tasks match.');
 
 	const columns = [
 		{ key: 'title', label: 'Task' },
-		{ key: 'goal', label: 'Goal', width: '12rem', hideBelow: 'md' as const },
-		{ key: 'due', label: 'Due', width: '8rem', hideBelow: 'md' as const },
-		{ key: 'status', label: 'Status', width: '7.5rem' },
+		{ key: 'goal', label: 'Goal', width: '8rem', hideBelow: 'md' as const },
+		{ key: 'due', label: 'Due', width: '6.5rem', hideBelow: 'md' as const },
+		{ key: 'status', label: 'Status', width: '6.5rem' },
 		{ key: 'actions', label: '', width: '3.5rem', align: 'end' as const }
 	];
 
@@ -78,20 +69,7 @@
 	};
 </script>
 
-<div class="page-gutter pb-3">
-	<Toolbar>
-		<input
-			type="search"
-			class="{field.input} max-w-64 min-w-40 flex-1"
-			placeholder="Search tasks"
-			aria-label="Search tasks"
-			bind:value={query}
-		/>
-		<Segmented ariaLabel="Filter tasks by status" {options} bind:value={status} />
-	</Toolbar>
-</div>
-
-<div class="page-gutter">
+<div class="page-gutter [&_[role=row]:not(:first-child)]:rounded-control">
 	<DataTable
 		{columns}
 		{rows}
@@ -114,7 +92,11 @@
 						/>
 					</span>
 					<div class="min-w-0">
-						<p class="truncate {shownColumn(task) === 'done' ? 'text-muted line-through' : ''}">
+						<p
+							class="line-clamp-2 whitespace-normal {shownColumn(task) === 'done'
+								? 'text-muted line-through'
+								: ''}"
+						>
 							{task.title}
 						</p>
 						{#if isInertToday(task)}

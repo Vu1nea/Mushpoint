@@ -10,6 +10,7 @@
 		type SubgoalDetail,
 		type TaskSummary
 	} from '$lib/api';
+	import { habitColor } from '$lib/habitColors';
 	import { shiftYear, tasksByDay } from '$lib/calendar';
 	import {
 		dayDots,
@@ -38,9 +39,22 @@
 		onEditTask: (task: TaskSummary) => void;
 		onDeleteTask: (task: TaskSummary) => void;
 		onCreateTask: (iso: string) => void;
+		/** Days each recurring task was completed, by task id. */
+		completions?: Map<number, Set<string>>;
 	}
 
-	let { tasks, onMutated, onError, onEditTask, onCreateTask }: Props = $props();
+	let {
+		tasks,
+		onMutated,
+		onError,
+		onEditTask,
+		onCreateTask,
+		completions = new Map()
+	}: Props = $props();
+
+	const colorOf = (task: TaskSummary) => habitColor(tasks, task.id);
+
+	const doneOn = (task: TaskSummary, iso: string) => completions.get(task.id)?.has(iso) ?? false;
 
 	const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 	const CHIPS_SHOWN = 3;
@@ -63,9 +77,10 @@
 
 	const grid = $derived(monthGrid(viewYear, viewMonth, null, todayIso()));
 	const heading = $derived(monthLabel(viewYear, viewMonth));
+	let hideRecurring = $state(false);
 	const byDay = $derived(
 		tasksByDay(
-			tasks,
+			hideRecurring ? tasks.filter((task) => !task.recurrence) : tasks,
 			grid.map((cell) => cell.iso)
 		)
 	);
@@ -290,9 +305,15 @@
 			<Icon name="chevrons-right" size={14} weight={2.2} />
 		</button>
 	</div>
-	<button type="button" class="{button.ghost} h-10 shrink-0 md:h-auto" onclick={goToday}>
-		Today
-	</button>
+	<div class="flex shrink-0 items-center gap-3">
+		<label class="flex cursor-pointer items-center gap-1.5 text-xs text-muted">
+			<input type="checkbox" class="accent-accent" bind:checked={hideRecurring} />
+			Exclude recurring
+		</label>
+		<button type="button" class="{button.ghost} h-10 shrink-0 md:h-auto" onclick={goToday}>
+			Today
+		</button>
+	</div>
 </div>
 
 <div class="grid grid-cols-7 gap-y-1 text-center">
@@ -314,8 +335,10 @@
 >
 	{#each grid as cell (cell.iso)}
 		{@const dayTasks = byDay.get(cell.iso) ?? []}
-		{@const shown = dayTasks.slice(0, CHIPS_SHOWN)}
-		{@const extra = dayTasks.length - shown.length}
+		{@const upcomingHabits = dayTasks.filter((t) => t.recurrence && cell.iso > todayIso())}
+		{@const listed = dayTasks.filter((t) => !upcomingHabits.includes(t))}
+		{@const shown = listed.slice(0, CHIPS_SHOWN)}
+		{@const extra = listed.length - shown.length}
 		{@const dots = dayDots(dayTasks, todayIso())}
 		{@const selected = selectedDay === cell.iso}
 		<div
@@ -362,13 +385,28 @@
 				onclick={() => (pickedDay = cell.iso)}
 			></button>
 
-			<span
-				class="flex size-5.5 shrink-0 items-center justify-center rounded-full text-2xs font-semibold md:self-start {cell.inCurrentMonth
-					? 'text-content'
-					: 'text-muted'} {cell.isToday ? 'ring-2 ring-accent' : ''}"
-			>
-				{cell.day}
-			</span>
+			<div class="flex items-center gap-1.5 md:self-start">
+				<span
+					class="flex size-5.5 shrink-0 items-center justify-center rounded-full text-2xs font-semibold {cell.inCurrentMonth
+						? 'text-content'
+						: 'text-muted'} {cell.isToday ? 'ring-2 ring-accent' : ''}"
+				>
+					{cell.day}
+				</span>
+				{#if upcomingHabits.length > 0}
+					<!-- Future occurrences of a habit collapse to dots beside the day number, so
+					     a daily task does not paint every remaining cell. -->
+					<span
+						class="relative hidden items-center gap-0.5 md:flex"
+						title={upcomingHabits.map((t) => t.title).join(', ')}
+						aria-hidden="true"
+					>
+						{#each upcomingHabits.slice(0, 3) as habit (habit.id)}
+							<span class="size-1.5 rounded-full {colorOf(habit).bg}"></span>
+						{/each}
+					</span>
+				{/if}
+			</div>
 
 			{#if dots.tones.length > 0}
 				<span class="flex items-center gap-0.5 md:hidden" aria-hidden="true">
@@ -385,7 +423,7 @@
 			<!-- md+: task chips and the "+N more" popup. -->
 			<div class="hidden md:contents">
 				{#each shown as task (task.id)}
-					{@render taskChip(task, !task.recurrence)}
+					{@render taskChip(task, !task.recurrence, cell.iso)}
 				{/each}
 
 				{#if extra > 0}
@@ -423,7 +461,7 @@
 								<Icon
 									name="flame"
 									size={14}
-									class="shrink-0 text-accent-secondary"
+									class="shrink-0 {colorOf(task).text}"
 									label={RECURRENCE_LABELS[task.recurrence]}
 								/>
 							{/if}
@@ -446,12 +484,14 @@
 	</section>
 {/if}
 
-{#snippet taskChip(task: TaskSummary, draggable: boolean)}
+{#snippet taskChip(task: TaskSummary, draggable: boolean, iso: string | null = null)}
+	{@const done = iso !== null && !!task.recurrence && doneOn(task, iso)}
+	{@const missed = iso !== null && !!task.recurrence && iso < todayIso() && !done}
 	<button
 		type="button"
 		class="relative flex items-center gap-1 truncate rounded-control bg-surface-raised px-1.5 py-0.5 text-left text-2xs transition-colors hover:bg-accent/25 {DUE_CLASSES[
 			dueTone(task.dueDate)
-		]}"
+		]} {done ? 'opacity-60' : ''} {missed ? 'opacity-40' : ''}"
 		{draggable}
 		ondragstart={(event) => dragStart(event, task)}
 		onclick={() => {
@@ -459,11 +499,19 @@
 			onEditTask(task);
 		}}
 	>
-		{#if task.recurrence}
+		{#if done}
+			<Icon
+				name="check"
+				size={10}
+				weight={2.6}
+				class="shrink-0 {colorOf(task).text}"
+				label="Done"
+			/>
+		{:else if task.recurrence}
 			<Icon
 				name="flame"
 				size={10}
-				class="shrink-0 text-accent-secondary"
+				class="shrink-0 {colorOf(task).text}"
 				label={RECURRENCE_LABELS[task.recurrence]}
 			/>
 		{/if}
@@ -507,7 +555,7 @@
 
 			<div class="flex min-h-0 flex-col gap-1 overflow-y-auto">
 				{#each byDay.get(day) ?? [] as task (task.id)}
-					{@render taskChip(task, false)}
+					{@render taskChip(task, false, day)}
 				{/each}
 			</div>
 		</div>

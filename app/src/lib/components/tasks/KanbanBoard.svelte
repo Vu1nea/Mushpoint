@@ -31,7 +31,7 @@
 	import { isInertToday } from '$lib/taskList';
 	import { optimistic } from '$lib/optimistic';
 	import Icon from '../ui/Icon.svelte';
-	import Select from 'mushpoint-design/svelte/Select.svelte';
+	import TaskBoardToolbar from './TaskBoardToolbar.svelte';
 	import Tabs from '../ui/Tabs.svelte';
 	import { tabId, tabPanelId } from '../ui/tabIds';
 	import { button, field, sectionHeading } from '../ui';
@@ -46,6 +46,11 @@
 		onError: (error: unknown) => void;
 		onEditTask: (task: TaskSummary) => void;
 		onDeleteTask: (task: TaskSummary) => void;
+		/** Show the search and filters above the board. Off when the page supplies them. */
+		toolbar?: boolean;
+		query?: string;
+		due?: DueFilter;
+		goalFilter?: string;
 	}
 
 	let {
@@ -57,7 +62,11 @@
 		onMutated,
 		onError,
 		onEditTask,
-		onDeleteTask
+		onDeleteTask,
+		toolbar = true,
+		query = $bindable(NO_FILTER.query),
+		due = $bindable(NO_FILTER.due),
+		goalFilter = $bindable('')
 	}: Props = $props();
 
 	let busy = $state(false);
@@ -80,17 +89,7 @@
 	const goalTitles = $derived(new Map(goals.map((g) => [g.id, g.title])));
 
 	const FIRST_PAGES: Record<TaskStatus, number> = { todo: 0, in_progress: 0, done: 0 };
-	const DUE_OPTIONS = [
-		{ value: 'all', label: 'Any due date' },
-		{ value: 'overdue', label: 'Overdue' },
-		{ value: 'soon', label: 'Due soon' },
-		{ value: 'later', label: 'Due later' },
-		{ value: 'none', label: 'No due date' }
-	];
 
-	let query = $state(NO_FILTER.query);
-	let due = $state<DueFilter>(NO_FILTER.due);
-	let goalFilter = $state('');
 	let pages = $state({ ...FIRST_PAGES });
 
 	/** Below md the board shows one column at a time, picked with tabs. */
@@ -136,10 +135,6 @@
 	}
 
 	const filtering = $derived(query.trim() !== '' || due !== 'all' || goalFilter !== '');
-	const goalOptions = $derived([
-		{ value: '', label: 'All goals' },
-		...goals.map((goal) => ({ value: String(goal.id), label: goal.title }))
-	]);
 	const columns = $derived(
 		groupByStatus(
 			filterTasks(shown, { query, due, goalId: goalFilter ? Number(goalFilter) : null })
@@ -161,12 +156,13 @@
 		pages = { ...FIRST_PAGES };
 	}
 
-	function clearFilters() {
-		query = NO_FILTER.query;
-		due = NO_FILTER.due;
-		goalFilter = '';
+	// A new search or filter starts every column back on its first page.
+	$effect(() => {
+		query;
+		due;
+		goalFilter;
 		resetPages();
-	}
+	});
 
 	/**
 	 * `'subgoal-only'` (goal-detail page, already scoped to one goal): the
@@ -283,33 +279,11 @@
 
 <svelte:window onclick={windowClick} />
 
-<div class="mb-3.5 flex flex-wrap items-center gap-2">
-	<input
-		class="{field.input} max-w-60 flex-1"
-		type="search"
-		bind:value={query}
-		oninput={resetPages}
-		placeholder="Search tasks…"
-		aria-label="Search tasks"
-	/>
-	<Select
-		class="w-40"
-		ariaLabel="Filter by due date"
-		bind:value={() => due, (value) => ((due = value as DueFilter), resetPages())}
-		options={DUE_OPTIONS}
-	/>
-	{#if goals.length > 0}
-		<Select
-			class="w-48"
-			ariaLabel="Filter by goal"
-			bind:value={() => goalFilter, (value) => ((goalFilter = value), resetPages())}
-			options={goalOptions}
-		/>
-	{/if}
-	{#if filtering}
-		<button type="button" class={button.bare} onclick={clearFilters}>Clear</button>
-	{/if}
-</div>
+{#if toolbar}
+	<div class="mb-3.5">
+		<TaskBoardToolbar {goals} bind:query bind:due bind:goalFilter />
+	</div>
+{/if}
 
 <Tabs
 	class="mb-3.5 md:hidden"
@@ -350,8 +324,8 @@
 					class="group rounded-card border p-3.5 transition-shadow {moveMenuFor === task.id
 						? 'relative z-10'
 						: ''} {justMovedId === task.id
-						? 'mp-pulse border-accent bg-surface ring-3 ring-accent/30'
-						: 'mp-enter border-subtle bg-surface'}"
+						? 'mp-pulse border-accent ring-3 ring-accent/30'
+						: 'mp-enter border-subtle'}"
 					style="--mp-delay:{stagger(index, 30)}"
 					draggable={!inert}
 					ondragstart={(event) => dragStart(event, task)}
