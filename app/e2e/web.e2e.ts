@@ -25,7 +25,7 @@ async function removeRow(page: Page, path: string, table: string | RegExp, title
 	if ((await rows.count()) === 0) return;
 	await rows.getByRole('button', { name: `Actions for ${title}` }).click();
 	await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
-	await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+	await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click();
 	await expect(rows).toHaveCount(0);
 }
 
@@ -51,7 +51,7 @@ test('a goal can be deleted from the list menu', async ({ page, signIn }) => {
 		await row.getByRole('button', { name: `Actions for ${title}` }).click();
 		await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
 
-		const dialog = page.getByRole('dialog');
+		const dialog = page.getByRole('alertdialog');
 		await expect(dialog).toContainText('Its subgoals are removed.');
 		await expect(dialog).toContainText('stay as standalone tasks');
 		await dialog.getByRole('button', { name: 'Delete' }).click();
@@ -74,7 +74,7 @@ test('the task list filters by status, offers Edit and Delete, and contains a lo
 	await signIn(page, 'a');
 	try {
 		await page.goto('/tasks');
-		await page.getByRole('button', { name: 'New Task' }).click();
+		await page.getByRole('button', { name: 'New Task', exact: true }).click();
 		const drawer = page.getByRole('dialog', { name: 'New Task' });
 		await drawer.getByLabel('Title').fill(longTitle);
 		await drawer.getByRole('button', { name: 'Create' }).click();
@@ -111,7 +111,7 @@ test('the task list filters by status, offers Edit and Delete, and contains a lo
 		const menu = page.getByRole('menu');
 		await expect(menu.getByRole('menuitem', { name: 'Edit' })).toBeVisible();
 		await menu.getByRole('menuitem', { name: 'Delete' }).click();
-		await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+		await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click();
 		await expect(table.getByRole('row').filter({ hasText: prefix })).toHaveCount(0);
 	} finally {
 		// The row is gone on the happy path; this only runs the delete if a step failed.
@@ -126,7 +126,7 @@ test('the task list filters by status, offers Edit and Delete, and contains a lo
 			await filter.getByRole('radio', { name: /^All/ }).click();
 			await leftover.getByRole('button', { name: actions }).click();
 			await page.getByRole('menu').getByRole('menuitem', { name: 'Delete' }).click();
-			await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+			await page.getByRole('alertdialog').getByRole('button', { name: 'Delete' }).click();
 			await expect(leftover).toHaveCount(0);
 		}
 	}
@@ -278,7 +278,7 @@ test('two users: A builds data and deletes the account, B never sees it', async 
 
 	await test.step('A creates a daily task and ticks it', async () => {
 		await page.goto('/tasks');
-		await page.getByRole('button', { name: 'New Task' }).click();
+		await page.getByRole('button', { name: 'New Task', exact: true }).click();
 		const dialog = page.getByRole('dialog', { name: 'New Task' });
 		await dialog.getByLabel('Title').fill('E2E task');
 		// A daily task is due today, so it shows up with a checkbox on the dashboard.

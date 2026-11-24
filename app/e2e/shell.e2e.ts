@@ -22,7 +22,7 @@ test('a new user sees an empty message in every dashboard section', async ({ pag
 	await page.goto('/');
 
 	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-	await expect(page.getByRole('link', { name: 'New goal' })).toBeVisible();
+	await expect(page.getByRole('textbox', { name: 'Quick-add title' })).toBeVisible();
 
 	for (const title of [
 		'Tasks today',
@@ -30,7 +30,7 @@ test('a new user sees an empty message in every dashboard section', async ({ pag
 		'Vision board',
 		'Goals',
 		'Overdue',
-		'Goal deadlines',
+		'Done on time',
 		'Upcoming'
 	]) {
 		// SectionHeader puts its count inside the heading, so match the title as a prefix.
@@ -183,7 +183,7 @@ test('the settings screen is one h1 over flat sections headed in order', async (
 
 test('the task drawer offers every cadence', async ({ page }) => {
 	await page.goto('/tasks');
-	await page.getByRole('button', { name: 'New Task' }).click();
+	await page.getByRole('button', { name: 'New Task', exact: true }).click();
 
 	await page.getByRole('combobox', { name: 'Repeats' }).click();
 	for (const option of ["Doesn't repeat", 'Daily', 'Weekdays', 'Weekly']) {
@@ -192,7 +192,8 @@ test('the task drawer offers every cadence', async ({ page }) => {
 });
 
 test('the palette opens from the search button and Escape closes it', async ({ page }) => {
-	await page.goto('/goals');
+	// The search button sits in the dashboard header.
+	await page.goto('/');
 
 	const button = page.getByRole('button', { name: 'Search', exact: true });
 	await button.click();
@@ -215,7 +216,7 @@ test('the ideas screen is one h1 over a table, with an empty message for a new u
 
 	await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ideas');
 	await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
-	await expect(page.getByRole('button', { name: 'New Idea' })).toBeVisible();
+	await expect(page.getByRole('button', { name: 'Add Idea' })).toBeVisible();
 	await expect(page.getByRole('searchbox', { name: 'Search ideas' })).toBeVisible();
 	await expect(page.getByRole('table', { name: 'Ideas' }).getByText(/No ideas yet/)).toBeVisible();
 });

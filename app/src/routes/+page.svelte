@@ -46,14 +46,15 @@
 		<button
 			type="button"
 			class="flex w-64 items-center gap-2 rounded-control border border-subtle bg-surface px-3 py-1.5 text-sm text-muted transition-colors hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent max-md:hidden"
-			aria-label="Search"
 			aria-keyshortcuts="Control+K Meta+K"
 			aria-haspopup="dialog"
 			onclick={() => window.dispatchEvent(new Event('mushpoint:open-palette'))}
 		>
 			<Icon name="search" size={15} />
 			<span class="flex-1 text-left">Search</span>
-			<kbd class="rounded-sm border border-subtle px-1.5 text-2xs text-muted">Ctrl K</kbd>
+			<kbd aria-hidden="true" class="rounded-sm border border-subtle px-1.5 text-2xs text-muted"
+				>Ctrl K</kbd
+			>
 		</button>
 	{/snippet}
 </PageHeader>
