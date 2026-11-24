@@ -105,20 +105,21 @@
 			/>
 			<div class="min-w-0 flex-1">
 				<p class="mb-1 truncate text-sm font-semibold">{subgoal.title}</p>
-				<div class="max-w-70">
-					<ProgressBar
-						value={subgoal.progress}
-						label="{subgoal.title} progress"
-						showValue={false}
-						height={5}
-						color="var(--mp-accent-secondary)"
-						{delay}
-					/>
-				</div>
+				<ProgressBar
+					value={subgoal.progress}
+					label="{subgoal.title} progress"
+					showValue={false}
+					height={5}
+					color="var(--mp-accent-secondary)"
+					{delay}
+				/>
 			</div>
-			<span class="shrink-0 text-xs text-muted tabular-nums">{percent(subgoal.progress)}</span>
+			<span class="w-10 shrink-0 text-right text-xs text-muted tabular-nums"
+				>{percent(subgoal.progress)}</span
+			>
 			<span
-				class="shrink-0 text-right text-xs sm:min-w-21.5 {dueTone(subgoal.dueDate) === 'overdue'
+				class="shrink-0 text-right text-xs whitespace-nowrap sm:w-32 {dueTone(subgoal.dueDate) ===
+				'overdue'
 					? 'text-warn'
 					: 'text-muted'}"
 			>

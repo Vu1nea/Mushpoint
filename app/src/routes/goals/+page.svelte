@@ -3,7 +3,6 @@
 	import DataTable from 'mushpoint-design/svelte/DataTable.svelte';
 	import Pill from 'mushpoint-design/svelte/Pill.svelte';
 	import RowMenu from 'mushpoint-design/svelte/RowMenu.svelte';
-	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
 	import Segmented from 'mushpoint-design/svelte/Segmented.svelte';
 	import Toolbar from 'mushpoint-design/svelte/Toolbar.svelte';
 	import { deleteGoal, GOAL_STATUS_LABELS, TIMEFRAME_LABELS, type GoalSummary } from '$lib/api';
@@ -13,8 +12,7 @@
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
-	import Select from 'mushpoint-design/svelte/Select.svelte';
-	import { button, DUE_CLASSES } from '$lib/components/ui';
+	import { button, DUE_CLASSES, field } from '$lib/components/ui';
 	import { dueLabel, dueTone, percent } from '$lib/format';
 	import { statusTone } from '$lib/statusTone';
 	import { categoryColor } from '$lib/theme/category';
@@ -32,8 +30,8 @@
 		{ key: 'title', label: 'Goal' },
 		{ key: 'progress', label: 'Progress', width: '11rem', hideBelow: 'md' as const },
 		{ key: 'due', label: 'Due', width: '9rem', hideBelow: 'md' as const },
-		{ key: 'status', label: 'Status', width: '7rem' },
-		{ key: 'actions', label: '', width: '3rem', align: 'end' as const }
+		{ key: 'category', label: 'Category', width: '11rem', hideBelow: 'md' as const },
+		{ key: 'actions', label: '', width: '3.5rem', align: 'end' as const }
 	];
 
 	let drawerOpen = $state(false);
@@ -42,48 +40,80 @@
 	let busy = $state(false);
 	let actionError = $state<unknown>(null);
 	/** Client-side narrowing on top of the status filter the loader applies. */
+	let query = $state('');
 	let categoryFilter = $state('all');
+	let timeframeFilter = $state('all');
+	let filtersOpen = $state(false);
 
-	const visible = $derived(
-		categoryFilter === 'all'
-			? data.goals
-			: data.goals.filter((goal) => String(goal.categoryId ?? '') === categoryFilter)
+	const categoryById = $derived(
+		new Map(data.categories.map((category) => [category.id, category]))
+	);
+	const categoryName = (goal: GoalSummary) =>
+		(goal.categoryId ? categoryById.get(goal.categoryId)?.name : undefined) ?? 'Uncategorized';
+	const colorOf = (goal: GoalSummary) =>
+		categoryColor(goal.categoryId ? categoryById.get(goal.categoryId)?.colorToken : undefined);
+
+	const filterCount = $derived(
+		(categoryFilter === 'all' ? 0 : 1) + (timeframeFilter === 'all' ? 0 : 1)
 	);
 
-	const categoryName = $derived(
-		new Map(data.categories.map((category) => [category.id, category.name]))
-	);
-
-	/** Goals arrive pre-sorted; grouping only splits them by category for display. */
-	const grouped = $derived.by(() => {
-		const byId = new Map(data.categories.map((category) => [category.id, category]));
-		const groups = new Map<string, { color: string; goals: typeof visible }>();
-
-		for (const goal of visible) {
-			const category = goal.categoryId ? byId.get(goal.categoryId) : undefined;
-			const name = category?.name ?? 'Uncategorized';
-			const group = groups.get(name) ?? { color: categoryColor(category?.colorToken), goals: [] };
-			groups.set(name, { ...group, goals: [...group.goals, goal] });
-		}
-		return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+	/** Goals arrive pre-sorted; these only narrow them. */
+	const visible = $derived.by(() => {
+		const needle = query.trim().toLowerCase();
+		return data.goals.filter((goal) => {
+			if (categoryFilter !== 'all' && String(goal.categoryId ?? '') !== categoryFilter)
+				return false;
+			if (timeframeFilter !== 'all' && goal.timeframe !== timeframeFilter) return false;
+			if (!needle) return true;
+			return [goal.title, categoryName(goal), TIMEFRAME_LABELS[goal.timeframe]]
+				.join(' ')
+				.toLowerCase()
+				.includes(needle);
+		});
 	});
+
+	const categoryOptions = $derived([
+		{ value: 'all', label: 'All', color: null },
+		...data.categories.map((category) => ({
+			value: String(category.id),
+			label: category.name,
+			color: categoryColor(category.colorToken)
+		})),
+		{ value: '', label: 'Uncategorized', color: null }
+	]);
+	const timeframeOptions = [
+		{ value: 'all', label: 'Any' },
+		...Object.entries(TIMEFRAME_LABELS).map(([value, label]) => ({ value, label }))
+	];
+
+	/** A category badge: its own color as a soft fill and a hairline ring, stronger when selected. */
+	function badgeStyle(color: string | null, active = false) {
+		if (!color) {
+			return active
+				? 'background:var(--color-surface);box-shadow:inset 0 0 0 1px var(--color-content)'
+				: 'box-shadow:inset 0 0 0 1px var(--color-subtle)';
+		}
+		return `background:color-mix(in srgb, ${color} ${active ? 30 : 14}%, transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb, ${color} ${active ? 85 : 32}%, transparent)`;
+	}
+
+	let filterWrap = $state<HTMLElement>();
+	let filterButton = $state<HTMLButtonElement>();
+
+	function closeFilters(refocus = false) {
+		filtersOpen = false;
+		if (refocus) filterButton?.focus();
+	}
+
+	function clearFilters() {
+		categoryFilter = 'all';
+		timeframeFilter = 'all';
+	}
 
 	const empty = $derived(
 		`No ${data.filter === 'all' ? '' : data.filter + ' '}goals here yet.${
 			data.filter === 'active' ? ' Create one to start tracking progress.' : ''
 		}`
 	);
-
-	const subLine = (goal: GoalSummary) =>
-		[
-			(goal.categoryId ? categoryName.get(goal.categoryId) : undefined) ?? 'Uncategorized',
-			TIMEFRAME_LABELS[goal.timeframe]
-		].join(' · ');
-
-	const counts = (goal: GoalSummary) =>
-		`${goal.subgoalCount} ${goal.subgoalCount === 1 ? 'subgoal' : 'subgoals'} · ${goal.taskCount} direct ${
-			goal.taskCount === 1 ? 'task' : 'tasks'
-		}`;
 
 	function newGoal() {
 		editingGoal = null;
@@ -114,9 +144,18 @@
 	const open = (goal: GoalSummary) => goto(`/goals/${goal.id}`);
 </script>
 
+<svelte:window
+	onmousedown={(event) => {
+		if (filtersOpen && !filterWrap?.contains(event.target as Node)) closeFilters();
+	}}
+	onkeydown={(event) => {
+		if (filtersOpen && event.key === 'Escape') closeFilters(true);
+	}}
+/>
+
 <svelte:head><title>Goals · Mushpoint</title></svelte:head>
 
-<PageHeader title="Goals" subtitle="{visible.length} {visible.length === 1 ? 'goal' : 'goals'}">
+<PageHeader title="Goals">
 	{#snippet actions()}
 		<button type="button" class="{button.primary} shrink-0" onclick={newGoal}>
 			<Icon name="plus" size={15} weight={2.4} />
@@ -135,19 +174,98 @@
 				(value) => goto(`/goals?status=${value}`, { keepFocus: true, noScroll: true })
 			}
 		/>
-		<Select
-			bind:value={categoryFilter}
-			ariaLabel="Filter goals by category"
-			class="w-55 max-w-full"
-			options={[
-				{ value: 'all', label: 'All categories' },
-				...data.categories.map((category) => ({
-					value: String(category.id),
-					label: category.name
-				})),
-				{ value: '', label: 'Uncategorized' }
-			]}
-		/>
+		<div class="ml-auto flex min-w-0 items-center gap-2">
+			<input
+				type="search"
+				class="{field.input} w-56 max-w-full min-w-32 shrink"
+				placeholder="Search goals"
+				aria-label="Search goals"
+				bind:value={query}
+			/>
+			<div class="relative shrink-0" bind:this={filterWrap}>
+				<button
+					bind:this={filterButton}
+					type="button"
+					class="{button.ghost} border border-subtle"
+					aria-expanded={filtersOpen}
+					aria-controls="goal-filters"
+					onclick={() => (filtersOpen = !filtersOpen)}
+				>
+					<Icon name="filter" size={14} weight={2.2} />
+					Filter
+					{#if filterCount > 0}
+						<span
+							class="rounded-full bg-accent px-1.5 text-2xs font-semibold text-accent-contrast tabular-nums"
+						>
+							{filterCount}
+						</span>
+					{/if}
+				</button>
+
+				{#if filtersOpen}
+					<div
+						id="goal-filters"
+						role="group"
+						aria-label="Goal filters"
+						class="absolute top-full right-0 z-20 mt-2 flex w-[min(22rem,calc(100vw-2rem))] flex-col gap-4 rounded-card border border-subtle bg-surface-raised p-4 shadow-[0_16px_40px_rgba(0,0,0,0.3)]"
+					>
+						<div>
+							<p class="mb-2 text-xs font-semibold text-muted">Category</p>
+							<div class="flex flex-wrap gap-1.5">
+								{#each categoryOptions as option (option.value)}
+									<button
+										type="button"
+										class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-[background-color,box-shadow] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {categoryFilter ===
+										option.value
+											? 'text-content'
+											: 'text-muted hover:text-content'}"
+										style={badgeStyle(option.color, categoryFilter === option.value)}
+										aria-pressed={categoryFilter === option.value}
+										onclick={() => (categoryFilter = option.value)}
+									>
+										{#if option.color}
+											<span
+												class="size-2 shrink-0 rounded-full"
+												style:background={option.color}
+												aria-hidden="true"
+											></span>
+										{/if}
+										{option.label}
+									</button>
+								{/each}
+							</div>
+						</div>
+						<div>
+							<p class="mb-2 text-xs font-semibold text-muted">Timeframe</p>
+							<div
+								role="group"
+								aria-label="Timeframe"
+								class="flex divide-x divide-subtle overflow-hidden rounded-control border border-subtle"
+							>
+								{#each timeframeOptions as option (option.value)}
+									<button
+										type="button"
+										class="flex-1 px-2 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent {timeframeFilter ===
+										option.value
+											? 'bg-surface text-content'
+											: 'text-muted hover:bg-surface hover:text-content'}"
+										aria-pressed={timeframeFilter === option.value}
+										onclick={() => (timeframeFilter = option.value)}
+									>
+										{option.label}
+									</button>
+								{/each}
+							</div>
+						</div>
+						{#if filterCount > 0}
+							<button type="button" class="{button.bare} self-start text-sm" onclick={clearFilters}>
+								Clear filters
+							</button>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</div>
 	</Toolbar>
 </div>
 
@@ -160,7 +278,7 @@
 	</div>
 {/if}
 
-{#snippet cellContent(goal: GoalSummary, key: string, color: string)}
+{#snippet cellContent(goal: GoalSummary, key: string)}
 	{#if key === 'title'}
 		<div class="min-w-0">
 			<p class="flex min-w-0 items-center gap-1.5">
@@ -172,9 +290,11 @@
 					class="truncate focus-visible:outline-2 focus-visible:outline-accent"
 					onclick={(event) => event.stopPropagation()}>{goal.title}</a
 				>
+				{#if goal.status !== 'active'}
+					<Pill tone={statusTone(goal.status)}>{GOAL_STATUS_LABELS[goal.status]}</Pill>
+				{/if}
 			</p>
-			<p class="truncate text-xs text-muted">{subLine(goal)}</p>
-			<p class="truncate text-xs text-muted max-md:hidden">{counts(goal)}</p>
+			<p class="truncate text-xs text-muted md:hidden">{categoryName(goal)}</p>
 		</div>
 	{:else if key === 'progress'}
 		<span class="flex items-center gap-2">
@@ -183,7 +303,7 @@
 					value={goal.progress}
 					label="{goal.title} progress"
 					height={5}
-					{color}
+					color={colorOf(goal)}
 					showValue={false}
 				/>
 			</span>
@@ -192,53 +312,50 @@
 			</span>
 		</span>
 	{:else if key === 'due'}
-		<span class="text-xs {DUE_CLASSES[dueTone(goal.dueDate)]}">{dueLabel(goal.dueDate)}</span>
-	{:else if key === 'status'}
-		<Pill tone={statusTone(goal.status)}>{GOAL_STATUS_LABELS[goal.status]}</Pill>
+		<span class="text-xs {DUE_CLASSES[dueTone(goal.dueDate)]}"
+			>{goal.dueDate ? dueLabel(goal.dueDate) : TIMEFRAME_LABELS[goal.timeframe]}</span
+		>
+	{:else if key === 'category'}
+		<span
+			class="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium text-content"
+			style={badgeStyle(goal.categoryId ? colorOf(goal) : null)}
+		>
+			{#if goal.categoryId}
+				<span
+					class="size-1.5 shrink-0 rounded-full"
+					style:background={colorOf(goal)}
+					aria-hidden="true"
+				></span>
+			{/if}
+			<span class="truncate">{categoryName(goal)}</span>
+		</span>
 	{:else}
 		<RowMenu
 			label="Actions for {goal.title}"
 			items={[
-				{ label: 'Edit', onSelect: () => edit(goal) },
-				{ label: 'Delete', danger: true, onSelect: () => (deletingGoal = goal) }
+				{ label: 'Edit', icon: 'edit', onSelect: () => edit(goal) },
+				{ label: 'Delete', icon: 'trash', danger: true, onSelect: () => (deletingGoal = goal) }
 			]}
 		/>
 	{/if}
 {/snippet}
 
-{#if visible.length === 0 && !data.error}
-	<div class="page-gutter">
+<div class="goal-rows page-gutter pb-6">
+	{#if !data.error}
 		<DataTable
 			{columns}
-			rows={[] as GoalSummary[]}
+			rows={visible}
 			rowKey={(goal) => goal.id}
 			{empty}
-			ariaLabel="Goals"
+			ariaLabel="All goals"
+			onRowClick={open}
 		>
-			{#snippet cell()}{/snippet}
+			{#snippet cell(goal, key)}
+				{@render cellContent(goal, key)}
+			{/snippet}
 		</DataTable>
-	</div>
-{:else if visible.length > 0}
-	{#each grouped as [name, group] (name)}
-		<section class="section-gutter mb-6">
-			<SectionHeader title={name} count={group.goals.length} />
-			<div class="page-gutter">
-				<DataTable
-					{columns}
-					rows={group.goals}
-					rowKey={(goal) => goal.id}
-					{empty}
-					ariaLabel="{name} goals"
-					onRowClick={open}
-				>
-					{#snippet cell(goal, key)}
-						{@render cellContent(goal, key, group.color)}
-					{/snippet}
-				</DataTable>
-			</div>
-		</section>
-	{/each}
-{/if}
+	{/if}
+</div>
 
 <GoalDrawer
 	open={drawerOpen}

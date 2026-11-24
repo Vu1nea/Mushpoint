@@ -7,7 +7,6 @@
 		deleteGoal,
 		deleteTask,
 		RECURRENCE_OPTIONS,
-		TIMEFRAME_LABELS,
 		type Recurrence,
 		type Subgoal,
 		type TaskSummary
@@ -18,13 +17,12 @@
 	import DatePicker from 'mushpoint-design/svelte/DatePicker.svelte';
 	import GanttChart from '$lib/components/tasks/GanttChart.svelte';
 	import GoalDrawer from '$lib/components/goals/GoalDrawer.svelte';
-	import GoalStatusSegment from '$lib/components/goals/GoalStatusSegment.svelte';
+	import GoalNote from '$lib/components/goals/GoalNote.svelte';
+	import GoalStatusControl from '$lib/components/goals/GoalStatusControl.svelte';
 	import Icon from '$lib/components/ui/Icon.svelte';
 	import KanbanBoard from '$lib/components/tasks/KanbanBoard.svelte';
 	import PageHeader from '$lib/components/shell/PageHeader.svelte';
 	import ProgressBar from 'mushpoint-design/svelte/ProgressBar.svelte';
-	import SectionHeader from 'mushpoint-design/svelte/SectionHeader.svelte';
-	import Stat from 'mushpoint-design/svelte/Stat.svelte';
 	import Select from 'mushpoint-design/svelte/Select.svelte';
 	import SubgoalRow from '$lib/components/goals/SubgoalRow.svelte';
 	import SubgoalDrawer from '$lib/components/goals/SubgoalDrawer.svelte';
@@ -32,8 +30,8 @@
 	import TaskRow from '$lib/components/tasks/TaskRow.svelte';
 	import { tabId, tabPanelId } from '$lib/components/ui/tabIds';
 	import Tabs from '$lib/components/ui/Tabs.svelte';
-	import { button, DUE_CLASSES, field } from '$lib/components/ui';
-	import { dueLabel, dueTone, percent, safeHref } from '$lib/format';
+	import { button, field } from '$lib/components/ui';
+	import { dueLabel, safeHref } from '$lib/format';
 	import { goalStats } from '$lib/goalStats';
 	import { stagger } from '$lib/motion';
 	import { categoryColor } from '$lib/theme/category';
@@ -82,12 +80,6 @@
 	/** Tasks that would otherwise silently become standalone once their subgoal is gone. */
 	const subgoalTaskCount = $derived(
 		data.goal?.subgoals.reduce((total, subgoal) => total + subgoal.tasks.length, 0) ?? 0
-	);
-	/** Habits among the direct tasks don't count toward the progress average, so
-	 * they're left out of this count too — otherwise the copy claims more tasks
-	 * were averaged than actually were. */
-	const progressDirectTaskCount = $derived(
-		data.goal?.directTasks.filter((task) => task.recurrence === null).length ?? 0
 	);
 
 	async function run(action: () => Promise<unknown>) {
@@ -182,7 +174,9 @@
 	{@const goal = data.goal}
 
 	<div>
-		<div class={dim}>
+		<!-- Not dimmed: the status control's dialogs are fixed-position, and a filter
+		     on an ancestor would trap them. The summary and note below dim instead. -->
+		<div>
 			<div class="page-gutter pt-5 md:pt-7">
 				<a
 					href="/goals"
@@ -192,12 +186,11 @@
 				</a>
 			</div>
 
-			<PageHeader title={goal.title} flush>
-				{#snippet subtitle()}
-					{goal.category?.name ?? 'Uncategorized'} · {TIMEFRAME_LABELS[goal.timeframe]} ·
-					<span class={DUE_CLASSES[dueTone(goal.dueDate)]}>{dueLabel(goal.dueDate)}</span>
-					{#if goal.fromIdea}· Promoted from an idea{/if}
-				{/snippet}
+			<PageHeader
+				title={goal.title}
+				subtitle={goal.fromIdea ? 'Promoted from an idea' : undefined}
+				flush
+			>
 				{#snippet actions()}
 					{#if safeHref(goal.repoUrl)}
 						<a
@@ -209,17 +202,16 @@
 							<Icon name="github" size={14} label="Open repository" />
 						</a>
 					{/if}
-					<button type="button" class="{button.icon} mp-hit" onclick={() => (editing = true)}>
-						<Icon name="edit" size={14} label="Edit goal" />
-					</button>
-					<button
-						type="button"
-						class="{button.icon} mp-hit"
-						disabled={busy}
-						onclick={() => (confirmingDelete = true)}
-					>
-						<Icon name="trash" size={14} label="Delete goal" />
-					</button>
+					<GoalStatusControl
+						goalId={goal.id}
+						title={goal.title}
+						status={goal.status}
+						progress={goal.progress}
+						onEdit={() => (editing = true)}
+						onDelete={() => (confirmingDelete = true)}
+						onMutated={invalidateAll}
+						onError={(error) => (actionError = error)}
+					/>
 				{/snippet}
 			</PageHeader>
 		</div>
@@ -230,164 +222,175 @@
 			</div>
 		{/if}
 
-		<div
-			class="grid grid-cols-2 gap-4 page-gutter pb-4 md:flex md:gap-12 {dim}"
-			role="group"
-			aria-label="Summary"
-		>
-			<Stat label="Progress" value="{stats.progressPct}%" />
-			<Stat label="Subgoals done" value="{stats.subgoalsDone}/{stats.subgoalsTotal}" />
-			<Stat label="Tasks done" value="{stats.tasksDone}/{stats.tasksTotal}" />
-			<Stat label="Due" value={goal.dueDate ? dueLabel(goal.dueDate) : 'None'} />
-		</div>
-
-		<div class="border-b border-subtle page-gutter pb-4">
-			<ProgressBar
-				value={goal.progress}
-				label="{goal.title} progress"
-				showValue={false}
-				color={accent}
-			/>
-			<p class="mt-2 text-xs text-muted">
-				{percent(goal.progress)} complete · averaged across {goal.subgoals.length} subgoals and {progressDirectTaskCount}
-				direct tasks
-			</p>
-			<div class="mt-3 max-w-sm">
-				<GoalStatusSegment
-					goalId={goal.id}
-					title={goal.title}
-					status={goal.status}
-					progress={goal.progress}
-					onMutated={invalidateAll}
-					onError={(error) => (actionError = error)}
-				/>
+		<div class="mb-6 border-b border-subtle pb-6 {dim}" role="group" aria-label="Summary">
+			<div class="page-gutter">
+				<div class="flex items-end gap-6">
+					<dl class="flex shrink-0 flex-col gap-0.5">
+						<dt class="text-xs text-muted">Progress</dt>
+						<dd class="m-0 font-display text-4xl leading-none font-bold tabular-nums">
+							{stats.progressPct}%
+						</dd>
+					</dl>
+					<div class="min-w-0 flex-1 pb-1.5">
+						<ProgressBar
+							value={goal.progress}
+							label="{goal.title} progress"
+							showValue={false}
+							height={8}
+							color={accent}
+						/>
+					</div>
+				</div>
+				<dl class="mt-4 flex flex-wrap gap-x-10 gap-y-3">
+					<div class="flex flex-col gap-0.5">
+						<dt class="text-xs text-muted">Subgoals done</dt>
+						<dd class="m-0 text-md font-semibold tabular-nums">
+							{stats.subgoalsDone}/{stats.subgoalsTotal}
+						</dd>
+					</div>
+					<div class="flex flex-col gap-0.5">
+						<dt class="text-xs text-muted">Tasks done</dt>
+						<dd class="m-0 text-md font-semibold tabular-nums">
+							{stats.tasksDone}/{stats.tasksTotal}
+						</dd>
+					</div>
+					<div class="flex flex-col gap-0.5">
+						<dt class="text-xs text-muted">Due</dt>
+						<dd class="m-0 text-md font-semibold">
+							{goal.dueDate ? dueLabel(goal.dueDate) : 'None'}
+						</dd>
+					</div>
+				</dl>
 			</div>
 		</div>
 
-		<section class="section-gutter border-b border-subtle pb-4 {dim}">
-			<SectionHeader title="Motivation" />
-			<div class="page-gutter pt-3">
-				{#if goal.motivationText}
-					<p class="text-md leading-relaxed italic">“{goal.motivationText}”</p>
-				{:else}
-					<p class="text-sm text-muted">No motivation yet — edit the goal to say why it matters.</p>
-				{/if}
-				{#if goal.description}
-					<h3 class="mt-4 mb-1 text-xs font-semibold tracking-[0.06em] text-muted uppercase">
-						Description
-					</h3>
-					<p class="text-md leading-relaxed">{goal.description}</p>
-				{/if}
-			</div>
-		</section>
-
-		<Tabs
-			id="goal-view"
-			label="Goal view"
-			tabs={GOAL_VIEWS}
-			value={view}
-			onChange={setView}
-			class="page-margin mt-4 mb-4"
-		/>
-
 		<div
-			role="tabpanel"
-			id={tabPanelId('goal-view', view)}
-			aria-labelledby={tabId('goal-view', view)}
-			class={view === 'list' ? '' : 'page-gutter pb-6'}
+			class="page-gutter pb-8 {view === 'list'
+				? 'flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] lg:items-start lg:gap-14'
+				: ''}"
 		>
 			{#if view === 'list'}
-				<section class="section-gutter border-b border-subtle pb-4">
-					<SectionHeader title="Subgoals" count={goal.subgoals.length} />
-					<p class="page-gutter pt-3 pb-2 text-sm text-muted">
-						Milestones toward the goal — each one can hold its own tasks and due date.
-					</p>
-
-					<div class="page-gutter">
-						{#if goal.subgoals.length === 0}
-							<p class="py-2 text-sm text-muted">No subgoals yet.</p>
-						{:else}
-							<ul class="divide-y divide-subtle" aria-label="Subgoals">
-								{#each goal.subgoals as subgoal, index (subgoal.id)}
-									<SubgoalRow
-										{subgoal}
-										onMutated={invalidateAll}
-										onError={(error) => (actionError = error)}
-										onEdit={() => (editingSubgoal = subgoal)}
-										delay={stagger(index)}
-									/>
-								{/each}
-							</ul>
-						{/if}
-
-						<form class="mt-3 flex gap-2" onsubmit={addSubgoal}>
-							<input
-								class="{field.dashed} max-w-100 min-w-0 flex-1"
-								bind:value={newSubgoalTitle}
-								placeholder="+ Add subgoal…"
-								aria-label="New subgoal"
-							/>
-							<DatePicker
-								bind:value={newSubgoalDue}
-								ariaLabel="New subgoal due date"
-								dashed
-								class="w-37.5 shrink-0"
-							/>
-						</form>
-					</div>
-				</section>
-
-				<section class="section-gutter pb-4">
-					<SectionHeader title="Direct tasks" count={goal.directTasks.length} />
-					<p class="page-gutter pt-3 pb-2 text-sm text-muted">
-						Tasks linked straight to the goal. Each one counts as much as a whole subgoal.
-					</p>
-
-					<div class="page-gutter">
-						{#if goal.directTasks.length > 0}
-							<ul class="mb-3 flex flex-col">
-								{#each goal.directTasks as task (task.id)}
-									<TaskRow
-										{task}
-										onMutated={invalidateAll}
-										onError={(error) => (actionError = error)}
-									/>
-								{/each}
-							</ul>
-						{:else}
-							<p class="mb-3 text-sm text-muted">No direct tasks yet.</p>
-						{/if}
-
-						<form class="flex gap-2" onsubmit={addDirectTask}>
-							<input
-								class="{field.dashed} min-w-0 flex-1"
-								bind:value={newTaskTitle}
-								placeholder="+ Add a task…"
-								aria-label="New direct task"
-							/>
-							<Select
-								class="w-37.5 shrink-0"
-								ariaLabel="New direct task repeats"
-								bind:value={newTaskRecurrence}
-								options={RECURRENCE_OPTIONS}
-							/>
-						</form>
-					</div>
-				</section>
-			{:else if view === 'timeline'}
-				<GanttChart {goal} />
-			{:else}
-				<KanbanBoard
-					goalId={goal.id}
-					tasks={boardTasks}
-					subgoals={goal.subgoals}
-					parentChipMode="subgoal-only"
-					onMutated={invalidateAll}
-					onError={(error) => (actionError = error)}
-					onEditTask={editTask}
-					onDeleteTask={(task) => (deletingTask = task)}
+				<GoalNote
+					class="{dim} lg:sticky lg:top-6 lg:col-start-2 lg:row-start-1"
+					motivation={goal.motivationText}
+					description={goal.description}
+					onEdit={() => (editing = true)}
 				/>
 			{/if}
+
+			<div class="min-w-0 lg:col-start-1 lg:row-start-1">
+				<Tabs
+					id="goal-view"
+					label="Goal view"
+					tabs={GOAL_VIEWS}
+					value={view}
+					onChange={setView}
+					class="mb-6"
+				/>
+
+				<div
+					role="tabpanel"
+					id={tabPanelId('goal-view', view)}
+					aria-labelledby={tabId('goal-view', view)}
+				>
+					{#if view === 'list'}
+						<section aria-label="Subgoals">
+							<h2 class="flex items-baseline gap-2 text-sm font-semibold">
+								Subgoals
+								<span class="text-xs font-semibold text-faint tabular-nums">
+									{goal.subgoals.length}
+								</span>
+							</h2>
+
+							{#if goal.subgoals.length === 0}
+								<p class="pt-2 text-sm text-muted">
+									Milestones toward the goal — each can hold its own tasks and due date.
+								</p>
+							{:else}
+								<ul class="mt-2 divide-y divide-subtle" aria-label="Subgoals">
+									{#each goal.subgoals as subgoal, index (subgoal.id)}
+										<SubgoalRow
+											{subgoal}
+											onMutated={invalidateAll}
+											onError={(error) => (actionError = error)}
+											onEdit={() => (editingSubgoal = subgoal)}
+											delay={stagger(index)}
+										/>
+									{/each}
+								</ul>
+							{/if}
+
+							<form class="mt-3 flex max-w-xl gap-2" onsubmit={addSubgoal}>
+								<input
+									class="{field.dashed} min-w-0 flex-1"
+									bind:value={newSubgoalTitle}
+									placeholder="+ Add subgoal…"
+									aria-label="New subgoal"
+								/>
+								<DatePicker
+									bind:value={newSubgoalDue}
+									ariaLabel="New subgoal due date"
+									dashed
+									class="w-37.5 shrink-0"
+								/>
+							</form>
+						</section>
+
+						<section class="mt-10" aria-label="Direct tasks">
+							<h2 class="flex items-baseline gap-2 text-sm font-semibold">
+								Direct tasks
+								<span class="text-xs font-semibold text-faint tabular-nums">
+									{goal.directTasks.length}
+								</span>
+							</h2>
+
+							{#if goal.directTasks.length > 0}
+								<ul class="mt-2 mb-3 flex flex-col">
+									{#each goal.directTasks as task (task.id)}
+										<TaskRow
+											{task}
+											onMutated={invalidateAll}
+											onError={(error) => (actionError = error)}
+										/>
+									{/each}
+								</ul>
+							{:else}
+								<p class="pt-2 pb-3 text-sm text-muted">
+									Tasks linked straight to the goal. Each counts as much as a whole subgoal.
+								</p>
+							{/if}
+
+							<form class="flex max-w-xl gap-2" onsubmit={addDirectTask}>
+								<input
+									class="{field.dashed} min-w-0 flex-1"
+									bind:value={newTaskTitle}
+									placeholder="+ Add a task…"
+									aria-label="New direct task"
+								/>
+								<Select
+									class="w-37.5 shrink-0"
+									ariaLabel="New direct task repeats"
+									bind:value={newTaskRecurrence}
+									options={RECURRENCE_OPTIONS}
+								/>
+							</form>
+						</section>
+					{:else if view === 'timeline'}
+						<GanttChart {goal} />
+					{:else}
+						<KanbanBoard
+							goalId={goal.id}
+							tasks={boardTasks}
+							subgoals={goal.subgoals}
+							parentChipMode="subgoal-only"
+							onMutated={invalidateAll}
+							onError={(error) => (actionError = error)}
+							onEditTask={editTask}
+							onDeleteTask={(task) => (deletingTask = task)}
+						/>
+					{/if}
+				</div>
+			</div>
 		</div>
 	</div>
 
