@@ -34,15 +34,26 @@
 			{#each top as card (card.task.id)}
 				<li class="flex flex-col gap-2 dash-pad py-2.5 text-sm">
 					<div class="flex items-center gap-3">
-						<Icon name="flame" size={14} class="shrink-0 text-accent-ink" />
 						<span class="min-w-0 flex-1">
 							<span class="block truncate">{card.task.title}</span>
 							<span class="block text-xs text-muted">
 								{card.task.recurrence ? RECURRENCE_LABELS[card.task.recurrence] : 'One-off'}
 							</span>
 						</span>
-						<b class="tabular-nums">{card.current}</b>
-						<span class="text-xs text-muted">best {card.longest}</span>
+						<span class="flex shrink-0 flex-col items-end gap-0.5">
+							<span class="flex items-center gap-1.5">
+								<Icon name="flame" size={16} class="shrink-0 text-accent-ink" />
+								<b class="text-base tabular-nums" aria-label="Current streak">{card.current}</b>
+							</span>
+							<span class="flex items-center gap-1.5 text-xs text-muted">
+								<Icon
+									name="crown"
+									size={14}
+									class="shrink-0 text-yellow-400 [[data-theme=coquette]_&]:text-yellow-600"
+								/>
+								<span class="tabular-nums" aria-label="Best streak">{card.longest}</span>
+							</span>
+						</span>
 					</div>
 					<StreakHeatmap cells={card.cells} active={card.current > 0} />
 				</li>
