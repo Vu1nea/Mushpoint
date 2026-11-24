@@ -74,6 +74,14 @@
 		const same = [...(buttons ?? [])].find((b) => b.dataset.direction === String(direction));
 		(same ?? buttons?.[0])?.focus();
 	}
+
+	/** Sticky-note tints and tilts, cycled by position so neighbours differ. */
+	const NOTES = [
+		{ fill: 'bg-accent/15', tape: 'bg-accent/40' },
+		{ fill: 'bg-accent-secondary/15', tape: 'bg-accent-secondary/40' },
+		{ fill: 'bg-accent-tertiary/15', tape: 'bg-accent-tertiary/40' }
+	];
+	const TILTS = [-1.5, 1, -0.5, 1.5];
 </script>
 
 {#if items.length === 0}
@@ -126,11 +134,28 @@
 						{/if}
 					</div>
 				{:else if item.quoteText}
-					<p
-						class="border-l-2 border-accent py-1 pl-3 font-display text-base leading-snug font-semibold wrap-break-word text-content sm:text-lg"
-					>
-						{item.quoteText}
-					</p>
+					{@const note = NOTES[index % NOTES.length]}
+					<!-- A sticky note: tinted from the theme, a strip of tape, and a slight tilt that
+					     varies down the board so the notes don't line up like cards. The tape sticks
+					     out above the note, so the wrapper pads it with `pt-4` (padding, not a margin:
+					     the board is CSS columns, which drop margins at a column's top edge and clip or
+					     misplace anything overflowing it, leaving stray tape). -->
+					<div class="pt-4">
+						<div
+							class="relative flex min-h-32 rotate-(--tilt) items-center rounded-control px-5 pt-7 pb-6 shadow-[0_10px_24px_-12px_rgb(0_0_0/0.6)] transition-[rotate] duration-(--mp-duration-base) ease-(--mp-ease-out) group-hover:rotate-0 motion-reduce:transition-none {note.fill}"
+							style:--tilt="{TILTS[index % TILTS.length]}deg"
+						>
+							<span
+								class="pointer-events-none absolute -top-2 left-1/2 h-4 w-14 -translate-x-1/2 rounded-[3px] {note.tape}"
+								aria-hidden="true"
+							></span>
+							<p
+								class="font-display text-base leading-snug font-medium wrap-break-word whitespace-pre-line text-content sm:text-lg"
+							>
+								{item.quoteText}
+							</p>
+						</div>
+					</div>
 				{/if}
 
 				<div

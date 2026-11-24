@@ -48,7 +48,7 @@ describe('VisionBoard keyboard reordering (WCAG 2.5.7)', () => {
 	});
 });
 
-describe('VisionBoard flat items', () => {
+describe('VisionBoard items', () => {
 	const html = render(VisionBoard, {
 		props: {
 			items: [item(1), item(2), { ...item(3), imageUrl: 'https://x.test/a.png' }],
@@ -61,12 +61,14 @@ describe('VisionBoard flat items', () => {
 	}).body;
 	const cards = html.split('<article').slice(1);
 
-	it('renders quote-only items flat, with no tilt, paper color or shadow', () => {
-		for (const card of cards) {
-			expect(card).not.toContain('rotate:');
-			expect(card).not.toMatch(/bg-\w+-200|bg-stone-50|shadow-/);
-		}
+	it('renders quote-only items as tilted sticky notes', () => {
 		expect(cards[0]).toContain('Quote 1');
+		expect(cards[0]).toContain('--tilt');
+		expect(cards[0]).toContain('shadow-');
+	});
+
+	it('keeps photos untilted and unshadowed', () => {
+		expect(cards[2]).not.toContain('--tilt');
 	});
 
 	it('keeps an image item caption in the DOM for screen readers', () => {

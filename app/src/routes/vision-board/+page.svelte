@@ -76,10 +76,7 @@
 
 <svelte:head><title>Vision Board · Mushpoint</title></svelte:head>
 
-<PageHeader
-	title="Vision Board"
-	subtitle="{data.items.length} {data.items.length === 1 ? 'item' : 'items'}"
->
+<PageHeader title="Vision Board">
 	{#snippet actions()}
 		<button type="button" class="{button.primary} shrink-0" onclick={addNew}>
 			<Icon name="plus" size={15} weight={2.4} />
