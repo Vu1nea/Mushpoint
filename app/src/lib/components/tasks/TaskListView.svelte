@@ -60,7 +60,7 @@
 		{ key: 'goal', label: 'Goal', width: '12rem', hideBelow: 'md' as const },
 		{ key: 'due', label: 'Due', width: '8rem', hideBelow: 'md' as const },
 		{ key: 'status', label: 'Status', width: '7.5rem' },
-		{ key: 'actions', label: '', width: '3rem', align: 'end' as const }
+		{ key: 'actions', label: '', width: '3.5rem', align: 'end' as const }
 	];
 
 	const goalOf = (task: TaskSummary) => (task.goalId ? goalTitle.get(task.goalId) : undefined);
@@ -142,8 +142,8 @@
 				<RowMenu
 					label="Actions for {task.title}"
 					items={[
-						{ label: 'Edit', onSelect: () => onEditTask(task) },
-						{ label: 'Delete', danger: true, onSelect: () => onDeleteTask(task) }
+						{ label: 'Edit', icon: 'edit', onSelect: () => onEditTask(task) },
+						{ label: 'Delete', icon: 'trash', danger: true, onSelect: () => onDeleteTask(task) }
 					]}
 				/>
 			{/if}

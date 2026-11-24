@@ -44,7 +44,7 @@
 		{ key: 'title', label: 'Idea' },
 		{ key: 'tags', label: 'Tags', width: '14rem', hideBelow: 'md' as const },
 		{ key: 'created', label: 'Created', width: '8rem', hideBelow: 'md' as const },
-		{ key: 'actions', label: '', width: '3rem', align: 'end' as const }
+		{ key: 'actions', label: '', width: '3.5rem', align: 'end' as const }
 	];
 	const MAX_TAGS = 3;
 
@@ -237,9 +237,14 @@
 					<RowMenu
 						label="Actions for {idea.title}"
 						items={[
-							{ label: 'Edit', onSelect: () => edit(idea) },
+							{ label: 'Edit', icon: 'edit', onSelect: () => edit(idea) },
 							{ label: 'Promote to goal', onSelect: () => promote(idea) },
-							{ label: 'Delete', danger: true, onSelect: () => (deletingIdea = idea) }
+							{
+								label: 'Delete',
+								icon: 'trash',
+								danger: true,
+								onSelect: () => (deletingIdea = idea)
+							}
 						]}
 					/>
 				{/if}
