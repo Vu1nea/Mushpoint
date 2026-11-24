@@ -142,6 +142,9 @@ test('Ctrl+K opens the command palette and Enter opens the first match', async (
 		await createGoal(page, title);
 
 		await page.goto('/tasks');
+		// The SPA mounts the shell, and its Ctrl+K listener, only once the page's load
+		// has resolved; a key pressed before that is lost.
+		await expect(page.getByRole('heading', { level: 1, name: 'Tasks' })).toBeVisible();
 		await page.keyboard.press('Control+k');
 		const palette = page.getByRole('dialog', { name: 'Search' });
 		await expect(palette).toBeVisible();
